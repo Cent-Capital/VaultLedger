@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vaultledger"
+version = "0.0.0"
+description = "Privacy-first, local-first financial-document Q&A with a rigorous evals harness."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Abhinav" }]
+
+# Phase 0 runtime deps. Later phases add their own (see comments); kept lean so
+# a fresh clone installs fast and the scaffold boots.
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "pyyaml>=6.0",
+    "streamlit>=1.33",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+]
+# Phase 1  (synthetic data):   faker, reportlab, fpdf2
+# Phase 2  (ingest/index):     pdfplumber, chromadb, rank-bm25, presidio-analyzer, presidio-anonymizer
+# Phase 4  (rerank):           sentence-transformers  (BAAI/bge-reranker-base)
+# Phase 5  (structured out):   instructor
+# Phase 8  (observability):    langfuse
+# Phase 11 (gateway):          litellm
+# Phase 15 (graph):            lightrag-hku, networkx
+
+[tool.setuptools.packages.find]
+include = ["vaultledger*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

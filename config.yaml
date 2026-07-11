@@ -1,0 +1,36 @@
+# VaultLedger configuration (SPEC.md Appendix B).
+# Single source of runtime knobs: seed, budgets, loop caps, thresholds,
+# and the model registry / tier map. Code reads this via vaultledger.config.
+#
+# NOTE: model IDs and hosted pricing drift. Verify T2/T3 IDs + prices at the
+# Phase 11 kickoff; manifests will pin whatever actually ran.
+
+seed: 42
+
+budgets:
+  session_usd: 2.00
+  project_usd: 40.00
+
+loops:
+  repair_max: 2
+  retrieval_retry_max: 1
+  escalations_max: 2
+  agent_steps_max: 6
+
+thresholds:
+  rerank_tau: 0.35
+  numeric_epsilon: 0.01
+  over_refusal_max: 0.05
+
+models:
+  T0: { id: "ollama/qwen3:4b" }          # local small: classification, query rewrite
+  T1: { id: "ollama/qwen3:8b" }          # local primary (use qwen3:30b-a3b on >=36GB RAM)
+  T2:                                     # open-weight hosted (not laptop-runnable)
+    - { id: "moonshot/kimi-k2.6" }
+    - { id: "openrouter/z-ai/glm-5.2" }
+  T3: { id: "anthropic/claude-sonnet-latest" }  # frontier, opt-in, budget-capped
+
+variant_default: B_hybrid
+
+reranker:
+  enabled: true
