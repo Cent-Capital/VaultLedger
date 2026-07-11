@@ -52,3 +52,8 @@ tests/         pytest incl. spec-by-example
 
 `make install · lint · test · run` today. `eval-smoke · eval-full · matrix ·
 replay` come online as their phases land.
+
+## License
+
+Proprietary — all rights reserved. See [`LICENSE`](./LICENSE). Created in
+connection with an internship at Cent Capital LLC; not licensed for reuse.

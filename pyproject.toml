@@ -8,8 +8,9 @@ version = "0.0.0"
 description = "Privacy-first, local-first financial-document Q&A with a rigorous evals harness."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-authors = [{ name = "Abhinav" }]
+license = { text = "Proprietary" }
+authors = [{ name = "Abhinav Gupta" }]
+classifiers = ["License :: Other/Proprietary License"]
 
 # Phase 0 runtime deps. Later phases add their own (see comments); kept lean so
 # a fresh clone installs fast and the scaffold boots.
