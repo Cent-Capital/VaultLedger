@@ -216,3 +216,105 @@ the geometry trick isn't trusted, it's measured.
 
 **Next:** Phase 3 — naive RAG (variant A) end-to-end + the ~80-item golden set
 + baseline metrics in a RunManifest.
+
+---
+
+## Phase 3 — Naive RAG + golden set  (2026-07-13)
+
+**Built**
+- `vaultledger/retrieve/` — Variant A dense baseline:
+  - `types.py` — shared `Retriever` protocol + `ScoredChunk`.
+  - `naive.py` — Chroma dense top-k over Phase-2 chunks using the pinned
+    Ollama embedding model.
+  - `context.py` — simple rank-order context assembly with explicit
+    "UNTRUSTED DOCUMENT CONTENT" wrapping.
+- `vaultledger/generate/` — minimal local generation path:
+  - `ollama.py` — local Ollama wrapper; strips `ollama/` model ids from config.
+  - `rag.py` — retrieve -> assemble -> generate -> `Answer` contract with local
+    T1 routing metadata and citation snippets.
+- `vaultledger/evals/` — Phase-3 harness:
+  - `golden_set.yaml` — 80 examples, versioned as `golden_set_v2_phase3`, with
+    category mix matching SPEC 8.5 (18 single_doc, 14 aggregation, 10
+    unanswerable, 8 adversarial, 12 multi_hop, 6 global_summary, 6
+    guardrail_benign, 6 cross_persona).
+  - `golden.py` — loader, hash, and snippet-anchor validation.
+  - `metrics.py` — retrieval recall@k, precision@k, MRR, hit-rate, and
+    `RANK_MISS` failure records.
+  - `run.py` / `__main__.py` — `python -m vaultledger.evals validate` and
+    `python -m vaultledger.evals run`.
+- Streamlit Ask screen now runs the local Variant-A path when Ollama is
+  reachable; Evals screen points to the CLI harness.
+- `Makefile` now uses the repo `.venv` automatically when present and wires
+  `make eval-smoke` to golden-set validation + a 12-example baseline attempt.
+- README status updated from stale Phase 0 text to the current Phase 3 state.
+- `tests/test_phase3.py` — deterministic tests for golden-set shape/snippets,
+  retrieval metrics, untrusted context wrapping, and answer contract assembly.
+
+**Acceptance criteria** — met with caveats below.
+- Grounded cited answer on a golden question:
+  `reports/phase3_b4407e88d3ba_answer.json`, example `sd_009`, answers
+  "Halcyon Retail Group" and cites `inv_david_halcyon_01#c0`;
+  `citation_docs_match_expected=true`.
+- Full set runs: real local run over all 80 golden examples wrote
+  `reports/phase3_b4407e88d3ba.json` and `reports/phase3_baseline_latest.json`.
+- Baseline metrics recorded in a RunManifest:
+  - `run_id`: `phase3_b4407e88d3ba`
+  - `git_sha`: `85ea6f7b6943bd930ab2d68d3e5dfb6b898e00ca`
+  - `golden_set_hash`:
+    `ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b`
+  - `retrieval_recall@20`: `0.9586734693877551`
+  - `retrieval_precision@20`: `0.1007142857142856`
+  - `retrieval_mrr`: `0.49739239518651296`
+  - `retrieval_hit_rate`: `0.9857142857142858`
+  - `retrieval_eval_coverage`: `0.875` (70 answerable examples / 80 total;
+    unanswerable questions are excluded from retriever-only metrics)
+  - `total_cost_usd`: `0.0`
+
+**Verification**
+- `make lint` — passed (`ruff check .`, all checks passed).
+- `make test` — passed (`41 passed, 1 skipped`).
+- `python -m vaultledger.evals validate` — passed (`80 examples`,
+  hash prefix `ece0ea370052`).
+- `make eval-smoke` — golden validation passed, then the dense mini-run skipped
+  under sandboxed localhost access with the honest message that Ollama was
+  unavailable. The full baseline run was executed separately with approved
+  local-Ollama access and produced the manifest above.
+
+**Deviations from SPEC**
+- Phase 3 records **retrieval metrics only** in the baseline manifest. Full
+  generation correctness, faithfulness, abstention confusion matrix, and
+  citation-verification scoring are Phase 5/7/9 work per SPEC; this phase proves
+  the end-to-end path with one generated cited answer and keeps the measured
+  full-set metrics to the retriever, where scoring is deterministic today.
+- `make eval-smoke` is designed to skip the dense mini-run if Ollama is not
+  reachable, while still validating the golden set. This keeps ordinary CI/local
+  shells from failing on missing local model runtime; acceptance runs must use
+  the real `python -m vaultledger.evals run` path and produce a RunManifest.
+- The simple Phase-3 answer path attaches the top retrieved snippets as
+  citations; it does not yet parse/verify the model's claimed citations. That is
+  intentionally left for the structured-output and citation-verification phases.
+
+**Honest findings for Phase 4**
+- Dense-only retrieval misses relationship/global-summary cases even at k=20.
+  The six `RANK_MISS` failures in the baseline manifest are:
+  `mh_008`, `mh_012`, `gs_001`, `gs_003`, `gs_004`, `gs_006`.
+- The first generated-answer probe (`sd_001`) produced the right answer text but
+  attached nearby Marcus statement citations rather than the March statement.
+  That artifact is retained as `reports/phase3_6fc894fd69cf_answer.json` as a
+  useful failure example. The accepted grounded-answer artifact is
+  `reports/phase3_b4407e88d3ba_answer.json`.
+
+**Trickiest piece (plain English)**
+The important distinction in Phase 3 is "retrieval can be measured
+deterministically; generation cannot be trusted just because it sounds right."
+The naive dense retriever often finds the right neighborhood but not the exact
+document first — for example, Marcus's March closing balance also appears as
+April's beginning balance, so a model can answer correctly while the citation is
+not the source the question asked for. That is why the manifest scores retrieval
+against expected doc IDs before generation, and why the generated-answer artifact
+now includes an explicit `citation_docs_match_expected` flag. The failure is not
+hidden; it becomes the Phase-4 reason to add lexical search, RRF, reranking, and
+later citation verification.
+
+**Next:** Phase 4 — hybrid retrieval (dense + BM25 + RRF + rerank), before/after
+table versus `phase3_b4407e88d3ba`, and measured MRR/recall improvement.

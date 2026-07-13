@@ -17,8 +17,10 @@ never financial advice.
 
 ## Status
 
-**Phase 0 complete** — scaffold, typed config, data contracts, app shell.
-Next: Phase 1 (synthetic data). See the phase plan in SPEC.md Section 16.
+**Phases 0-2 complete** — scaffold/config, deterministic synthetic corpus,
+ingestion, typed-record storage, PII tagging, Chroma, and BM25 indexes.
+**Phase 3 in progress** — naive dense RAG baseline + golden set + RunManifest.
+See the phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
 
 ## Prerequisites
 
@@ -31,7 +33,8 @@ Next: Phase 1 (synthetic data). See the phase plan in SPEC.md Section 16.
 ```bash
 python -m venv .venv && source .venv/bin/activate
 make install          # editable install + dev tools
-make test             # schemas import, config loads, loop-lint
+make test             # unit tests and phase gates
+make eval-smoke       # golden-set validation + small Phase 3 baseline if Ollama is running
 make run              # launch the Streamlit app
 ```
 
@@ -50,8 +53,8 @@ tests/         pytest incl. spec-by-example
 
 ## Make targets
 
-`make install · lint · test · run` today. `eval-smoke · eval-full · matrix ·
-replay` come online as their phases land.
+`make install · lint · test · data · ingest · eval-smoke · run` today.
+`eval-full · matrix · replay` come online as their phases land.
 
 ## License
 

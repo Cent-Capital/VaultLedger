@@ -1,26 +1,28 @@
 # VaultLedger developer entrypoints (SPEC.md Section 17).
-# Eval targets are stubbed until Phase 3 stands up the harness.
+
+PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
 .PHONY: install lint test data ingest eval-smoke eval-full matrix replay run clean
 
 install:  ## Install the package + dev tools into the active environment
-	python -m pip install -e ".[dev,synth]"
-	python -m spacy download en_core_web_sm
+	$(PYTHON) -m pip install -e ".[dev,synth]"
+	$(PYTHON) -m spacy download en_core_web_sm
 
 data:  ## Regenerate the synthetic corpus (byte-identical from the seed)
-	python -m vaultledger.synth
+	$(PYTHON) -m vaultledger.synth
 
 ingest:  ## Ingest the corpus: parse -> extract -> SQLite -> PII -> chunk -> index
-	python -m vaultledger.ingest
+	$(PYTHON) -m vaultledger.ingest
 
 lint:  ## Static checks: ruff
-	ruff check .
+	$(PYTHON) -m ruff check .
 
 test:  ## Unit tests + schema/config/loop-lint gates
-	pytest
+	$(PYTHON) -m pytest
 
 eval-smoke:  ## Fast deterministic eval subset (Phase 3+)
-	@echo "eval-smoke: not implemented until Phase 3 (golden set + retrieval metrics)."
+	$(PYTHON) -m vaultledger.evals validate
+	$(PYTHON) -m vaultledger.evals run --limit 12 --skip-if-unavailable
 
 eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
 	@echo "eval-full: not implemented until Phase 9."
@@ -32,7 +34,7 @@ replay:  ## Re-execute a past query from its trace (Phase 8+)
 	@echo "replay: not implemented until Phase 8. Usage: make replay TRACE=<trace_id>"
 
 run:  ## Launch the Streamlit app
-	streamlit run app/streamlit_app.py
+	$(PYTHON) -m streamlit run app/streamlit_app.py
 
 clean:  ## Remove caches and build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

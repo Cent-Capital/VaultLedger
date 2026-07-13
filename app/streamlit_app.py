@@ -1,8 +1,8 @@
 """VaultLedger UI shell (SPEC.md Section 6).
 
-Phase 2: the Library screen shows the real ingested corpus (documents table,
-PII tag counts, index stats) and can rebuild the indexes. The other screens
-remain labelled placeholders until their phases land.
+Phase 3: the Library screen shows the real ingested corpus and can rebuild the
+indexes. The Ask screen runs the naive dense local baseline when Ollama is
+available. Evals validates the golden set and points to the CLI harness.
 
 Run:  streamlit run app/streamlit_app.py
 """
@@ -28,7 +28,7 @@ cfg = load_config()
 st.title("🔒 VaultLedger")
 st.caption(
     "Your private financial analyst that never phones home. "
-    f"Build {__version__} · Phase 2 (ingestion & indexing)."
+    f"Build {__version__} · Phase 3 (naive RAG baseline)."
 )
 
 with st.sidebar:
@@ -114,16 +114,60 @@ with library:
 
 with ask:
     st.header("Ask")
-    st.info(
-        "Phase 3+: grounded answers with citation chips, the Privacy Switch, "
-        "and the per-answer 'data left your machine' badge."
+    st.caption("Local mode only. Variant A naive dense retrieval over the local Chroma index.")
+    question = st.text_input(
+        "Question",
+        placeholder="What was Marcus Chen's March closing balance?",
     )
+    ask_clicked = st.button("Ask locally", type="primary", disabled=not question.strip())
+
+    if ask_clicked:
+        from vaultledger.generate import OllamaGenerator, answer_question
+        from vaultledger.index.embed import OllamaEmbedder
+        from vaultledger.retrieve import NaiveDenseRetriever
+
+        try:
+            embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
+            if not embedder.is_available():
+                st.error(
+                    f"Ollama embedding model `{cfg.embedding.model}` is not available. "
+                    "Start Ollama and pull the model, then rebuild the index if needed."
+                )
+            else:
+                retriever = NaiveDenseRetriever(index_dir, embedder)
+                generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
+                if not generator.is_available():
+                    st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
+                else:
+                    with st.spinner("Retrieving and answering locally..."):
+                        answer = answer_question(
+                            question,
+                            retriever,
+                            generator,
+                            model_id=cfg.models.T1.id,
+                        )
+                    st.success("Data stayed on your machine")
+                    st.write(answer.answer_text)
+                    if answer.citations:
+                        st.subheader("Citations")
+                        for c in answer.citations:
+                            with st.expander(f"{c.doc_id} · page {c.page} · {c.chunk_id}"):
+                                st.write(c.snippet)
+                    st.caption(
+                        f"model={answer.model_used} · tier={answer.tier} · "
+                        f"variant={answer.variant} · confidence={answer.confidence:.2f}"
+                    )
+        except (RuntimeError, FileNotFoundError, KeyError) as exc:
+            st.error(str(exc))
 
 with evals:
     st.header("Evals dashboard")
-    st.info(
-        "Phase 3+: retrieval before/after, faithfulness + abstention matrix, "
-        "adversarial pass rates, guardrail confusion matrix, regression diff."
+    st.write("Phase 3 CLI:")
+    st.code("make eval-smoke", language="bash")
+    st.code(".venv/bin/python -m vaultledger.evals run --answer-one", language="bash")
+    st.caption(
+        "The dashboard visualization lands in later phases; the harness already "
+        "writes RunManifest JSON under reports/."
     )
 
 with lab:

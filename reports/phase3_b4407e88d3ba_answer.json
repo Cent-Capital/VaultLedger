@@ -1,0 +1,53 @@
+{
+  "example_id": "sd_009",
+  "question": "Who was billed on invoice DAVID-HALCYON-001?",
+  "expected_answer": "Halcyon Retail Group was billed.",
+  "expected_doc_ids": [
+    "inv_david_halcyon_01"
+  ],
+  "citation_docs_match_expected": true,
+  "answer": {
+    "answer_text": "The invoice DAVID-HALCYON-001 was billed to **Halcyon Retail Group**.  \n\n**Answer:** Halcyon Retail Group  \n**Citation:** `inv_david_halcyon_01#c0` (Bill To: Halcyon Retail Group)",
+    "citations": [
+      {
+        "chunk_id": "inv_david_halcyon_01#c0",
+        "doc_id": "inv_david_halcyon_01",
+        "page": 1,
+        "snippet": "INVOICE Invoice #: DAVID-HALCYON-001 Issued: 2025-01-12 Due: 2025-02-11 From: David Okafor 4127 Maple Hollow Dr, Austin, TX 78745 Bill To: Halcyon Retail Group 1200 Commerce Blvd, Columbus, OH 43215 Description Qty Unit Amount Landing page build 1 $1,796.30 $1,796.30 SEO audit 2 $713.68 $1,427.36 Content strategy works"
+      },
+      {
+        "chunk_id": "inv_david_halcyon_03#c0",
+        "doc_id": "inv_david_halcyon_03",
+        "page": 1,
+        "snippet": "INVOICE Invoice #: DAVID-HALCYON-003 Issued: 2025-03-12 Due: 2025-04-11 From: David Okafor 4127 Maple Hollow Dr, Austin, TX 78745 Bill To: Halcyon Retail Group 1200 Commerce Blvd, Columbus, OH 43215 Description Qty Unit Amount SEO audit 3 $816.72 $2,450.16 Landing page build 3 $1,800.60 $5,401.80 Total $7,851.96"
+      },
+      {
+        "chunk_id": "inv_david_halcyon_05#c0",
+        "doc_id": "inv_david_halcyon_05",
+        "page": 1,
+        "snippet": "INVOICE Invoice #: DAVID-HALCYON-005 Issued: 2025-05-12 Due: 2025-06-11 From: David Okafor 4127 Maple Hollow Dr, Austin, TX 78745 Bill To: Halcyon Retail Group 1200 Commerce Blvd, Columbus, OH 43215 Description Qty Unit Amount Content strategy workshop 3 $1,171.73 $3,515.19 Analytics dashboard setup 4 $1,696.44 $6,785."
+      }
+    ],
+    "abstained": false,
+    "confidence": 0.6947532127729584,
+    "model_used": "ollama/qwen3:8b",
+    "tier": "T1",
+    "variant": "A_naive",
+    "privacy_mode": "local",
+    "data_left_machine": false,
+    "routing": {
+      "query_id": "q_da4341728eba",
+      "allowed_tiers": [
+        "T1"
+      ],
+      "chosen_tier": "T1",
+      "chosen_model": "ollama/qwen3:8b",
+      "reason": "Phase 3 local baseline: privacy=local, fixed T1 model",
+      "escalations": 0,
+      "est_cost_usd": 0.0,
+      "actual_cost_usd": 0.0
+    },
+    "guardrail_events": [],
+    "agent_steps": []
+  }
+}

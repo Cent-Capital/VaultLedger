@@ -1,0 +1,50 @@
+{
+  "run_id": "phase3_6fc894fd69cf",
+  "timestamp": "2026-07-13T21:13:50.893890+00:00",
+  "git_sha": "85ea6f7b6943bd930ab2d68d3e5dfb6b898e00ca",
+  "config_hash": "0efaee0dceb3641afc56d044b063d787b505587dd07444f73340b6ce8958427b",
+  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "seed": 42,
+  "variant": "A_naive",
+  "model": "nomic-embed-text",
+  "metrics": {
+    "retrieval_recall@20": 0.9586734693877551,
+    "retrieval_precision@20": 0.1007142857142856,
+    "retrieval_mrr": 0.49739239518651296,
+    "retrieval_hit_rate": 0.9857142857142858,
+    "retrieval_eval_coverage": 0.875
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "mh_008",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_cedargrove_priya_2024"
+    },
+    {
+      "example_id": "mh_012",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_halcyon_priya_2024"
+    },
+    {
+      "example_id": "gs_001",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_halcyon_priya_2024"
+    },
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_marcus_checking_2025-03"
+    },
+    {
+      "example_id": "gs_004",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_cedargrove_priya_2024, f1099_halcyon_priya_2024"
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: inv_priya_cedargrove_03_dup, inv_priya_halcyon_04, stmt_marcus_checking_2025-03"
+    }
+  ]
+}

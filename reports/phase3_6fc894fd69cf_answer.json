@@ -1,0 +1,44 @@
+{
+  "answer_text": "Marcus Chen's March 2025 checking closing balance is **$4,207.55**. This is explicitly stated in the account statement for March 2025, which details all transactions and confirms the final balance after accounting for debits and credits, including a significant service fee. \n\n**Answer:** $4,207.55",
+  "citations": [
+    {
+      "chunk_id": "stmt_marcus_checking_2025-04#c0",
+      "doc_id": "stmt_marcus_checking_2025-04",
+      "page": 1,
+      "snippet": "Cascade Credit Union Account Statement Member: Marcus Chen Mailing address: 218 Larkspur Lane, Astoria, NY 11106 Account no. ****4021 | Type: Checking Period 2025-04-01 - 2025-04-30 Beginning balance $4,207.55 Date Description Amount 2025-04-02 Nimbus Analytics LLC Payroll $2,525.39 2025-04-04 Whole Foods Market $-108."
+    },
+    {
+      "chunk_id": "stmt_marcus_checking_2025-02#c0",
+      "doc_id": "stmt_marcus_checking_2025-02",
+      "page": 1,
+      "snippet": "Cascade Credit Union Account Statement Member: Marcus Chen Mailing address: 218 Larkspur Lane, Astoria, NY 11106 Account no. ****4021 | Type: Checking Period 2025-02-01 - 2025-02-28 Beginning balance $8,399.35 Date Description Amount 2025-02-02 Nimbus Analytics LLC Payroll $2,525.39 2025-02-03 Blue Bottle Coffee $-18.9"
+    },
+    {
+      "chunk_id": "stmt_marcus_savings_2025-04#c0",
+      "doc_id": "stmt_marcus_savings_2025-04",
+      "page": 1,
+      "snippet": "Cascade Credit Union Account Statement Member: Marcus Chen Mailing address: 218 Larkspur Lane, Astoria, NY 11106 Account no. ****7788 | Type: Savings Period 2025-04-01 - 2025-04-30 Beginning balance $16,690.00 Date Description Amount 2025-04-02 Transfer from Checking 4021 $500.00 Ending balance $17,190.00"
+    }
+  ],
+  "abstained": false,
+  "confidence": 0.6180524242579635,
+  "model_used": "ollama/qwen3:8b",
+  "tier": "T1",
+  "variant": "A_naive",
+  "privacy_mode": "local",
+  "data_left_machine": false,
+  "routing": {
+    "query_id": "q_1b91002e433f",
+    "allowed_tiers": [
+      "T1"
+    ],
+    "chosen_tier": "T1",
+    "chosen_model": "ollama/qwen3:8b",
+    "reason": "Phase 3 local baseline: privacy=local, fixed T1 model",
+    "escalations": 0,
+    "est_cost_usd": 0.0,
+    "actual_cost_usd": 0.0
+  },
+  "guardrail_events": [],
+  "agent_steps": []
+}
