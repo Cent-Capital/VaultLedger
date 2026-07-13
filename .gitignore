@@ -36,3 +36,6 @@ reports/**/*.html
 
 # OS
 .DS_Store
+
+# Derived indexes (rebuild with `make ingest`)
+data/index/

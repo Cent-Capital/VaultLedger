@@ -1,13 +1,17 @@
 # VaultLedger developer entrypoints (SPEC.md Section 17).
 # Eval targets are stubbed until Phase 3 stands up the harness.
 
-.PHONY: install lint test data eval-smoke eval-full matrix replay run clean
+.PHONY: install lint test data ingest eval-smoke eval-full matrix replay run clean
 
 install:  ## Install the package + dev tools into the active environment
 	python -m pip install -e ".[dev,synth]"
+	python -m spacy download en_core_web_sm
 
 data:  ## Regenerate the synthetic corpus (byte-identical from the seed)
 	python -m vaultledger.synth
+
+ingest:  ## Ingest the corpus: parse -> extract -> SQLite -> PII -> chunk -> index
+	python -m vaultledger.ingest
 
 lint:  ## Static checks: ruff
 	ruff check .

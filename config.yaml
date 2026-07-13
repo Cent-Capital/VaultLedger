@@ -34,3 +34,16 @@ variant_default: B_hybrid
 
 reranker:
   enabled: true
+
+embedding:
+  model: "nomic-embed-text"          # local via Ollama; changing this invalidates the index
+  ollama_url: "http://localhost:11434"
+
+chunking:
+  max_chars: 2400                    # ~600 tokens at ~4 chars/token (SPEC 8.4: 500-800)
+  overlap_frac: 0.15
+
+paths:
+  pdfs: "data/synthetic_pdfs"
+  ground_truth: "data/ground_truth"
+  index_dir: "data/index"            # derived, rebuildable, gitignored

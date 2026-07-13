@@ -57,6 +57,24 @@ class Reranker(BaseModel):
     enabled: bool = True
 
 
+class Embedding(BaseModel):
+    model: str = "nomic-embed-text"
+    ollama_url: str = "http://localhost:11434"
+
+
+class Chunking(BaseModel):
+    max_chars: int = 2400  # ~600 tokens at ~4 chars/token (SPEC 8.4: 500-800)
+    overlap_frac: float = 0.15
+
+
+class Paths(BaseModel):
+    """Repo-relative data locations (resolve via ``Config.repo_path``)."""
+
+    pdfs: str = "data/synthetic_pdfs"
+    ground_truth: str = "data/ground_truth"
+    index_dir: str = "data/index"  # derived, rebuildable, gitignored
+
+
 class Config(BaseSettings):
     """Validated view of ``config.yaml``."""
 
@@ -72,6 +90,13 @@ class Config(BaseSettings):
     models: ModelRegistry
     variant_default: str = "B_hybrid"
     reranker: Reranker = Reranker()
+    embedding: Embedding = Embedding()
+    chunking: Chunking = Chunking()
+    paths: Paths = Paths()
+
+    def repo_path(self, rel: str) -> Path:
+        """Resolve a repo-relative path from config against the repo root."""
+        return REPO_ROOT / rel
 
     @classmethod
     def settings_customise_sources(
@@ -113,6 +138,9 @@ __all__ = [
     "ModelRef",
     "ModelRegistry",
     "Reranker",
+    "Embedding",
+    "Chunking",
+    "Paths",
     "load_config",
     "CONFIG_PATH",
     "REPO_ROOT",
