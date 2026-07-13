@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_david_checking_2025-06",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "holder_address": "4127 Maple Hollow Dr, Austin, TX 78745"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "account_type": "checking",
+    "closing_balance": 21909.69,
+    "opening_balance": 19076.9,
+    "period_end": "2025-06-30",
+    "period_start": "2025-06-01",
+    "transactions": [
+      {
+        "amount": 2040.0,
+        "date": "2025-06-02",
+        "description": "Nimbus Analytics LLC Contract",
+        "type": "credit"
+      },
+      {
+        "amount": 1650.0,
+        "date": "2025-06-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 158.61,
+        "date": "2025-06-05",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 21.94,
+        "date": "2025-06-05",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 212.11,
+        "date": "2025-06-05",
+        "description": "The Home Depot",
+        "type": "debit"
+      },
+      {
+        "amount": 224.58,
+        "date": "2025-06-07",
+        "description": "Delta Air Lines",
+        "type": "debit"
+      },
+      {
+        "amount": 72.0,
+        "date": "2025-06-13",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 74.83,
+        "date": "2025-06-14",
+        "description": "CVS Pharmacy",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-06-21",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 77.15,
+        "date": "2025-06-22",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      }
+    ]
+  }
+}

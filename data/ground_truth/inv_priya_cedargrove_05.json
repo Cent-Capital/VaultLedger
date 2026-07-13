@@ -1,0 +1,41 @@
+{
+  "defects": [],
+  "doc_id": "inv_priya_cedargrove_05",
+  "doc_type": "invoice",
+  "entities": {
+    "bill_to": "Cedar Grove Media",
+    "bill_to_address": "77 Media Row, Burbank, CA 91502",
+    "issuer": "Priya Raman",
+    "issuer_address": "55 Kingfisher Ct, Somerville, MA 02144",
+    "printed_total": 9311.64
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "due_date": "2025-06-11",
+    "invoice_number": "PRIYA-CEDARGROVE-005",
+    "issue_date": "2025-05-12",
+    "line_items": [
+      {
+        "amount": 3948.27,
+        "desc": "Content strategy workshop",
+        "qty": 3,
+        "unit_price": 1316.09
+      },
+      {
+        "amount": 5363.37,
+        "desc": "Landing page build",
+        "qty": 3,
+        "unit_price": 1787.79
+      }
+    ],
+    "total": 9311.64,
+    "vendor": "Priya Raman"
+  }
+}

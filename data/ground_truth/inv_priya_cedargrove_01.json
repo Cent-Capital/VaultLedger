@@ -1,0 +1,41 @@
+{
+  "defects": [],
+  "doc_id": "inv_priya_cedargrove_01",
+  "doc_type": "invoice",
+  "entities": {
+    "bill_to": "Cedar Grove Media",
+    "bill_to_address": "77 Media Row, Burbank, CA 91502",
+    "issuer": "Priya Raman",
+    "issuer_address": "55 Kingfisher Ct, Somerville, MA 02144",
+    "printed_total": 4912.26
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "due_date": "2025-02-11",
+    "invoice_number": "PRIYA-CEDARGROVE-001",
+    "issue_date": "2025-01-12",
+    "line_items": [
+      {
+        "amount": 738.42,
+        "desc": "SEO audit",
+        "qty": 1,
+        "unit_price": 738.42
+      },
+      {
+        "amount": 4173.84,
+        "desc": "Brand identity revision",
+        "qty": 4,
+        "unit_price": 1043.46
+      }
+    ],
+    "total": 4912.26,
+    "vendor": "Priya Raman"
+  }
+}

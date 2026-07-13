@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_david_checking_2025-04",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "holder_address": "4127 Maple Hollow Dr, Austin, TX 78745"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "account_type": "checking",
+    "closing_balance": 16084.51,
+    "opening_balance": 13254.3,
+    "period_end": "2025-04-30",
+    "period_start": "2025-04-01",
+    "transactions": [
+      {
+        "amount": 2040.0,
+        "date": "2025-04-02",
+        "description": "Nimbus Analytics LLC Contract",
+        "type": "credit"
+      },
+      {
+        "amount": 1650.0,
+        "date": "2025-04-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 71.7,
+        "date": "2025-04-04",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-04-04",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 205.66,
+        "date": "2025-04-05",
+        "description": "CVS Pharmacy",
+        "type": "debit"
+      },
+      {
+        "amount": 146.45,
+        "date": "2025-04-05",
+        "description": "Shell Gas",
+        "type": "debit"
+      },
+      {
+        "amount": 77.98,
+        "date": "2025-04-13",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 6.8,
+        "date": "2025-04-18",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 127.13,
+        "date": "2025-04-20",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 208.08,
+        "date": "2025-04-24",
+        "description": "The Home Depot",
+        "type": "debit"
+      }
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_priya_checking_2025-03",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Priya Raman",
+    "account_last4": "3390",
+    "holder_address": "55 Kingfisher Ct, Somerville, MA 02144"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Priya Raman",
+    "account_last4": "3390",
+    "account_type": "checking",
+    "closing_balance": 21304.01,
+    "opening_balance": 16139.29,
+    "period_end": "2025-03-31",
+    "period_start": "2025-03-01",
+    "transactions": [
+      {
+        "amount": 3200.0,
+        "date": "2025-03-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 2600.0,
+        "date": "2025-03-02",
+        "description": "Cedar Grove Media Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-03-03",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 28.79,
+        "date": "2025-03-05",
+        "description": "CVS Pharmacy",
+        "type": "debit"
+      },
+      {
+        "amount": 211.82,
+        "date": "2025-03-10",
+        "description": "Uber",
+        "type": "debit"
+      },
+      {
+        "amount": 64.31,
+        "date": "2025-03-12",
+        "description": "Shell Gas",
+        "type": "debit"
+      },
+      {
+        "amount": 62.9,
+        "date": "2025-03-14",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 15.58,
+        "date": "2025-03-18",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 92.26,
+        "date": "2025-03-19",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 143.63,
+        "date": "2025-03-20",
+        "description": "Con Edison",
+        "type": "debit"
+      }
+    ]
+  }
+}

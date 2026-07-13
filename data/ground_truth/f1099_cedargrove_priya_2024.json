@@ -1,0 +1,27 @@
+{
+  "defects": [],
+  "doc_id": "f1099_cedargrove_priya_2024",
+  "doc_type": "form_1099",
+  "entities": {
+    "payer": "Cedar Grove Media",
+    "payer_address": "77 Media Row, Burbank, CA 91502",
+    "recipient": "Priya Raman",
+    "recipient_address": "55 Kingfisher Ct, Somerville, MA 02144"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "US_ITIN"
+  ],
+  "record": {
+    "box_amounts": {
+      "1": 8500.0
+    },
+    "payer_name": "Cedar Grove Media",
+    "recipient_name": "Priya Raman",
+    "tax_year": 2024
+  }
+}

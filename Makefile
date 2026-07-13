@@ -1,10 +1,13 @@
 # VaultLedger developer entrypoints (SPEC.md Section 17).
 # Eval targets are stubbed until Phase 3 stands up the harness.
 
-.PHONY: install lint test eval-smoke eval-full matrix replay run clean
+.PHONY: install lint test data eval-smoke eval-full matrix replay run clean
 
 install:  ## Install the package + dev tools into the active environment
-	python -m pip install -e ".[dev]"
+	python -m pip install -e ".[dev,synth]"
+
+data:  ## Regenerate the synthetic corpus (byte-identical from the seed)
+	python -m vaultledger.synth
 
 lint:  ## Static checks: ruff
 	ruff check .

@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_marcus_checking_2025-05",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "4021",
+    "holder_address": "218 Larkspur Lane, Astoria, NY 11106"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "4021",
+    "account_type": "checking",
+    "closing_balance": 12833.57,
+    "opening_balance": 8622.84,
+    "period_end": "2025-05-31",
+    "period_start": "2025-05-01",
+    "transactions": [
+      {
+        "amount": 2525.39,
+        "date": "2025-05-02",
+        "description": "Nimbus Analytics LLC Payroll",
+        "type": "credit"
+      },
+      {
+        "amount": 106.52,
+        "date": "2025-05-05",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 129.82,
+        "date": "2025-05-08",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-05-08",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 85.55,
+        "date": "2025-05-10",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 198.84,
+        "date": "2025-05-10",
+        "description": "Trader Joe's",
+        "type": "debit"
+      },
+      {
+        "amount": 13.4,
+        "date": "2025-05-11",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 101.67,
+        "date": "2025-05-13",
+        "description": "CVS Pharmacy",
+        "type": "debit"
+      },
+      {
+        "amount": 2525.39,
+        "date": "2025-05-16",
+        "description": "Nimbus Analytics LLC Payroll",
+        "type": "credit"
+      },
+      {
+        "amount": 188.26,
+        "date": "2025-05-27",
+        "description": "Delta Air Lines",
+        "type": "debit"
+      }
+    ]
+  }
+}

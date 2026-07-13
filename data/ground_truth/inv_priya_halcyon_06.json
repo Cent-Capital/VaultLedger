@@ -1,0 +1,41 @@
+{
+  "defects": [],
+  "doc_id": "inv_priya_halcyon_06",
+  "doc_type": "invoice",
+  "entities": {
+    "bill_to": "Halcyon Retail Group",
+    "bill_to_address": "1200 Commerce Blvd, Columbus, OH 43215",
+    "issuer": "Priya Raman",
+    "issuer_address": "55 Kingfisher Ct, Somerville, MA 02144",
+    "printed_total": 2201.79
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "due_date": "2025-07-12",
+    "invoice_number": "PRIYA-HALCYON-006",
+    "issue_date": "2025-06-12",
+    "line_items": [
+      {
+        "amount": 1177.06,
+        "desc": "Content strategy workshop",
+        "qty": 1,
+        "unit_price": 1177.06
+      },
+      {
+        "amount": 1024.73,
+        "desc": "Brand identity revision",
+        "qty": 1,
+        "unit_price": 1024.73
+      }
+    ],
+    "total": 2201.79,
+    "vendor": "Priya Raman"
+  }
+}

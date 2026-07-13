@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_marcus_checking_2025-04",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "4021",
+    "holder_address": "218 Larkspur Lane, Astoria, NY 11106"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "4021",
+    "account_type": "checking",
+    "closing_balance": 8622.84,
+    "opening_balance": 4207.55,
+    "period_end": "2025-04-30",
+    "period_start": "2025-04-01",
+    "transactions": [
+      {
+        "amount": 2525.39,
+        "date": "2025-04-02",
+        "description": "Nimbus Analytics LLC Payroll",
+        "type": "credit"
+      },
+      {
+        "amount": 108.41,
+        "date": "2025-04-04",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 81.63,
+        "date": "2025-04-05",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-04-10",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 171.12,
+        "date": "2025-04-11",
+        "description": "Trader Joe's",
+        "type": "debit"
+      },
+      {
+        "amount": 46.57,
+        "date": "2025-04-14",
+        "description": "The Home Depot",
+        "type": "debit"
+      },
+      {
+        "amount": 57.4,
+        "date": "2025-04-14",
+        "description": "Delta Air Lines",
+        "type": "debit"
+      },
+      {
+        "amount": 19.86,
+        "date": "2025-04-15",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 2525.39,
+        "date": "2025-04-16",
+        "description": "Nimbus Analytics LLC Payroll",
+        "type": "credit"
+      },
+      {
+        "amount": 134.51,
+        "date": "2025-04-27",
+        "description": "Con Edison",
+        "type": "debit"
+      }
+    ]
+  }
+}

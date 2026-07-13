@@ -25,8 +25,13 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "ruff>=0.4",
+    "pdfplumber>=0.11",  # Phase 1 tests read back rendered PDFs to verify on-page content
 ]
-# Phase 1  (synthetic data):   faker, reportlab, fpdf2
+# Synthetic-corpus generation (Phase 1). Kept out of the runtime deps: the app
+# reads pre-generated PDFs; only regeneration needs these.
+synth = [
+    "fpdf2>=2.8,<3",  # pinned: PDF bytes must stay stable for the byte-identity AC
+]
 # Phase 2  (ingest/index):     pdfplumber, chromadb, rank-bm25, presidio-analyzer, presidio-anonymizer
 # Phase 4  (rerank):           sentence-transformers  (BAAI/bge-reranker-base)
 # Phase 5  (structured out):   instructor

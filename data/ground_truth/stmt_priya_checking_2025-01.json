@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_priya_checking_2025-01",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Priya Raman",
+    "account_last4": "3390",
+    "holder_address": "55 Kingfisher Ct, Somerville, MA 02144"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Priya Raman",
+    "account_last4": "3390",
+    "account_type": "checking",
+    "closing_balance": 11108.85,
+    "opening_balance": 6100.0,
+    "period_end": "2025-01-31",
+    "period_start": "2025-01-01",
+    "transactions": [
+      {
+        "amount": 3200.0,
+        "date": "2025-01-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 2600.0,
+        "date": "2025-01-02",
+        "description": "Cedar Grove Media Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 166.15,
+        "date": "2025-01-03",
+        "description": "The Home Depot",
+        "type": "debit"
+      },
+      {
+        "amount": 49.24,
+        "date": "2025-01-06",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 166.48,
+        "date": "2025-01-06",
+        "description": "CVS Pharmacy",
+        "type": "debit"
+      },
+      {
+        "amount": 88.76,
+        "date": "2025-01-08",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 7.02,
+        "date": "2025-01-15",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 89.67,
+        "date": "2025-01-16",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 207.84,
+        "date": "2025-01-20",
+        "description": "Uber",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-01-22",
+        "description": "Netflix",
+        "type": "debit"
+      }
+    ]
+  }
+}

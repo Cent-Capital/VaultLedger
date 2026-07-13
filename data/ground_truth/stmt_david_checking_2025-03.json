@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_david_checking_2025-03",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "holder_address": "4127 Maple Hollow Dr, Austin, TX 78745"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "account_type": "checking",
+    "closing_balance": 13254.3,
+    "opening_balance": 10357.28,
+    "period_end": "2025-03-31",
+    "period_start": "2025-03-01",
+    "transactions": [
+      {
+        "amount": 2040.0,
+        "date": "2025-03-02",
+        "description": "Nimbus Analytics LLC Contract",
+        "type": "credit"
+      },
+      {
+        "amount": 1650.0,
+        "date": "2025-03-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 79.63,
+        "date": "2025-03-03",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 152.82,
+        "date": "2025-03-04",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 88.71,
+        "date": "2025-03-09",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-03-15",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 10.24,
+        "date": "2025-03-17",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 44.76,
+        "date": "2025-03-18",
+        "description": "Trader Joe's",
+        "type": "debit"
+      },
+      {
+        "amount": 161.89,
+        "date": "2025-03-20",
+        "description": "Delta Air Lines",
+        "type": "debit"
+      },
+      {
+        "amount": 238.94,
+        "date": "2025-03-26",
+        "description": "The Home Depot",
+        "type": "debit"
+      }
+    ]
+  }
+}

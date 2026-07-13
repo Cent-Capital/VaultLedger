@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_priya_checking_2025-02",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Priya Raman",
+    "account_last4": "3390",
+    "holder_address": "55 Kingfisher Ct, Somerville, MA 02144"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Priya Raman",
+    "account_last4": "3390",
+    "account_type": "checking",
+    "closing_balance": 16139.29,
+    "opening_balance": 11108.85,
+    "period_end": "2025-02-28",
+    "period_start": "2025-02-01",
+    "transactions": [
+      {
+        "amount": 3200.0,
+        "date": "2025-02-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 2600.0,
+        "date": "2025-02-02",
+        "description": "Cedar Grove Media Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-02-08",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 93.33,
+        "date": "2025-02-11",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 144.17,
+        "date": "2025-02-13",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 78.78,
+        "date": "2025-02-16",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 219.82,
+        "date": "2025-02-19",
+        "description": "The Home Depot",
+        "type": "debit"
+      },
+      {
+        "amount": 77.94,
+        "date": "2025-02-23",
+        "description": "Uber",
+        "type": "debit"
+      },
+      {
+        "amount": 126.27,
+        "date": "2025-02-23",
+        "description": "Amazon Marketplace",
+        "type": "debit"
+      },
+      {
+        "amount": 13.26,
+        "date": "2025-02-26",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      }
+    ]
+  }
+}

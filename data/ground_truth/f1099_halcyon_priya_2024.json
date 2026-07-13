@@ -1,0 +1,27 @@
+{
+  "defects": [],
+  "doc_id": "f1099_halcyon_priya_2024",
+  "doc_type": "form_1099",
+  "entities": {
+    "payer": "Halcyon Retail Group",
+    "payer_address": "1200 Commerce Blvd, Columbus, OH 43215",
+    "recipient": "Priya Raman",
+    "recipient_address": "55 Kingfisher Ct, Somerville, MA 02144"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "US_ITIN"
+  ],
+  "record": {
+    "box_amounts": {
+      "1": 12000.0
+    },
+    "payer_name": "Halcyon Retail Group",
+    "recipient_name": "Priya Raman",
+    "tax_year": 2024
+  }
+}

@@ -54,3 +54,77 @@ boundary" habit is why every knob in the system routes through one typed object.
 
 **Next:** Phase 1 — synthetic data (entity-rich corpus + ground truth +
 poisoned doc + wrong-total doc), regenerable byte-identical from the seed.
+
+---
+
+## Phase 1 — Synthetic data  (2026-07-13)
+
+**Built**
+- `vaultledger/synth/` — deterministic corpus generator:
+  - `personas.py` — the fixed cast (3 personas, 3 orgs, merchant lists) and the
+    intended relationships.
+  - `records.py` — typed records for all 60 docs (SPEC 8.2 shapes) + the
+    `entities.json` relation graph, from one seeded RNG in a fixed order.
+  - `render.py` — `fpdf2` renderer, two visual layouts per doc type,
+    byte-deterministic.
+  - `build.py` + `__main__.py` — orchestrator; `python -m vaultledger.synth`
+    (also `make data`) writes PDFs + per-doc ground-truth JSON + entities.json.
+- **60 documents:** 24 bank statements (4 accounts x 6 months), 12 pay stubs,
+  5 1099s, 19 invoices (incl. the near-duplicate).
+- **Entity richness (SPEC 8.3), all present and test-verified:** Nimbus is both
+  Marcus's pay-stub employer and David's 1099 payer; Halcyon/Cedar Grove appear
+  on invoices *and* as 1099 payers; Marcus holds two accounts (aggregation);
+  the five recurring merchants hit every monthly statement; the Nimbus address
+  is shared across Marcus's pay stubs and David's 1099.
+- **Deliberate hard cases:** injection line embedded in Marcus's March checking
+  statement; one invoice whose printed total (`$16,431.22`) disagrees with its
+  line-item sum (`$16,251.22`); one near-duplicate invoice; abstention targets
+  (credit score, SSN, loan balance) intentionally absent from the corpus.
+- **Spec-by-example anchors baked in:** E1 (Marcus March closing `$4,207.55`),
+  E2 (Priya's two 1099s, `$12,000 + $8,500 = $20,500`).
+- `tests/test_phase1.py` — 16 ACs, each re-derived from the generated corpus
+  (the `entities.json` booleans are never trusted alone).
+
+**Acceptance criteria** — met.
+- Regenerate byte-identical from the seed: two fresh builds hash-match across all
+  121 files; committed ground-truth JSON equals a fresh build byte-for-byte.
+- Entity requirements verifiably present: independent tests confirm each 8.3
+  relationship from the records.
+- Adversarial line present: pdfplumber confirms the exact injection string is on
+  the poisoned statement's page and absent from a clean statement.
+
+**Deviations from SPEC**
+- **Faker dropped; fixed cast + seeded `random` instead.** The cross-document
+  relationships are *requirements*, not samples — they must be guaranteed, and
+  Faker output can drift across versions, which would threaten the byte-identity
+  AC. Names/addresses are hand-fixed (and obviously synthetic); only amounts,
+  dates, and occasional-merchant sprinkle are randomized from the seed. Faker is
+  not a dependency (don't declare deps we don't use).
+- **fpdf2 over reportlab** (both listed as acceptable in 7.1): fpdf2's pinnable
+  creation date makes byte-identity straightforward. No ADR — within the stated
+  default.
+- **pdfplumber pulled forward** (a Phase 2 dep) into the dev/test extra so the
+  Phase-1 tests can read the rendered PDFs back and *prove* the injection and the
+  wrong printed total are on the page. Runtime deps unchanged.
+- **Invoice `bill_to` lives in the ground-truth `entities` block, not `record`.**
+  SPEC 8.2's invoice schema names `vendor` (the issuer) but no client field; the
+  typed `record` stays exactly the 8.2 shape while the client<->1099 edge stays
+  explicit and scoreable. Similarly `account_type` is added to statement records
+  (a harmless superset) to disambiguate Marcus's two accounts.
+
+**Trickiest piece (plain English)**
+Byte-identical PDF regeneration. A PDF normally embeds the wall-clock time it was
+created and a library/version string, so two runs — or a laptop and CI — produce
+different bytes even from identical content. Three pins fix that: a
+timezone-anchored constant creation date (a naive datetime would pick up the
+host timezone and diverge), fixed producer/author strings, and core fonts only
+(no embedded-font nondeterminism). Why it matters: the corpus is the *fixture*
+every later eval trusts. If the data silently shifted between runs, every
+downstream metric would be measuring against a moving target and "did retrieval
+improve?" becomes unanswerable. Related pin: to land E1's exact `$4,207.55`
+closing while keeping the statement self-consistent (closing = opening + sum of
+transactions), the generator appends one honest balancing line ("Monthly
+Interest") rather than fudging the printed number — the document still reconciles.
+
+**Next:** Phase 2 — ingestion & indexing (parse -> type/extract -> SQLite ->
+PII-tag -> chunk -> embed -> Chroma + BM25).

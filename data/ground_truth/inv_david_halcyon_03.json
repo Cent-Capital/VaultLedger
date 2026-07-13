@@ -1,0 +1,41 @@
+{
+  "defects": [],
+  "doc_id": "inv_david_halcyon_03",
+  "doc_type": "invoice",
+  "entities": {
+    "bill_to": "Halcyon Retail Group",
+    "bill_to_address": "1200 Commerce Blvd, Columbus, OH 43215",
+    "issuer": "David Okafor",
+    "issuer_address": "4127 Maple Hollow Dr, Austin, TX 78745",
+    "printed_total": 7851.96
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "due_date": "2025-04-11",
+    "invoice_number": "DAVID-HALCYON-003",
+    "issue_date": "2025-03-12",
+    "line_items": [
+      {
+        "amount": 2450.16,
+        "desc": "SEO audit",
+        "qty": 3,
+        "unit_price": 816.72
+      },
+      {
+        "amount": 5401.8,
+        "desc": "Landing page build",
+        "qty": 3,
+        "unit_price": 1800.6
+      }
+    ],
+    "total": 7851.96,
+    "vendor": "David Okafor"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "defects": [],
+  "doc_id": "f1099_nimbus_david_2024",
+  "doc_type": "form_1099",
+  "entities": {
+    "payer": "Nimbus Analytics LLC",
+    "payer_address": "900 Innovation Pkwy Suite 400, Jersey City, NJ 07302",
+    "recipient": "David Okafor",
+    "recipient_address": "4127 Maple Hollow Dr, Austin, TX 78745"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "US_ITIN"
+  ],
+  "record": {
+    "box_amounts": {
+      "1": 24500.0
+    },
+    "payer_name": "Nimbus Analytics LLC",
+    "recipient_name": "David Okafor",
+    "tax_year": 2024
+  }
+}

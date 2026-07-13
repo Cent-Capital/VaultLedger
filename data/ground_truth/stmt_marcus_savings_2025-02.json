@@ -1,0 +1,41 @@
+{
+  "defects": [],
+  "doc_id": "stmt_marcus_savings_2025-02",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "7788",
+    "holder_address": "218 Larkspur Lane, Astoria, NY 11106"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "7788",
+    "account_type": "savings",
+    "closing_balance": 16195.0,
+    "opening_balance": 15700.0,
+    "period_end": "2025-02-28",
+    "period_start": "2025-02-01",
+    "transactions": [
+      {
+        "amount": 500.0,
+        "date": "2025-02-02",
+        "description": "Transfer from Checking 4021",
+        "type": "credit"
+      },
+      {
+        "amount": 5.0,
+        "date": "2025-02-20",
+        "description": "Monthly Maintenance Fee",
+        "type": "debit"
+      }
+    ]
+  }
+}

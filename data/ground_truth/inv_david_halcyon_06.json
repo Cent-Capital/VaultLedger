@@ -1,0 +1,47 @@
+{
+  "defects": [],
+  "doc_id": "inv_david_halcyon_06",
+  "doc_type": "invoice",
+  "entities": {
+    "bill_to": "Halcyon Retail Group",
+    "bill_to_address": "1200 Commerce Blvd, Columbus, OH 43215",
+    "issuer": "David Okafor",
+    "issuer_address": "4127 Maple Hollow Dr, Austin, TX 78745",
+    "printed_total": 7786.05
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "due_date": "2025-07-12",
+    "invoice_number": "DAVID-HALCYON-006",
+    "issue_date": "2025-06-12",
+    "line_items": [
+      {
+        "amount": 1629.42,
+        "desc": "SEO audit",
+        "qty": 2,
+        "unit_price": 814.71
+      },
+      {
+        "amount": 2786.58,
+        "desc": "Brand identity revision",
+        "qty": 3,
+        "unit_price": 928.86
+      },
+      {
+        "amount": 3370.05,
+        "desc": "Content strategy workshop",
+        "qty": 3,
+        "unit_price": 1123.35
+      }
+    ],
+    "total": 7786.05,
+    "vendor": "David Okafor"
+  }
+}

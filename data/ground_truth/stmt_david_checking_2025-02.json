@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_david_checking_2025-02",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "holder_address": "4127 Maple Hollow Dr, Austin, TX 78745"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "David Okafor",
+    "account_last4": "5567",
+    "account_type": "checking",
+    "closing_balance": 10357.28,
+    "opening_balance": 7400.09,
+    "period_end": "2025-02-28",
+    "period_start": "2025-02-01",
+    "transactions": [
+      {
+        "amount": 2040.0,
+        "date": "2025-02-02",
+        "description": "Nimbus Analytics LLC Contract",
+        "type": "credit"
+      },
+      {
+        "amount": 1650.0,
+        "date": "2025-02-02",
+        "description": "Halcyon Retail Group Payment",
+        "type": "credit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-02-05",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 222.99,
+        "date": "2025-02-05",
+        "description": "Shell Gas",
+        "type": "debit"
+      },
+      {
+        "amount": 87.62,
+        "date": "2025-02-08",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 81.46,
+        "date": "2025-02-10",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 47.42,
+        "date": "2025-02-10",
+        "description": "Trader Joe's",
+        "type": "debit"
+      },
+      {
+        "amount": 62.12,
+        "date": "2025-02-17",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 13.09,
+        "date": "2025-02-20",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 202.12,
+        "date": "2025-02-20",
+        "description": "Amazon Marketplace",
+        "type": "debit"
+      }
+    ]
+  }
+}

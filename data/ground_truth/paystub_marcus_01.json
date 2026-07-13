@@ -1,0 +1,35 @@
+{
+  "defects": [],
+  "doc_id": "paystub_marcus_01",
+  "doc_type": "pay_stub",
+  "entities": {
+    "employee": "Marcus Chen",
+    "employee_address": "218 Larkspur Lane, Astoria, NY 11106",
+    "employer": "Nimbus Analytics LLC",
+    "employer_address": "900 Innovation Pkwy Suite 400, Jersey City, NJ 07302"
+  },
+  "has_adversarial_note": false,
+  "layout": "A",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "deductions": {
+      "federal_tax": 605.77,
+      "health_insurance": 142.0,
+      "medicare": 58.56,
+      "retirement_401k": 242.31,
+      "social_security": 250.39,
+      "state_tax": 214.04
+    },
+    "employee": "Marcus Chen",
+    "employer": "Nimbus Analytics LLC",
+    "gross_pay": 4038.46,
+    "net_pay": 2525.39,
+    "pay_date": "2025-01-25",
+    "pay_period": "2025-01-10 to 2025-01-23"
+  }
+}

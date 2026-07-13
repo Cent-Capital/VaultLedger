@@ -1,0 +1,53 @@
+{
+  "defects": [
+    {
+      "line_item_sum": 16251.22,
+      "printed_total": 16431.22,
+      "type": "wrong_printed_total"
+    }
+  ],
+  "doc_id": "inv_priya_halcyon_04",
+  "doc_type": "invoice",
+  "entities": {
+    "bill_to": "Halcyon Retail Group",
+    "bill_to_address": "1200 Commerce Blvd, Columbus, OH 43215",
+    "issuer": "Priya Raman",
+    "issuer_address": "55 Kingfisher Ct, Somerville, MA 02144",
+    "printed_total": 16431.22
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "due_date": "2025-05-12",
+    "invoice_number": "PRIYA-HALCYON-004",
+    "issue_date": "2025-04-12",
+    "line_items": [
+      {
+        "amount": 5678.34,
+        "desc": "Landing page build",
+        "qty": 3,
+        "unit_price": 1892.78
+      },
+      {
+        "amount": 4021.2,
+        "desc": "UX design sprint",
+        "qty": 3,
+        "unit_price": 1340.4
+      },
+      {
+        "amount": 6551.68,
+        "desc": "Analytics dashboard setup",
+        "qty": 4,
+        "unit_price": 1637.92
+      }
+    ],
+    "total": 16251.22,
+    "vendor": "Priya Raman"
+  }
+}

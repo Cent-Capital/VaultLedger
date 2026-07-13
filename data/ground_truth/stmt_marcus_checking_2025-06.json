@@ -1,0 +1,89 @@
+{
+  "defects": [],
+  "doc_id": "stmt_marcus_checking_2025-06",
+  "doc_type": "bank_statement",
+  "entities": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "4021",
+    "holder_address": "218 Larkspur Lane, Astoria, NY 11106"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "US_BANK_NUMBER",
+    "LOCATION",
+    "DATE_TIME"
+  ],
+  "record": {
+    "account_holder": "Marcus Chen",
+    "account_last4": "4021",
+    "account_type": "checking",
+    "closing_balance": 17219.47,
+    "opening_balance": 12833.57,
+    "period_end": "2025-06-30",
+    "period_start": "2025-06-01",
+    "transactions": [
+      {
+        "amount": 2525.39,
+        "date": "2025-06-02",
+        "description": "Nimbus Analytics LLC Payroll",
+        "type": "credit"
+      },
+      {
+        "amount": 65.97,
+        "date": "2025-06-07",
+        "description": "Uber",
+        "type": "debit"
+      },
+      {
+        "amount": 153.87,
+        "date": "2025-06-13",
+        "description": "Con Edison",
+        "type": "debit"
+      },
+      {
+        "amount": 15.99,
+        "date": "2025-06-15",
+        "description": "Netflix",
+        "type": "debit"
+      },
+      {
+        "amount": 2525.39,
+        "date": "2025-06-16",
+        "description": "Nimbus Analytics LLC Payroll",
+        "type": "credit"
+      },
+      {
+        "amount": 80.4,
+        "date": "2025-06-18",
+        "description": "Verizon Wireless",
+        "type": "debit"
+      },
+      {
+        "amount": 133.5,
+        "date": "2025-06-20",
+        "description": "Amazon Marketplace",
+        "type": "debit"
+      },
+      {
+        "amount": 50.96,
+        "date": "2025-06-21",
+        "description": "Whole Foods Market",
+        "type": "debit"
+      },
+      {
+        "amount": 20.15,
+        "date": "2025-06-23",
+        "description": "Blue Bottle Coffee",
+        "type": "debit"
+      },
+      {
+        "amount": 144.04,
+        "date": "2025-06-26",
+        "description": "CVS Pharmacy",
+        "type": "debit"
+      }
+    ]
+  }
+}

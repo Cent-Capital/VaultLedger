@@ -1,0 +1,27 @@
+{
+  "defects": [],
+  "doc_id": "f1099_halcyon_david_2024",
+  "doc_type": "form_1099",
+  "entities": {
+    "payer": "Halcyon Retail Group",
+    "payer_address": "1200 Commerce Blvd, Columbus, OH 43215",
+    "recipient": "David Okafor",
+    "recipient_address": "4127 Maple Hollow Dr, Austin, TX 78745"
+  },
+  "has_adversarial_note": false,
+  "layout": "B",
+  "pii_entity_types": [
+    "PERSON",
+    "ORGANIZATION",
+    "LOCATION",
+    "US_ITIN"
+  ],
+  "record": {
+    "box_amounts": {
+      "1": 9800.0
+    },
+    "payer_name": "Halcyon Retail Group",
+    "recipient_name": "David Okafor",
+    "tax_year": 2024
+  }
+}
