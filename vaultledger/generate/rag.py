@@ -64,7 +64,11 @@ def answer_question(
         allowed_tiers=["T1"],
         chosen_tier="T1",
         chosen_model=model_id,
-        reason="Phase 3 local baseline: privacy=local, fixed T1 model",
+        reason=(
+            "Phase 3 local baseline: privacy=local, fixed T1 model"
+            if retriever.variant == "A_naive"
+            else "Phase 4 local hybrid: privacy=local, fixed T1 model"
+        ),
         est_cost_usd=0.0,
         actual_cost_usd=0.0,
     )
@@ -75,7 +79,7 @@ def answer_question(
         confidence=0.0 if abstained else (cited_hits[0].score if cited_hits else 0.0),
         model_used=model_id,
         tier="T1",
-        variant="A_naive",
+        variant=retriever.variant,
         privacy_mode="local",
         data_left_machine=False,
         routing=routing,

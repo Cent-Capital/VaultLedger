@@ -4,8 +4,8 @@ PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else e
 
 .PHONY: install lint test data ingest eval-smoke eval-full matrix replay run clean
 
-install:  ## Install the package + dev tools into the active environment
-	$(PYTHON) -m pip install -e ".[dev,synth]"
+install:  ## Install the package + dev, synth, and Phase-4 reranking tools
+	$(PYTHON) -m pip install -e ".[dev,synth,rerank]"
 	$(PYTHON) -m spacy download en_core_web_sm
 
 data:  ## Regenerate the synthetic corpus (byte-identical from the seed)

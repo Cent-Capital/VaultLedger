@@ -34,6 +34,13 @@ variant_default: B_hybrid
 
 reranker:
   enabled: true
+  model: "BAAI/bge-reranker-base" # cross-encoder; downloaded on first use
+  batch_size: 16
+
+retrieval:
+  candidate_k: 20                 # candidates from each of dense and BM25
+  rrf_constant: 60                # SPEC 9.6 reciprocal-rank-fusion constant
+  answer_top_n: 6                 # final context chunks for generation
 
 embedding:
   model: "nomic-embed-text"          # local via Ollama; changing this invalidates the index

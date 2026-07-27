@@ -62,6 +62,6 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–2 complete (scaffold, synthetic data, ingestion & indexing).
-**Next: Phase 3 — naive RAG + golden set.** Timeline compressed 2026-07-13:
+Phases 0–4 complete (scaffold through measured hybrid retrieval).
+**Next: Phase 5 — structured-output reliability.** Timeline compressed 2026-07-13:
 Track A by ~Jul 26, whole project by Aug 10 (SPEC §16). See `PROGRESS.md`.

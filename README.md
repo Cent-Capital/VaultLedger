@@ -17,9 +17,11 @@ never financial advice.
 
 ## Status
 
-**Phases 0-2 complete** — scaffold/config, deterministic synthetic corpus,
-ingestion, typed-record storage, PII tagging, Chroma, and BM25 indexes.
-**Phase 3 in progress** — naive dense RAG baseline + golden set + RunManifest.
+**Phases 0-4 complete** — scaffold/config, deterministic synthetic corpus,
+ingestion/indexing, an 80-example golden set, and measured naive-vs-hybrid
+retrieval. Phase 4 lifted recall@20 from 0.9587 to 0.9786 and MRR from 0.4974
+to 0.7856; see `reports/phase4_comparison_latest.md`. **Next: Phase 5** —
+structured output, bounded repair, citation verification, and safe fallback.
 See the phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
 
 ## Prerequisites
@@ -34,7 +36,7 @@ See the phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
 python -m venv .venv && source .venv/bin/activate
 make install          # editable install + dev tools
 make test             # unit tests and phase gates
-make eval-smoke       # golden-set validation + small Phase 3 baseline if Ollama is running
+make eval-smoke       # golden-set validation + small dense baseline if Ollama is running
 make run              # launch the Streamlit app
 ```
 

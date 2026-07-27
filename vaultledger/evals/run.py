@@ -1,4 +1,4 @@
-"""CLI runner for Phase 3 evals and manifests."""
+"""CLI runner for Phase 3/4 retrieval evals and manifests."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from vaultledger.evals.metrics import retrieval_metrics
 from vaultledger.generate import OllamaGenerator, answer_question
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import load_chunks
-from vaultledger.retrieve import NaiveDenseRetriever
+from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever, NaiveDenseRetriever
 from vaultledger.schemas import RunManifest
 
 
@@ -41,9 +41,11 @@ def _chunks_by_doc(index_dir: Path) -> dict[str, str]:
     return {c.doc_id: c.text for c in chunks}
 
 
-def _ensure_phase3_inputs(cfg: Config) -> None:
+def _ensure_inputs(cfg: Config, variant: str = "A_naive") -> None:
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     required = [index_dir / "chunks.jsonl", index_dir / "chroma", index_dir / "records.db"]
+    if variant == "B_hybrid":
+        required.append(index_dir / "bm25.json")
     missing = [str(p) for p in required if not p.exists()]
     if missing:
         raise FileNotFoundError(
@@ -55,7 +57,7 @@ def _ensure_phase3_inputs(cfg: Config) -> None:
 def validate_golden(args: argparse.Namespace) -> int:
     cfg = load_config()
     index_dir = cfg.repo_path(cfg.paths.index_dir)
-    _ensure_phase3_inputs(cfg)
+    _ensure_inputs(cfg)
     golden = load_golden_set(args.golden)
     errors = validate_expected_snippets(golden.examples, _chunks_by_doc(index_dir))
     if errors:
@@ -71,7 +73,7 @@ def validate_golden(args: argparse.Namespace) -> int:
 
 def run_eval(args: argparse.Namespace) -> int:
     cfg = load_config()
-    _ensure_phase3_inputs(cfg)
+    _ensure_inputs(cfg, args.variant)
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     golden = load_golden_set(args.golden)
 
@@ -86,24 +88,53 @@ def run_eval(args: argparse.Namespace) -> int:
             return 0
         raise RuntimeError(msg)
 
-    retriever = NaiveDenseRetriever(index_dir, embedder)
+    reranker_enabled = cfg.reranker.enabled if args.reranker is None else args.reranker
+    if args.variant == "A_naive":
+        retriever = NaiveDenseRetriever(index_dir, embedder)
+    else:
+        reranker = (
+            CrossEncoderReranker(cfg.reranker.model, cfg.reranker.batch_size)
+            if reranker_enabled
+            else None
+        )
+        retriever = HybridRetriever(
+            index_dir,
+            embedder,
+            candidate_k=cfg.retrieval.candidate_k,
+            rank_constant=cfg.retrieval.rrf_constant,
+            reranker=reranker,
+        )
     examples = golden.examples[: args.limit] if args.limit else golden.examples
     ranked_doc_ids: dict[str, list[str]] = {}
+    rrf_ranked_doc_ids: dict[str, list[str]] = {}
     k = args.k
     for ex in examples:
-        hits = retriever.retrieve(ex.question, k=k)
+        if isinstance(retriever, HybridRetriever):
+            rrf_hits, hits = retriever.retrieve_stages(ex.question, k=k)
+            rrf_ranked_doc_ids[ex.id] = [h.chunk.doc_id for h in rrf_hits]
+        else:
+            hits = retriever.retrieve(ex.question, k=k)
         ranked_doc_ids[ex.id] = [h.chunk.doc_id for h in hits]
 
     metrics, failures = retrieval_metrics(examples, ranked_doc_ids, k=k)
+    if rrf_ranked_doc_ids:
+        rrf_metrics, _ = retrieval_metrics(examples, rrf_ranked_doc_ids, k=k)
+        metrics.update({f"rrf_{name}": value for name, value in rrf_metrics.items()})
+    phase = "phase3" if args.variant == "A_naive" else "phase4"
+    model = cfg.embedding.model
+    if args.variant == "B_hybrid":
+        model += "+bm25+rrf"
+        if reranker_enabled:
+            model += f"+{cfg.reranker.model}"
     manifest = RunManifest(
-        run_id=f"phase3_{uuid4().hex[:12]}",
+        run_id=f"{phase}_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
         git_sha=_git_sha(),
         config_hash=_config_hash(),
         golden_set_hash=golden_hash(args.golden),
         seed=cfg.seed,
-        variant="A_naive",
-        model=cfg.embedding.model,
+        variant=args.variant,
+        model=model,
         metrics=metrics,
         total_cost_usd=0.0,
         failures=failures,
@@ -113,7 +144,19 @@ def run_eval(args: argparse.Namespace) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{manifest.run_id}.json"
     out_path.write_text(manifest.model_dump_json(indent=2) + "\n")
-    (out_dir / "phase3_baseline_latest.json").write_text(manifest.model_dump_json(indent=2) + "\n")
+    latest_name = "phase3_baseline_latest.json" if phase == "phase3" else "phase4_latest.json"
+    (out_dir / latest_name).write_text(manifest.model_dump_json(indent=2) + "\n")
+
+    if args.variant == "B_hybrid" and not args.limit and k == 20:
+        _write_comparison(
+            Path(args.baseline),
+            manifest,
+            out_dir / "phase4_comparison_latest.md",
+            k=k,
+            reranker_enabled=reranker_enabled,
+        )
+    elif args.variant == "B_hybrid":
+        print("comparison skipped: the Phase-3 acceptance baseline is a full-set k=20 run")
 
     print(json.dumps({"manifest": str(out_path), "metrics": metrics}, indent=2))
 
@@ -151,6 +194,62 @@ def run_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def _write_comparison(
+    baseline_path: Path,
+    current: RunManifest,
+    output_path: Path,
+    *,
+    k: int,
+    reranker_enabled: bool,
+) -> None:
+    if not baseline_path.exists():
+        raise FileNotFoundError(f"Phase-3 baseline manifest not found: {baseline_path}")
+    baseline = RunManifest.model_validate_json(baseline_path.read_text())
+    if baseline.variant != "A_naive":
+        raise ValueError(f"comparison baseline must be A_naive, got {baseline.variant}")
+    if baseline.golden_set_hash != current.golden_set_hash:
+        raise ValueError("baseline and Phase-4 run use different golden-set hashes")
+
+    rows = [
+        (f"Recall@{k}", f"retrieval_recall@{k}"),
+        ("MRR", "retrieval_mrr"),
+        ("Hit rate", "retrieval_hit_rate"),
+        (f"Precision@{k}", f"retrieval_precision@{k}"),
+    ]
+    final_label = "+ rerank" if reranker_enabled else "Final (rerank disabled)"
+    lines = [
+        "# Phase 4 retrieval comparison",
+        "",
+        f"Golden set hash: `{current.golden_set_hash}`  ",
+        f"Phase-3 baseline: `{baseline.run_id}`  ",
+        f"Phase-4 run: `{current.run_id}`",
+        "",
+        f"| Metric | Dense only | + BM25 / RRF | {final_label} | Final delta vs dense |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for label, key in rows:
+        if key not in baseline.metrics or key not in current.metrics:
+            raise ValueError(f"comparison metric missing: {key}")
+        rrf_key = f"rrf_{key}"
+        if rrf_key not in current.metrics:
+            raise ValueError(f"RRF stage metric missing: {rrf_key}")
+        before = baseline.metrics[key]
+        rrf = current.metrics[rrf_key]
+        final = current.metrics[key]
+        lines.append(
+            f"| {label} | {before:.4f} | {rrf:.4f} | {final:.4f} | {final - before:+.4f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "All values come from the manifests above; unanswerable examples are excluded from "
+            "retriever-only metrics.",
+            "",
+        ]
+    )
+    output_path.write_text("\n".join(lines))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m vaultledger.evals")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -159,13 +258,20 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
     validate.set_defaults(func=validate_golden)
 
-    run = sub.add_parser("run", help="Run the Phase 3 dense retrieval baseline")
+    run = sub.add_parser("run", help="Run a dense or hybrid retrieval evaluation")
     run.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
-    run.add_argument("--variant", default="A_naive", choices=["A_naive"])
+    run.add_argument("--variant", default="A_naive", choices=["A_naive", "B_hybrid"])
     run.add_argument("--k", type=int, default=20)
     run.add_argument("--limit", type=int, default=0)
     run.add_argument("--out-dir", default="reports")
     run.add_argument("--skip-if-unavailable", action="store_true")
+    run.add_argument(
+        "--reranker",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Override config.yaml reranker.enabled for B_hybrid",
+    )
+    run.add_argument("--baseline", default="reports/phase3_baseline_latest.json")
     run.add_argument("--answer-one", action="store_true")
     run.add_argument("--answer-id", default="")
     run.set_defaults(func=run_eval)

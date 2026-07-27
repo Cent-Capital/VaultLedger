@@ -318,3 +318,70 @@ later citation verification.
 
 **Next:** Phase 4 — hybrid retrieval (dense + BM25 + RRF + rerank), before/after
 table versus `phase3_b4407e88d3ba`, and measured MRR/recall improvement.
+
+---
+
+## Phase 4 — Retrieval quality  (2026-07-13)
+
+**Built**
+- `vaultledger/retrieve/hybrid.py` — Variant B behind the existing `Retriever`
+  interface: dense and BM25 candidates, deterministic Reciprocal Rank Fusion
+  (`k=60`), then an optional second-stage ranker.
+- `vaultledger/retrieve/rerank.py` — lazy local cross-encoder wrapper for
+  `BAAI/bge-reranker-base`; raw logits are bounded for the `Answer.confidence`
+  contract without claiming the resulting score is calibrated.
+- Typed retrieval/reranker knobs in `config.yaml`: candidate pool, RRF constant,
+  generation top-n, model, and batch size. `sentence-transformers` is isolated in
+  the `rerank` dependency extra; `make install` includes it because Variant B is
+  the configured product default.
+- The eval CLI now dispatches both `A_naive` and `B_hybrid`, records pre-rerank
+  RRF and final reranked metrics in one `RunManifest`, supports
+  `--reranker/--no-reranker`, and writes a manifest-backed Markdown comparison.
+- Streamlit Ask now uses Variant B and sends the configured top 6 chunks to the
+  local generator. The eval harness still requests 20 final results, preserving
+  a fair comparison with Phase 3.
+- `tests/test_phase4.py` — deterministic RRF math/order tests, injected-index
+  hybrid-stage tests, and comparison-report provenance tests.
+
+**Acceptance criteria** — met.
+- Primary manifest: `reports/phase4_de57151e3ae3.json` (80 examples, same golden
+  hash as Phase 3, $0 API cost).
+- Before/after report: `reports/phase4_comparison_latest.md`.
+- Recall@20 improved from `0.9586734693877551` to `0.9785714285714285`
+  (`+0.0198979591836734`).
+- MRR improved from `0.49739239518651296` to `0.7855867346938776`
+  (`+0.2881943395073646`).
+- Precision@20 improved from `0.1007142857142856` to
+  `0.10428571428571416`; hit rate held at `0.9857142857142858`.
+
+**Verification**
+- `make lint` — passed (`ruff check .`, all checks passed).
+- `make test` — passed (`44 passed, 1 skipped`) on the final regression run.
+- Streamlit boot — passed; `/_stcore/health` returned `ok` with HTTP 200.
+- Real local `B_hybrid` run completed with Ollama `nomic-embed-text` and the BGE
+  cross-encoder; the manifest and comparison contain the measured output.
+
+**Deviations from SPEC / honest findings**
+- BM25+RRF alone raised MRR to `0.6425166500166504` but slightly lowered
+  recall@20 to `0.9571428571428572`. The cross-encoder was not decorative: it
+  recovered recall above baseline and lifted MRR again. Both stages remain in
+  the report so the mixed RRF-only result is visible.
+- Variant B still has partial `RANK_MISS` failures on `gs_003` and `gs_006`.
+  Those are global-summary cases and remain direct targets for Variant C graph
+  retrieval rather than reasons to tune Phase 4 against the test set.
+- The BGE model cache is about 1.1 GB and downloads on first use. Base installs
+  can omit the `rerank` extra and run `--no-reranker`, but that RRF-only mode did
+  not meet this phase's recall gate.
+
+**Trickiest piece (plain English)**
+Dense similarity and BM25 produce scores with unrelated units, so averaging
+them would bake in an arbitrary normalization choice. RRF ignores the raw
+numbers and rewards agreement in rank position: a document that both systems
+place near the top beats one that only one system likes. That improved ordering
+substantially, but it also pushed a few relevant documents out of the top 20.
+The cross-encoder then read each query-document pair together and recovered
+those cases. Keeping pre-rerank and post-rerank metrics in the same run is what
+turns that explanation into evidence rather than architecture theater.
+
+**Next:** Phase 5 — structured-output reliability (bounded repair, citation
+verification, and a safe abstaining fallback).

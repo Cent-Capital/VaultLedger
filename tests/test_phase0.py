@@ -128,6 +128,9 @@ def test_config_loads_expected_values():
     assert cfg.models.T1.id.startswith("ollama/")
     assert len(cfg.models.T2) >= 2  # open-weight hosted candidates
     assert cfg.variant_default == "B_hybrid"
+    assert cfg.reranker.model == "BAAI/bge-reranker-base"
+    assert cfg.retrieval.rrf_constant == 60
+    assert cfg.retrieval.answer_top_n == 6
 
 
 # --- SPEC 15.2: no unbounded loops in the package ----------------------------

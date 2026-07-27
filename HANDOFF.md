@@ -90,15 +90,16 @@ Different models write in different styles. When you fold a handoff back in:
 
 ## Current handoff status (2026-07-13)
 
-Phases 0-3 are implemented. Phase 3's primary baseline manifest is:
-`reports/phase3_b4407e88d3ba.json`.
+Phases 0-4 are implemented. Phase 3's permanent dense baseline is
+`reports/phase3_b4407e88d3ba.json`; Phase 4's hybrid manifest is
+`reports/phase4_de57151e3ae3.json`.
 
 Use these commands before handing work to another agent:
 - `make lint`
 - `make test`
 - `python -m vaultledger.evals validate`
-- `python -m vaultledger.evals run --answer-one --answer-id sd_009` with local
-  Ollama access if the next agent needs to reproduce Phase 3 metrics.
+- `python -m vaultledger.evals run --variant B_hybrid` with local Ollama access
+  and the cached BGE model if the next agent needs to reproduce Phase 4 metrics.
 
 Measured Phase 3 baseline:
 - `retrieval_recall@20`: `0.9586734693877551`
@@ -109,10 +110,17 @@ Measured Phase 3 baseline:
 
 Known caveat: sandboxed shells may not be able to access `localhost:11434`, so
 `make eval-smoke` can validate the golden set and then skip the dense mini-run.
-The real acceptance run requires Ollama with `nomic-embed-text` and `qwen3:8b`.
+The Phase-4 acceptance run requires Ollama with `nomic-embed-text` plus the
+`BAAI/bge-reranker-base` model downloaded by sentence-transformers.
+
+Measured Phase 4 hybrid retrieval:
+- `retrieval_recall@20`: `0.9785714285714285` (`+0.0198979591836734` vs dense)
+- `retrieval_mrr`: `0.7855867346938776` (`+0.2881943395073646` vs dense)
+- `retrieval_precision@20`: `0.10428571428571416`
+- `retrieval_hit_rate`: `0.9857142857142858`
 
 Recommended next handoff chunk:
-Implement Phase 4 only: hybrid retrieval behind the same `Retriever` interface,
-BM25+dense Reciprocal Rank Fusion, optional rerank flag plumbing, before/after
-report against `phase3_b4407e88d3ba`, and tests proving MRR/recall do not
-regress on the Phase-3 golden set.
+Implement Phase 5 only: structured `Answer` generation, the bounded L1 repair
+loop (`repair_max`), programmatic citation verification against retrieved chunks,
+and a safe abstaining fallback. Prove malformed outputs repair or downgrade
+without crashing; do not pull Phase-6 cloud routing into this slice.

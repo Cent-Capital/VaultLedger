@@ -1,8 +1,8 @@
 """VaultLedger UI shell (SPEC.md Section 6).
 
-Phase 3: the Library screen shows the real ingested corpus and can rebuild the
-indexes. The Ask screen runs the naive dense local baseline when Ollama is
-available. Evals validates the golden set and points to the CLI harness.
+Phase 4: the Ask screen runs hybrid dense + BM25 retrieval with RRF and optional
+cross-encoder reranking. Variant A remains available in the eval harness as the
+permanent baseline.
 
 Run:  streamlit run app/streamlit_app.py
 """
@@ -28,7 +28,7 @@ cfg = load_config()
 st.title("🔒 VaultLedger")
 st.caption(
     "Your private financial analyst that never phones home. "
-    f"Build {__version__} · Phase 3 (naive RAG baseline)."
+    f"Build {__version__} · Phase 4 (hybrid retrieval)."
 )
 
 with st.sidebar:
@@ -114,7 +114,7 @@ with library:
 
 with ask:
     st.header("Ask")
-    st.caption("Local mode only. Variant A naive dense retrieval over the local Chroma index.")
+    st.caption("Local mode only. Variant B: dense + BM25 → RRF → optional rerank.")
     question = st.text_input(
         "Question",
         placeholder="What was Marcus Chen's March closing balance?",
@@ -124,7 +124,7 @@ with ask:
     if ask_clicked:
         from vaultledger.generate import OllamaGenerator, answer_question
         from vaultledger.index.embed import OllamaEmbedder
-        from vaultledger.retrieve import NaiveDenseRetriever
+        from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever
 
         try:
             embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
@@ -134,7 +134,18 @@ with ask:
                     "Start Ollama and pull the model, then rebuild the index if needed."
                 )
             else:
-                retriever = NaiveDenseRetriever(index_dir, embedder)
+                reranker = (
+                    CrossEncoderReranker(cfg.reranker.model, cfg.reranker.batch_size)
+                    if cfg.reranker.enabled
+                    else None
+                )
+                retriever = HybridRetriever(
+                    index_dir,
+                    embedder,
+                    candidate_k=cfg.retrieval.candidate_k,
+                    rank_constant=cfg.retrieval.rrf_constant,
+                    reranker=reranker,
+                )
                 generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
@@ -145,6 +156,7 @@ with ask:
                             retriever,
                             generator,
                             model_id=cfg.models.T1.id,
+                            k=cfg.retrieval.answer_top_n,
                         )
                     st.success("Data stayed on your machine")
                     st.write(answer.answer_text)
@@ -162,9 +174,11 @@ with ask:
 
 with evals:
     st.header("Evals dashboard")
-    st.write("Phase 3 CLI:")
+    st.write("Retrieval eval CLI:")
     st.code("make eval-smoke", language="bash")
-    st.code(".venv/bin/python -m vaultledger.evals run --answer-one", language="bash")
+    st.code(
+        ".venv/bin/python -m vaultledger.evals run --variant B_hybrid", language="bash"
+    )
     st.caption(
         "The dashboard visualization lands in later phases; the harness already "
         "writes RunManifest JSON under reports/."

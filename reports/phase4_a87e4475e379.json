@@ -1,0 +1,50 @@
+{
+  "run_id": "phase4_a87e4475e379",
+  "timestamp": "2026-07-13T21:40:33.792047+00:00",
+  "git_sha": "b629f7989841fec9bd526337b81017a9149c831d",
+  "config_hash": "99d57b0b02b95f25e1b6728ec4c2cabe596691d55e3cfc670a15b607d0ce748f",
+  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "nomic-embed-text+bm25+rrf",
+  "metrics": {
+    "retrieval_recall@20": 0.9571428571428572,
+    "retrieval_precision@20": 0.10214285714285704,
+    "retrieval_mrr": 0.6425166500166504,
+    "retrieval_hit_rate": 0.9857142857142858,
+    "retrieval_eval_coverage": 0.875,
+    "rrf_retrieval_recall@20": 0.9571428571428572,
+    "rrf_retrieval_precision@20": 0.10214285714285704,
+    "rrf_retrieval_mrr": 0.6425166500166504,
+    "rrf_retrieval_hit_rate": 0.9857142857142858,
+    "rrf_retrieval_eval_coverage": 0.875
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "mh_005",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_priya_checking_2025-06"
+    },
+    {
+      "example_id": "mh_007",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_marcus_checking_2025-03"
+    },
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_marcus_checking_2025-03"
+    },
+    {
+      "example_id": "gs_005",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_priya_checking_2025-06"
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: inv_priya_cedargrove_03_dup, inv_priya_halcyon_04, stmt_marcus_checking_2025-03"
+    }
+  ]
+}

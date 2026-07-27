@@ -40,7 +40,9 @@ dev = [
 synth = [
     "fpdf2>=2.8,<3",  # pinned: PDF bytes must stay stable for the byte-identity AC
 ]
-# Phase 4  (rerank):           sentence-transformers  (BAAI/bge-reranker-base)
+rerank = [
+    "sentence-transformers>=3.0,<6",  # BAAI/bge-reranker-base; model downloaded on first use
+]
 # Phase 5  (structured out):   instructor
 # Phase 8  (observability):    langfuse
 # Phase 11 (gateway):          litellm

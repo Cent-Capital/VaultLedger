@@ -55,6 +55,14 @@ class ModelRegistry(BaseModel):
 
 class Reranker(BaseModel):
     enabled: bool = True
+    model: str = "BAAI/bge-reranker-base"
+    batch_size: int = 16
+
+
+class Retrieval(BaseModel):
+    candidate_k: int = 20
+    rrf_constant: int = 60
+    answer_top_n: int = 6
 
 
 class Embedding(BaseModel):
@@ -90,6 +98,7 @@ class Config(BaseSettings):
     models: ModelRegistry
     variant_default: str = "B_hybrid"
     reranker: Reranker = Reranker()
+    retrieval: Retrieval = Retrieval()
     embedding: Embedding = Embedding()
     chunking: Chunking = Chunking()
     paths: Paths = Paths()
@@ -138,6 +147,7 @@ __all__ = [
     "ModelRef",
     "ModelRegistry",
     "Reranker",
+    "Retrieval",
     "Embedding",
     "Chunking",
     "Paths",
