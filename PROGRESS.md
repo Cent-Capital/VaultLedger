@@ -505,3 +505,75 @@ times — a grounded answer in the first case, an honest abstention in the secon
 
 **Next:** Phase 6 — privacy switch / routing v1 (Local/Cloud toggle, per-query
 "data left your machine" badge, session consent, degraded-mode fallback).
+
+---
+
+## Phase 6 — Privacy switch / routing v1  (2026-07-28)
+
+**Built**
+- `vaultledger/route/privacy.py` — a deliberately small binary router around
+  the Phase-5 reliable answer path. Local mode permits T0/T1 and calls only the
+  injected local generator. Cloud mode requires explicit session consent,
+  records a T2 `RoutingDecision`, and stamps `privacy_mode`,
+  `data_left_machine`, tier, and model in code rather than trusting model text.
+- Cloud failure is caught at the routing boundary and re-runs through the local
+  model. Missing configuration (before egress) returns local/NO metadata and
+  “Cloud unavailable — answered locally.” A provider failure after the cloud
+  generator is invoked conservatively preserves cloud/YES egress metadata,
+  while `model_used` truthfully names the local model that produced the answer.
+- `vaultledger/gateway/openai_compatible.py` — the narrow hosted-generation
+  seam for routing v1. It is constructed only after Cloud mode and consent are
+  selected. Phase 11 will replace this single endpoint with LiteLLM.
+- Typed `cloud` config for model, OpenAI-compatible base URL, secret environment
+  variable name, and timeout. The API key is never stored in YAML.
+- Streamlit Ask now exposes Local / Cloud-Boosted, requires a session consent
+  checkbox before enabling Cloud Ask, and renders a per-answer
+  “Data left your machine: YES/NO” badge from the finalized `Answer`.
+- `answer_question_reliable` now accepts router-owned metadata while preserving
+  its Phase-5 repair and citation-verification behavior.
+- `tests/test_phase6.py` — deterministic AC coverage for local isolation,
+  consent, cloud metadata, and degraded fallback.
+
+**Acceptance criteria** — met in deterministic CI tests.
+- *Badge + model flip:* cloud results assert `data_left_machine=True`,
+  `privacy_mode=cloud`, hosted `model_used`, T2, and the matching routing record;
+  local results assert the inverse with the configured Ollama model.
+- *Zero network calls in local mode:* the test replaces `socket.socket` with a
+  function that immediately fails. Local routing still completes, while an
+  injected cloud generator records zero calls. This tests the router with
+  in-memory retrieval/generation; the production local model and embedder use
+  Ollama on loopback, not an external provider.
+- *Degraded path:* missing cloud configuration produces a grounded local answer
+  with local/NO metadata. A cloud generator that raises `GenerationError`
+  produces a grounded local answer but preserves cloud/YES metadata because the
+  prompt may already have reached the provider. Both log availability events.
+- *Session consent:* cloud mode without consent fails before any generation.
+
+**Verification**
+- `python -m pytest` — passed: `64 passed, 1 skipped`.
+- `python -m ruff check .` — passed.
+- `git diff --check` — passed.
+
+**Deviations / honest boundary**
+- No live hosted query was made, so provider compatibility and answer quality
+  are not claimed here. The AC is exercised with deterministic generators and
+  a real HTTP client seam. A blank cloud URL or absent key intentionally takes
+  the degraded local path.
+- PII redaction before cloud egress is Phase 13 in the v2 plan and is not
+  claimed by this phase. The current corpus is synthetic-only, and the consent
+  copy says that retrieved context is sent. Real-document cloud use should not
+  ship before the Phase-13 egress guard lands.
+- Routing v1 follows only the user's privacy choice. Query-aware policy,
+  budgets, escalation, and provider fallbacks remain Phase 12.
+
+**Trickiest piece (plain English)**
+The badge is only useful if it reports what actually happened, especially
+during failure. The router therefore does not decide the badge from the toggle:
+it decides it from the path that completed. A selected Cloud toggle can still
+produce a local/NO answer when the provider is unavailable, and the routing
+record explains why. Just as importantly, the local branch never performs a
+cloud availability check. That makes “local” a hard execution constraint rather
+than a UI preference that might quietly phone home.
+
+**Next:** Phase 7 — adversarial and safety evals (prompt injection,
+lost-in-the-middle, and abstention confusion matrix).
