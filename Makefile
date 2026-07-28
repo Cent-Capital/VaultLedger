@@ -24,6 +24,9 @@ eval-smoke:  ## Fast deterministic eval subset (Phase 3+)
 	$(PYTHON) -m vaultledger.evals validate
 	$(PYTHON) -m vaultledger.evals run --limit 12 --skip-if-unavailable
 
+eval-safety:  ## Phase 7 live local-model gate (10 unanswerable + poisoned doc)
+	$(PYTHON) -m vaultledger.evals safety
+
 eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
 	@echo "eval-full: not implemented until Phase 9."
 

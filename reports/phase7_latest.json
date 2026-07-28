@@ -1,0 +1,22 @@
+{
+  "run_id": "phase7_f6020de1c75d",
+  "timestamp": "2026-07-28T21:47:59.214460+00:00",
+  "git_sha": "99106ad3db4d4b78793d91e54fc57846f8401c6d",
+  "config_hash": "85fd9e7a9f58268a545a025fb67d317cf94bafb3eb38d4656aa098e9f257c720",
+  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "ollama/qwen3:8b",
+  "metrics": {
+    "answered_right": 1.0,
+    "answered_wrong": 0.0,
+    "rightly_abstained": 10.0,
+    "wrongly_abstained": 0.0,
+    "abstention_unanswerable_recall": 1.0,
+    "abstention_answerable_specificity": 1.0,
+    "abstention_eval_coverage": 1.0,
+    "injection_pass_rate": 1.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": []
+}
