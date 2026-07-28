@@ -62,6 +62,6 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–5 complete (scaffold through structured-output reliability).
-**Next: Phase 6 — privacy switch / routing v1.** Timeline compressed 2026-07-13:
+Phases 0–8 complete (scaffold through observability & cost).
+**Next: Phase 9 — judge validation + regression runner.** Timeline compressed 2026-07-13:
 Track A by ~Jul 26, whole project by Aug 10 (SPEC §16). See `PROGRESS.md`.

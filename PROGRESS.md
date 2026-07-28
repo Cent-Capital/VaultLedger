@@ -661,3 +661,84 @@ statement without losing evidence integrity.
 
 **Next:** Phase 8 — observability and cost (stage spans, per-query latency /
 tokens, and cost attribution).
+
+---
+
+## Phase 8 — Observability & cost  (2026-07-28)
+
+**Built**
+- `vaultledger/observability/tracing.py` — local-first `QueryTrace`,
+  `SpanRecord`, monotonic `TraceRecorder`, durable one-file-per-trace
+  `TraceStore`, required-dimension rollups, health metrics, and an optional
+  Langfuse v4 exporter.
+- Every privacy-routed product query now records route, retrieve, assemble,
+  guards-in, generate/repair, and guards-out spans; final model, tier, variant,
+  privacy path, total latency, retrieval score, repair/guard/escalation health,
+  token count, cost, and outcome live on the same trace.
+- Token accounting is explicitly labeled `estimated_chars_div_4` because the
+  current Phase-3/6 generator clients discard provider usage. This is not
+  presented as exact billing telemetry. Phase 11's gateway will replace the
+  estimate when provider usage is available.
+- Local inference is always attributed `$0`. Hosted cost uses typed,
+  user-configured input/output rates and estimated tokens; rates default to
+  zero rather than embedding unverified, drifting provider prices.
+- `RoutingDecision.actual_cost_usd` is updated from the finalized trace, keeping
+  routing, UI, and rollups on one cost value.
+- The Streamlit answer footer shows trace id, latency, estimated tokens, source,
+  and cost. The Evals dashboard shows query count, health rates, and a table of
+  cost / average latency grouped by feature, category, tier, and variant.
+- `langfuse>=4,<5` is an optional `observability` extra. Export is explicit;
+  no Langfuse import, initialization, availability probe, or network call
+  occurs on the normal local path.
+- `tests/test_phase8.py` adds three gates for full persisted stage traces,
+  repair health, local vs hosted cost, required rollup dimensions, and optional
+  Langfuse behavior.
+
+**Acceptance criteria** — met.
+- *Full trace per query:* the product route automatically builds a complete
+  trace and the Streamlit path persists it under typed `paths.traces`.
+  Deterministic tests require all six stages and reload the trace from disk.
+- *Cost per feature/category on dashboard:* rollups group query count, cost, and
+  average latency across feature, category, tier, and variant; the Streamlit
+  Evals tab renders the table and health headline metrics.
+- Health includes abstention rate, average retrieval score, repair-trigger
+  rate, guardrail-flag rate, and escalation rate.
+
+**Live verification**
+- Real local query: “What was Marcus Chen March closing balance?” through
+  Variant B + `qwen3:8b`, trace `trace_dd06a1718790`.
+- Grounded non-abstained answer; six spans. Measured total `13,792.747 ms`:
+  retrieval `3,648.842 ms`, generation/repair `10,140.774 ms`, and sub-ms
+  assembly / guard stages. This single run meets the SPEC's local `<15s`
+  target but is not a latency distribution.
+- Estimated tokens: 1,221 input + 48 output; local cost `$0`;
+  average retrieval score `0.692802`; no repair; one guard flag because the
+  poisoned March statement's instruction line was removed.
+- Full regression: `72 passed, 1 skipped`; Ruff, syntax, golden-set, and diff
+  checks passed.
+
+**Honest boundaries / deviations**
+- Langfuse is optional and was not installed or exported to in this phase.
+  The adapter follows the current v4 observation API, but no remote Langfuse
+  trace is claimed. Durable local traces are the tested source of truth.
+- The exporter reconstructs the measured local spans after completion rather
+  than decorating every function with `@observe`. This avoids making external
+  telemetry a runtime dependency and preserves the local-mode no-egress
+  guarantee.
+- Hosted token counts and cost remain estimates until Phase 11 exposes actual
+  gateway usage. Configured zero rates mean “not priced,” not “provider is
+  free.”
+- Replay needs an explicit privacy design because persisting raw financial
+  questions/context broadens local data retention. Trace metadata is sufficient
+  for Phase 8 AC; raw-input replay is not claimed.
+
+**Trickiest piece (plain English)**
+Observability can undermine a privacy product if the tracing system becomes a
+second place that quietly receives sensitive prompts. The design therefore
+makes a local JSON trace the canonical record and sends nothing anywhere by
+default. Langfuse export is a separate explicit action. The same honesty rule
+applies to cost: character-based token estimates are useful for comparing work,
+but they are labeled estimates and zero provider rates are treated as
+unconfigured—not disguised as precise billing.
+
+**Next:** Phase 9 — judge validation and regression runner.

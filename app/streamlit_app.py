@@ -10,6 +10,7 @@ Run:  streamlit run app/streamlit_app.py
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -28,7 +29,7 @@ cfg = load_config()
 st.title("🔒 VaultLedger")
 st.caption(
     "Your private financial analyst that never phones home. "
-    f"Build {__version__} · Phase 4 (hybrid retrieval)."
+    f"Build {__version__} · Phase 8 (observability and cost)."
 )
 
 with st.sidebar:
@@ -114,17 +115,38 @@ with library:
 
 with ask:
     st.header("Ask")
-    st.caption("Local mode only. Variant B: dense + BM25 → RRF → optional rerank.")
+    st.caption("Variant B: dense + BM25 → RRF → optional rerank.")
+    privacy_mode = st.radio(
+        "Privacy mode",
+        ["Local", "Cloud-Boosted"],
+        horizontal=True,
+        help="Cloud-Boosted sends the retrieved question context to the configured provider.",
+    )
+    cloud_selected = privacy_mode == "Cloud-Boosted"
+    cloud_consent = False
+    if cloud_selected:
+        cloud_consent = st.checkbox(
+            "I consent to sending this query and retrieved context to the cloud provider "
+            "for this session.",
+            key="cloud_session_consent",
+        )
     question = st.text_input(
         "Question",
         placeholder="What was Marcus Chen's March closing balance?",
     )
-    ask_clicked = st.button("Ask locally", type="primary", disabled=not question.strip())
+    ask_clicked = st.button(
+        "Ask",
+        type="primary",
+        disabled=not question.strip() or (cloud_selected and not cloud_consent),
+    )
 
     if ask_clicked:
-        from vaultledger.generate import OllamaGenerator, answer_question_reliable
+        from vaultledger.gateway import OpenAICompatibleGenerator
+        from vaultledger.generate import OllamaGenerator
         from vaultledger.index.embed import OllamaEmbedder
+        from vaultledger.observability import TraceStore
         from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever
+        from vaultledger.route import answer_with_privacy
 
         try:
             embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
@@ -150,17 +172,44 @@ with ask:
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
                 else:
-                    with st.spinner("Retrieving and answering locally..."):
-                        answer = answer_question_reliable(
+                    cloud_generator = None
+                    if cloud_selected and cfg.cloud.base_url:
+                        api_key = os.getenv(cfg.cloud.api_key_env, "")
+                        if api_key:
+                            cloud_generator = OpenAICompatibleGenerator(
+                                cfg.cloud.model,
+                                cfg.cloud.base_url,
+                                api_key,
+                                cfg.cloud.timeout_seconds,
+                            )
+                    with st.spinner("Retrieving and answering..."):
+                        routed = answer_with_privacy(
                             question,
                             retriever,
                             generator,
-                            model_id=cfg.models.T1.id,
+                            local_model=cfg.models.T1.id,
+                            mode="cloud" if cloud_selected else "local",
+                            cloud_consent=cloud_consent,
+                            cloud_generator=cloud_generator,
+                            cloud_model=cfg.cloud.model,
                             k=cfg.retrieval.answer_top_n,
                             max_retries=cfg.loops.repair_max,
                             min_snippet_chars=cfg.generation.min_snippet_chars,
+                            trace_store=TraceStore(cfg.repo_path(cfg.paths.traces)),
+                            input_per_million_usd=cfg.cloud.input_per_million_usd,
+                            output_per_million_usd=cfg.cloud.output_per_million_usd,
                         )
-                    st.success("Data stayed on your machine")
+                    answer = routed.answer
+                    if routed.notice:
+                        st.warning(routed.notice)
+                    if answer.data_left_machine:
+                        st.warning(
+                            "Data left your machine: YES · "
+                            f"cloud model `{cfg.cloud.model}` · "
+                            f"answer model `{answer.model_used}`"
+                        )
+                    else:
+                        st.success("Data left your machine: NO")
                     if answer.abstained:
                         st.warning(answer.answer_text)
                     else:
@@ -178,11 +227,50 @@ with ask:
                         f"model={answer.model_used} · tier={answer.tier} · "
                         f"variant={answer.variant} · confidence={answer.confidence:.2f}"
                     )
+                    if routed.trace:
+                        st.caption(
+                            f"trace={routed.trace.trace_id} · "
+                            f"latency={routed.trace.total_latency_ms / 1000:.2f}s · "
+                            f"tokens≈{routed.trace.input_tokens + routed.trace.output_tokens} "
+                            f"({routed.trace.token_count_source}) · "
+                            f"cost=${routed.trace.cost_usd:.6f}"
+                        )
         except (RuntimeError, FileNotFoundError, KeyError) as exc:
             st.error(str(exc))
 
 with evals:
     st.header("Evals dashboard")
+    from vaultledger.observability import TraceStore, trace_rollups
+
+    traces = TraceStore(cfg.repo_path(cfg.paths.traces)).load()
+    if traces:
+        rollups = trace_rollups(traces)
+        health = rollups["health"]["all"]
+        h1, h2, h3, h4 = st.columns(4)
+        h1.metric("Queries traced", int(health["queries"]))
+        h2.metric("Abstention rate", f"{health['abstention_rate']:.1%}")
+        h3.metric("Repair-trigger rate", f"{health['repair_trigger_rate']:.1%}")
+        h4.metric("Guardrail-flag rate", f"{health['guardrail_flag_rate']:.1%}")
+        st.subheader("Cost and latency attribution")
+        rows = []
+        for dimension in ("feature", "category", "tier", "variant"):
+            for value, metrics in rollups[dimension].items():
+                rows.append(
+                    {
+                        "Dimension": dimension,
+                        "Value": value,
+                        "Queries": int(metrics["queries"]),
+                        "Cost (USD)": metrics["cost_usd"],
+                        "Avg latency (ms)": metrics["avg_latency_ms"],
+                    }
+                )
+        st.dataframe(rows, width="stretch", hide_index=True)
+        st.caption(
+            "Local inference cost is $0; token counts are explicitly estimated "
+            "unless a provider returns usage."
+        )
+    else:
+        st.info("No product query traces yet. Ask a question to populate observability.")
     st.write("Retrieval eval CLI:")
     st.code("make eval-smoke", language="bash")
     st.code(

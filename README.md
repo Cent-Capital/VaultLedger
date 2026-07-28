@@ -17,14 +17,22 @@ never financial advice.
 
 ## Status
 
-**Phases 0-5 complete** — scaffold/config, deterministic synthetic corpus,
+**Phases 0-8 complete** — scaffold/config, deterministic synthetic corpus,
 ingestion/indexing, an 80-example golden set, measured naive-vs-hybrid
 retrieval, and structured-output reliability. Phase 4 lifted recall@20 from
 0.9587 to 0.9786 and MRR from 0.4974 to 0.7856
 (`reports/phase4_comparison_latest.md`). Phase 5 added constrained JSON
 generation, a bounded L1 repair loop, and snippet-verified citations with a
 safe abstaining fallback — proven crash-free across a 100-query adversarial
-suite (ADR-0002). **Next: Phase 6** — privacy switch / routing v1. See the
+suite (ADR-0002). Phase 6 added a consent-gated Local/Cloud switch, per-answer
+egress badge, routing record, and visible local fallback when cloud is
+unavailable. Phase 7 added prompt-injection isolation, lost-in-the-middle
+context reordering, and a manifested live safety gate: all 10 unanswerable
+golden questions abstained and the poisoned-document case answered normally
+without dumping account numbers (`reports/phase7_latest.json`).
+Phase 8 added durable six-stage local query traces, latency/token/health
+telemetry, optional Langfuse export, and cost/latency rollups on the dashboard.
+**Next: Phase 9** — judge validation and the regression runner. See the
 phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
 
 ## Prerequisites

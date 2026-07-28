@@ -44,6 +44,15 @@ retrieval:
 
 generation:                       # Phase 5 structured output + citation verify
   min_snippet_chars: 16           # shortest normalized snippet a citation may carry
+  litm_reorder: true              # put highest-value evidence at context edges
+
+cloud:                            # Phase 6 routing v1; secret stays in the environment
+  model: "moonshot/kimi-k2.6"
+  base_url: ""                    # OpenAI-compatible /v1 URL; blank means unavailable
+  api_key_env: "VAULTLEDGER_CLOUD_API_KEY"
+  timeout_seconds: 180
+  input_per_million_usd: 0.0       # set verified provider rates before cloud use
+  output_per_million_usd: 0.0
 
 embedding:
   model: "nomic-embed-text"          # local via Ollama; changing this invalidates the index
@@ -57,3 +66,4 @@ paths:
   pdfs: "data/synthetic_pdfs"
   ground_truth: "data/ground_truth"
   index_dir: "data/index"            # derived, rebuildable, gitignored
+  traces: "data/traces"              # local query traces; contains prompt metadata

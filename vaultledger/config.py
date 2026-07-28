@@ -70,6 +70,18 @@ class Generation(BaseModel):
 
     # Minimum normalized snippet length a citation must carry to be verifiable.
     min_snippet_chars: int = 16
+    litm_reorder: bool = True
+
+
+class Cloud(BaseModel):
+    """Routing-v1 cloud endpoint. Secrets are read from the environment."""
+
+    model: str = "moonshot/kimi-k2.6"
+    base_url: str = ""
+    api_key_env: str = "VAULTLEDGER_CLOUD_API_KEY"
+    timeout_seconds: int = 180
+    input_per_million_usd: float = 0.0
+    output_per_million_usd: float = 0.0
 
 
 class Embedding(BaseModel):
@@ -88,6 +100,7 @@ class Paths(BaseModel):
     pdfs: str = "data/synthetic_pdfs"
     ground_truth: str = "data/ground_truth"
     index_dir: str = "data/index"  # derived, rebuildable, gitignored
+    traces: str = "data/traces"
 
 
 class Config(BaseSettings):
@@ -107,6 +120,7 @@ class Config(BaseSettings):
     reranker: Reranker = Reranker()
     retrieval: Retrieval = Retrieval()
     generation: Generation = Generation()
+    cloud: Cloud = Cloud()
     embedding: Embedding = Embedding()
     chunking: Chunking = Chunking()
     paths: Paths = Paths()
@@ -157,6 +171,7 @@ __all__ = [
     "Reranker",
     "Retrieval",
     "Generation",
+    "Cloud",
     "Embedding",
     "Chunking",
     "Paths",
