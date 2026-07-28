@@ -43,7 +43,8 @@ synth = [
 rerank = [
     "sentence-transformers>=3.0,<6",  # BAAI/bge-reranker-base; model downloaded on first use
 ]
-# Phase 5  (structured out):   instructor
+# Phase 5  (structured out):   none added — native Ollama JSON `format` +
+#                              hand-rolled repair loop instead of instructor (ADR-0002)
 # Phase 8  (observability):    langfuse
 # Phase 11 (gateway):          litellm
 # Phase 15 (graph):            lightrag-hku, networkx

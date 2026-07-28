@@ -18,7 +18,7 @@ from vaultledger.evals.golden import (
     validate_expected_snippets,
 )
 from vaultledger.evals.metrics import retrieval_metrics
-from vaultledger.generate import OllamaGenerator, answer_question
+from vaultledger.generate import OllamaGenerator, answer_question_reliable
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import load_chunks
 from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever, NaiveDenseRetriever
@@ -171,12 +171,17 @@ def run_eval(args: argparse.Namespace) -> int:
             if not answer_examples:
                 raise ValueError(f"unknown golden example id: {args.answer_id}")
         ex = answer_examples[0]
-        answer = answer_question(
+        answer = answer_question_reliable(
             ex.question,
             retriever,
             generator,
             model_id=cfg.models.T1.id,
-            k=k,
+            # Generation uses the product's answer_top_n context window, not the
+            # (larger) retrieval-eval k — feeding 20 near-identical statements to
+            # a small local model wrecks citation precision (Phase 5 finding).
+            k=cfg.retrieval.answer_top_n,
+            max_retries=cfg.loops.repair_max,
+            min_snippet_chars=cfg.generation.min_snippet_chars,
         )
         answer_path = out_dir / f"{manifest.run_id}_answer.json"
         cited_doc_ids = {c.doc_id for c in answer.citations}

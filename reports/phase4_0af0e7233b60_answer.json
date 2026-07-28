@@ -1,0 +1,47 @@
+{
+  "example_id": "sd_009",
+  "question": "Who was billed on invoice DAVID-HALCYON-001?",
+  "expected_answer": "Halcyon Retail Group was billed.",
+  "expected_doc_ids": [
+    "inv_david_halcyon_01"
+  ],
+  "citation_docs_match_expected": false,
+  "answer": {
+    "answer_text": "I couldn't find that in your documents.",
+    "citations": [],
+    "abstained": true,
+    "confidence": 0.0,
+    "model_used": "ollama/qwen3:8b",
+    "tier": "T1",
+    "variant": "B_hybrid",
+    "privacy_mode": "local",
+    "data_left_machine": false,
+    "routing": {
+      "query_id": "q_373597023730",
+      "allowed_tiers": [
+        "T1"
+      ],
+      "chosen_tier": "T1",
+      "chosen_model": "ollama/qwen3:8b",
+      "reason": "Phase 5 local reliable path: privacy=local, fixed T1 model",
+      "escalations": 0,
+      "est_cost_usd": 0.0,
+      "actual_cost_usd": 0.0
+    },
+    "guardrail_events": [
+      {
+        "stage": "output",
+        "guard": "citation_verify",
+        "action": "flag",
+        "details": "dropped citation: chunk_id 'inv_david_halcyon_001' not in retrieved set and snippet matches 6 chunks"
+      },
+      {
+        "stage": "output",
+        "guard": "citation_verify",
+        "action": "downgrade_to_abstain",
+        "details": "no verifiable citation survived; downgraded to abstain [CITE_FAIL]"
+      }
+    ],
+    "agent_steps": []
+  }
+}

@@ -122,7 +122,7 @@ with ask:
     ask_clicked = st.button("Ask locally", type="primary", disabled=not question.strip())
 
     if ask_clicked:
-        from vaultledger.generate import OllamaGenerator, answer_question
+        from vaultledger.generate import OllamaGenerator, answer_question_reliable
         from vaultledger.index.embed import OllamaEmbedder
         from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever
 
@@ -151,20 +151,29 @@ with ask:
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
                 else:
                     with st.spinner("Retrieving and answering locally..."):
-                        answer = answer_question(
+                        answer = answer_question_reliable(
                             question,
                             retriever,
                             generator,
                             model_id=cfg.models.T1.id,
                             k=cfg.retrieval.answer_top_n,
+                            max_retries=cfg.loops.repair_max,
+                            min_snippet_chars=cfg.generation.min_snippet_chars,
                         )
                     st.success("Data stayed on your machine")
-                    st.write(answer.answer_text)
+                    if answer.abstained:
+                        st.warning(answer.answer_text)
+                    else:
+                        st.write(answer.answer_text)
                     if answer.citations:
-                        st.subheader("Citations")
+                        st.subheader("Verified citations")
                         for c in answer.citations:
                             with st.expander(f"{c.doc_id} · page {c.page} · {c.chunk_id}"):
                                 st.write(c.snippet)
+                    if answer.guardrail_events:
+                        with st.expander(f"Reliability events ({len(answer.guardrail_events)})"):
+                            for ev in answer.guardrail_events:
+                                st.caption(f"[{ev.guard}/{ev.action}] {ev.details}")
                     st.caption(
                         f"model={answer.model_used} · tier={answer.tier} · "
                         f"variant={answer.variant} · confidence={answer.confidence:.2f}"

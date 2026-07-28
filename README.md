@@ -17,12 +17,15 @@ never financial advice.
 
 ## Status
 
-**Phases 0-4 complete** — scaffold/config, deterministic synthetic corpus,
-ingestion/indexing, an 80-example golden set, and measured naive-vs-hybrid
-retrieval. Phase 4 lifted recall@20 from 0.9587 to 0.9786 and MRR from 0.4974
-to 0.7856; see `reports/phase4_comparison_latest.md`. **Next: Phase 5** —
-structured output, bounded repair, citation verification, and safe fallback.
-See the phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
+**Phases 0-5 complete** — scaffold/config, deterministic synthetic corpus,
+ingestion/indexing, an 80-example golden set, measured naive-vs-hybrid
+retrieval, and structured-output reliability. Phase 4 lifted recall@20 from
+0.9587 to 0.9786 and MRR from 0.4974 to 0.7856
+(`reports/phase4_comparison_latest.md`). Phase 5 added constrained JSON
+generation, a bounded L1 repair loop, and snippet-verified citations with a
+safe abstaining fallback — proven crash-free across a 100-query adversarial
+suite (ADR-0002). **Next: Phase 6** — privacy switch / routing v1. See the
+phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
 
 ## Prerequisites
 

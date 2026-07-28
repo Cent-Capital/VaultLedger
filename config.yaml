@@ -42,6 +42,9 @@ retrieval:
   rrf_constant: 60                # SPEC 9.6 reciprocal-rank-fusion constant
   answer_top_n: 6                 # final context chunks for generation
 
+generation:                       # Phase 5 structured output + citation verify
+  min_snippet_chars: 16           # shortest normalized snippet a citation may carry
+
 embedding:
   model: "nomic-embed-text"          # local via Ollama; changing this invalidates the index
   ollama_url: "http://localhost:11434"

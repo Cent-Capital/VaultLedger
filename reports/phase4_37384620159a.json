@@ -1,0 +1,35 @@
+{
+  "run_id": "phase4_37384620159a",
+  "timestamp": "2026-07-28T02:13:04.343199+00:00",
+  "git_sha": "fbfdbfcabc13bfe7cdef614825b2c4cf775cd99f",
+  "config_hash": "04b8d28e80b7a714a2dc12759a74e4dc2300922638f08a27eb5ff9f3aac77fdf",
+  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "nomic-embed-text+bm25+rrf+BAAI/bge-reranker-base",
+  "metrics": {
+    "retrieval_recall@20": 0.9785714285714285,
+    "retrieval_precision@20": 0.10428571428571416,
+    "retrieval_mrr": 0.7855867346938776,
+    "retrieval_hit_rate": 0.9857142857142858,
+    "retrieval_eval_coverage": 0.875,
+    "rrf_retrieval_recall@20": 0.9571428571428572,
+    "rrf_retrieval_precision@20": 0.10214285714285704,
+    "rrf_retrieval_mrr": 0.6425166500166504,
+    "rrf_retrieval_hit_rate": 0.9857142857142858,
+    "rrf_retrieval_eval_coverage": 0.875
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_marcus_checking_2025-03"
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: inv_priya_cedargrove_03_dup, inv_priya_halcyon_04, stmt_marcus_checking_2025-03"
+    }
+  ]
+}

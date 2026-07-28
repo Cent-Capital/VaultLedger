@@ -65,6 +65,13 @@ class Retrieval(BaseModel):
     answer_top_n: int = 6
 
 
+class Generation(BaseModel):
+    """Phase 5 structured-output + citation-verification knobs."""
+
+    # Minimum normalized snippet length a citation must carry to be verifiable.
+    min_snippet_chars: int = 16
+
+
 class Embedding(BaseModel):
     model: str = "nomic-embed-text"
     ollama_url: str = "http://localhost:11434"
@@ -99,6 +106,7 @@ class Config(BaseSettings):
     variant_default: str = "B_hybrid"
     reranker: Reranker = Reranker()
     retrieval: Retrieval = Retrieval()
+    generation: Generation = Generation()
     embedding: Embedding = Embedding()
     chunking: Chunking = Chunking()
     paths: Paths = Paths()
@@ -148,6 +156,7 @@ __all__ = [
     "ModelRegistry",
     "Reranker",
     "Retrieval",
+    "Generation",
     "Embedding",
     "Chunking",
     "Paths",

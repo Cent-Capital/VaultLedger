@@ -385,3 +385,123 @@ turns that explanation into evidence rather than architecture theater.
 
 **Next:** Phase 5 — structured-output reliability (bounded repair, citation
 verification, and a safe abstaining fallback).
+
+---
+
+## Phase 5 — Structured-output reliability  (2026-07-27)
+
+**Built**
+- `vaultledger/generate/schema.py` — the LLM-facing contract. `AnswerDraft`
+  (`answer_text`, `abstained`, `citations[{chunk_id, snippet}]`) is the *only*
+  thing the model produces; the rich `Answer` (tier, routing, privacy,
+  confidence) is filled by the orchestrator, so a hallucinated
+  `data_left_machine` is structurally impossible. `parse_draft` validates raw
+  output into `AnswerDraft` and raises `DraftParseError` with a repair-friendly
+  message on empty / non-JSON / malformed / schema-invalid input.
+- `vaultledger/generate/reliable.py` — the Phase 5 product path:
+  - **L1 repair loop** (`repair_loop`): `for`-bounded by `config.loops.repair_max`
+    (2 retries → 3 attempts), feeds each validation error back into the prompt
+    (new information per iteration; identical retries banned per SPEC 15.2),
+    emits a `GuardrailEvent` per attempt, and on exhaustion returns
+    `format_failed` → the caller downgrades to `Answer(abstained=True)`. Never
+    raises on bad model output.
+  - **Citation verification** (`verify_citations`): snippet-primary. A citation
+    survives if a verbatim snippet is present in the claimed chunk, or —
+    when the model fumbles the opaque id — if the snippet is verbatim in exactly
+    one retrieved chunk (recovered to it). Zero/multiple matches drop; facts
+    with no surviving citation downgrade to abstain and tag `CITE_FAIL`.
+  - `answer_question_reliable` orchestrates retrieve → assemble → L1 → verify →
+    finalized `Answer`, always valid, never a crash.
+- `vaultledger/generate/ollama.py` — `generate_json(prompt, schema)` uses
+  Ollama's native `format` field for constrained JSON decoding (the
+  `instructor` alternative; ADR-0002).
+- Wired the eval harness (`evals/run.py`) and the Streamlit Ask screen to the
+  reliable path; Ask now renders abstentions, *verified* citations, and the
+  reliability-event trail.
+- Config: typed `generation.min_snippet_chars` (SPEC "config is typed" rule);
+  repair budget already lived in `loops.repair_max`.
+- Kept the Phase-3 prose `answer_question` as the baseline receipt.
+- ADR-0002 (structured output, repair loop, snippet-primary citation verify).
+- `tests/test_phase5.py` — 15 deterministic tests (no live model).
+
+**Acceptance criteria** — met.
+- *100 consecutive queries, zero crashes; malformed repaired or safely
+  downgraded:* `test_ac_100_consecutive_queries_never_crash` drives 100 queries
+  through a rotating chaos menu (clean JSON, unknown chunk_id, fabricated
+  snippet, truncated/empty/prose output, wrong types, missing keys,
+  injection-flavored text). Every result is a valid `Answer`; every surfaced
+  answer carries a verified citation; every unverifiable/malformed case
+  downgrades to the fixed abstention. The suite asserts both survival and
+  downgrade paths are exercised.
+- *Repair is bounded and informative:* tests confirm repair-then-succeed on
+  attempt 2, and exhaustion at exactly `max_retries + 1` calls with a
+  `GEN_FORMAT`-tagged downgrade — no extra model calls past budget.
+
+**Verification**
+- `make lint` — passed (`ruff check .`, all checks passed).
+- `make test` — passed (`60 passed`); the `while True` CI ban holds (the L1 loop
+  is a bounded `for`).
+- Live end-to-end, grounded happy path (real `qwen3:8b` + `nomic-embed-text`,
+  Variant B): `reports/phase4_37384620159a_answer.json` — golden `sd_001`
+  answered `$4,207.55`, `abstained=false`, `confidence=0.729`, one verified
+  citation `stmt_marcus_checking_2025-03#c0` with verbatim snippet
+  `"Closing balance: $4,207.55"`, `citation_docs_match_expected=true`, zero
+  guardrail events (clean pass — no repair, no dropped citation).
+- Live end-to-end, safe-abstain path: `reports/phase4_0af0e7233b60_answer.json`
+  — golden `sd_009`, the model's citation was unverifiable, so the guard
+  downgraded to an honest abstention (`CITE_FAIL`) instead of surfacing it.
+
+**Deviations from SPEC / honest findings**
+- **`instructor` not adopted** (SPEC 7.1 suggestion): its built-in retry is an
+  opaque, unbudgeted loop, which fights SPEC 15's "every loop explicit and
+  observable" rule. Chose native Ollama `format` + a hand-rolled L1 loop; zero
+  new deps; `instructor` documented as the drop-in for the Phase 11 hosted
+  tiers. Full rationale in ADR-0002.
+- **Only citation verification lands here**; numeric verify, cross-persona, and
+  advice linter are Phase 13 per SPEC — not started.
+- **Live finding #1 — the generator must see `answer_top_n`, not the eval `k`.**
+  The first live probes abstained on trivially answerable questions. A raw-output
+  diagnostic (kept the exact prompt, printed the model's JSON) showed `qwen3:8b`
+  emitting a *perfect* citation at `answer_top_n=6`:
+  `{"chunk_id": "stmt_marcus_checking_2025-03#c0", "snippet": "Closing balance:
+  $4,207.55"}`. The abstentions came from the eval harness feeding the generator
+  `k=20` — twenty near-identical Marcus statements — which the small model can't
+  disambiguate, so it dropped its citation. Fix: `answer-one` now generates from
+  `cfg.retrieval.answer_top_n`, matching the Streamlit product path; retrieval
+  metrics still use `k=20` on their own path. Lesson worth the write-up:
+  retrieval breadth and generation context are different knobs and conflating
+  them silently tanks citation precision.
+- **Live finding #2 — citation quality is prompt-load-bearing.** A generic
+  "cite your sources" instruction left citations empty; an explicit
+  "copy the chunk_id character-for-character, quote the snippet verbatim, don't
+  paraphrase" instruction (plus a format-only example that leaks no golden
+  answer) is what produced the exact-id, verbatim-snippet output above. The
+  snippet-recovery guard (recover a fumbled id when the quote is verbatim in
+  exactly one chunk) remains the safety net for the residual cases.
+- **Honest boundary:** these two fixes were validated on live examples end-to-end,
+  not by tuning thresholds against the golden set. Full generation correctness /
+  abstention confusion matrix across all 80 examples is Phase 7 work; Phase 5
+  proves the reliable path runs, cites verifiably, and never crashes.
+
+**Trickiest piece (plain English)**
+The hard part of Phase 5 is that "reliable" means *the loop must be trustworthy
+even when the model is not*. The design that makes this work is putting the
+verification, not the model, in charge of what gets said. The model produces a
+tiny JSON draft; nothing it writes about tier, privacy, or "data left the
+machine" is trusted — those are stamped by our code, so an entire class of
+hallucination is impossible by construction. The one thing we *do* take from the
+model — its citation — is treated as a *claim to be checked*, not a fact: the
+quoted snippet must appear verbatim in a retrieved chunk, and if the model
+mislabels the chunk id but the quote is genuinely there in exactly one chunk, we
+correct the label rather than trust or reject it blindly. When neither the
+claimed id nor the quote checks out, the answer downgrades to an honest "I
+couldn't find that," never a confident-but-unsupported number. The repair loop
+around all of this is a plain bounded `for` that feeds each schema error back to
+the model and gives up cleanly after a fixed budget — no framework, no hidden
+retries, so every iteration is visible in the guardrail-event trail. The payoff
+showed up live: the same model that emitted a flawless verified citation on one
+question, and an unverifiable one on another, produced a *safe* result both
+times — a grounded answer in the first case, an honest abstention in the second.
+
+**Next:** Phase 6 — privacy switch / routing v1 (Local/Cloud toggle, per-query
+"data left your machine" badge, session consent, degraded-mode fallback).

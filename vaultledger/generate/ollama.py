@@ -29,16 +29,34 @@ class OllamaGenerator:
             return False
 
     def generate(self, prompt: str, *, temperature: float = 0.0) -> str:
+        return self._generate(prompt, temperature=temperature)
+
+    def generate_json(
+        self, prompt: str, schema: dict, *, temperature: float = 0.0
+    ) -> str:
+        """Generate with Ollama's constrained JSON decoding (``format`` = schema).
+
+        Passing the JSON Schema makes the runtime emit schema-shaped JSON, which
+        is the Phase 5 alternative to the ``instructor`` library (see ADR-0002).
+        The output is still validated and repaired upstream — constrained
+        decoding narrows failures, it does not eliminate them.
+        """
+        return self._generate(prompt, temperature=temperature, fmt=schema)
+
+    def _generate(
+        self, prompt: str, *, temperature: float = 0.0, fmt: dict | None = None
+    ) -> str:
+        payload: dict = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": temperature},
+        }
+        if fmt is not None:
+            payload["format"] = fmt
         try:
             resp = requests.post(
-                f"{self.base_url}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"temperature": temperature},
-                },
-                timeout=180,
+                f"{self.base_url}/api/generate", json=payload, timeout=180
             )
             resp.raise_for_status()
         except requests.RequestException as exc:
