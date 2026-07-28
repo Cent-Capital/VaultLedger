@@ -69,6 +69,7 @@ class TraceRecorder:
         self._started = perf_counter()
         self._input_rate = input_per_million_usd
         self._output_rate = output_per_million_usd
+        self._avg_retrieval_score: float | None = None
 
     @contextmanager
     def span(self, name: str, **metadata: str | int | float | bool) -> Iterator[None]:
@@ -91,6 +92,14 @@ class TraceRecorder:
     def finish(
         self, answer: Answer, *, avg_retrieval_score: float | None = None
     ) -> QueryTrace:
+        """Finalize the trace. Safe to call more than once.
+
+        Both the reliable-answer path and the privacy router call this: the
+        inner call supplies the retrieval score it alone can see, the outer
+        call refreshes latency and cost once routing has finished. Values from
+        an earlier call are retained rather than reset by a later one, so the
+        outer call never blanks a health metric the inner call recorded.
+        """
         self.trace.total_latency_ms = round((perf_counter() - self._started) * 1000, 3)
         self.trace.model = answer.model_used
         self.trace.tier = answer.tier
@@ -98,7 +107,9 @@ class TraceRecorder:
         self.trace.privacy_mode = answer.privacy_mode
         self.trace.abstained = answer.abstained
         if avg_retrieval_score is not None:
-            self.trace.avg_retrieval_score = round(avg_retrieval_score, 6)
+            self._avg_retrieval_score = avg_retrieval_score
+        if self._avg_retrieval_score is not None:
+            self.trace.avg_retrieval_score = round(self._avg_retrieval_score, 6)
         self.trace.repair_triggered = any(
             event.guard == "structured_repair" for event in answer.guardrail_events
         )
@@ -178,12 +189,21 @@ def trace_rollups(traces: list[QueryTrace]) -> dict:
 
 
 def export_to_langfuse(trace: QueryTrace) -> bool:
-    """Best-effort optional export; local traces never depend on Langfuse."""
+    """Best-effort optional export; local traces never depend on Langfuse.
+
+    Returns True only when spans were handed to an authenticated client. An
+    importable-but-unconfigured Langfuse disables itself silently, so the
+    ``auth_check`` guard exists to stop this function reporting an export that
+    never left the process. ``auth_check`` short-circuits without a network
+    call when no credentials are present.
+    """
     try:
         from langfuse import get_client  # type: ignore[import-not-found]
     except ImportError:
         return False
     client = get_client()
+    if not client.auth_check():
+        return False
     with client.start_as_current_observation(
         as_type="span",
         name="vaultledger.query",

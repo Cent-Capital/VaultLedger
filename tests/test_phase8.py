@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import sys
+
+import pytest
 
 from vaultledger.observability import TraceStore, export_to_langfuse, trace_rollups
 from vaultledger.retrieve.types import ScoredChunk
@@ -125,17 +128,36 @@ def test_cloud_cost_and_rollups_are_attributed_by_required_dimensions(tmp_path):
     assert rollups["health"]["all"]["queries"] == 2
 
 
-def test_langfuse_export_is_optional_when_dependency_is_absent(tmp_path):
-    store = TraceStore(tmp_path / "traces")
+def _traced(tmp_path) -> object:
     routed = answer_with_privacy(
         "balance?",
         _Retriever(),
         _Generator(),
         local_model="local",
-        trace_store=store,
+        trace_store=TraceStore(tmp_path / "traces"),
     )
     assert routed.trace is not None
-    assert export_to_langfuse(routed.trace) is False
+    return routed.trace
+
+
+def test_langfuse_export_reports_false_when_dependency_is_absent(tmp_path, monkeypatch):
+    """The normal local path must work with the optional extra uninstalled."""
+    monkeypatch.setitem(sys.modules, "langfuse", None)  # forces ImportError
+    assert export_to_langfuse(_traced(tmp_path)) is False
+
+
+def test_langfuse_export_reports_false_when_client_is_unauthenticated(
+    tmp_path, monkeypatch
+):
+    """Installed-but-unconfigured Langfuse must not be reported as exported.
+
+    Langfuse disables itself when no keys are present, so an import-only check
+    would claim an export that never left the process.
+    """
+    pytest.importorskip("langfuse")
+    for key in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST"):
+        monkeypatch.delenv(key, raising=False)
+    assert export_to_langfuse(_traced(tmp_path)) is False
 
 
 def test_abstention_trace_keeps_complete_stage_topology(tmp_path):

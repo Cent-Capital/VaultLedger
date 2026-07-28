@@ -690,7 +690,7 @@ tokens, and cost attribution).
 - `langfuse>=4,<5` is an optional `observability` extra. Export is explicit;
   no Langfuse import, initialization, availability probe, or network call
   occurs on the normal local path.
-- `tests/test_phase8.py` adds three gates for full persisted stage traces,
+- `tests/test_phase8.py` adds gates for full persisted stage traces,
   repair health, local vs hosted cost, required rollup dimensions, and optional
   Langfuse behavior.
 
@@ -714,13 +714,16 @@ tokens, and cost attribution).
 - Estimated tokens: 1,221 input + 48 output; local cost `$0`;
   average retrieval score `0.692802`; no repair; one guard flag because the
   poisoned March statement's instruction line was removed.
-- Full regression: `72 passed, 1 skipped`; Ruff, syntax, golden-set, and diff
-  checks passed.
+- Full regression: Ruff, syntax, golden-set, and diff checks passed. The
+  original entry recorded `72 passed, 1 skipped`; re-running the suite at the
+  Phase 8 commit measured `73 passed, 0 skipped`. The corrected figure is the
+  measured one.
 
 **Honest boundaries / deviations**
-- Langfuse is optional and was not installed or exported to in this phase.
-  The adapter follows the current v4 observation API, but no remote Langfuse
-  trace is claimed. Durable local traces are the tested source of truth.
+- Langfuse is optional. No remote Langfuse trace has been produced: this
+  machine has no Langfuse credentials, and `.env` does not exist. What has been
+  verified is narrower and worth stating precisely — see the post-phase review
+  below. Durable local traces remain the tested source of truth.
 - The exporter reconstructs the measured local spans after completion rather
   than decorating every function with `@observe`. This avoids making external
   telemetry a runtime dependency and preserves the local-mode no-egress
@@ -740,5 +743,40 @@ default. Langfuse export is a separate explicit action. The same honesty rule
 applies to cost: character-based token estimates are useful for comparing work,
 but they are labeled estimates and zero provider rates are treated as
 unconfigured—not disguised as precise billing.
+
+**Post-phase review (2026-07-28)** — the Langfuse claim was checked rather
+than assumed, and the check found a real bug.
+
+- *Bug: the exporter reported success it had not earned.* `export_to_langfuse`
+  returned `True` whenever the `langfuse` package merely imported. Installing
+  the extra and running it showed Langfuse logging *"Client will be disabled"*
+  for missing credentials while the function still returned `True` — a
+  telemetry function claiming an export that never left the process, in a
+  project whose whole argument is honest instrumentation. Fixed with a
+  `client.auth_check()` guard, which short-circuits without a network call when
+  no credentials are present.
+- *The old test only passed because the extra was uninstalled.* It asserted
+  `export_to_langfuse(...) is False` against the ambient environment, so
+  installing the optional extra broke the suite. Replaced with two
+  environment-independent gates: dependency absent (import forced to fail) and
+  dependency present but unauthenticated, the second skipping when the extra
+  is not installed.
+- *Verified:* the adapter's API usage is correct against the real SDK
+  (`langfuse 4.14.1`) — `get_client`, `start_as_current_observation(as_type=…,
+  name=…, metadata=…)`, and `flush` all exist with the signatures used.
+  *Not verified:* that a span arrives in a Langfuse project. That needs
+  credentials and remains unclaimed.
+- *Packaging:* installing `.[observability]` unconstrained broke `pip check`.
+  Langfuse pulls the OTLP http exporter, chromadb's installed grpc exporter
+  pins the opentelemetry line to its own version, and the two exporters pin
+  incompatibly. Constrained the extra to the matching exporter version;
+  `pip check` is clean with both libraries installed and importable.
+- *Double `finish()`:* both the reliable-answer path and the privacy router
+  call `TraceRecorder.finish`, and the retrieval-score health metric survived
+  only because of an `is not None` guard. Made the retained value explicit and
+  documented that `finish` is safe to call more than once, so a future field
+  cannot silently blank a health metric.
+- Suite after these changes: `74 passed`, Ruff clean, with the extra both
+  installed and absent.
 
 **Next:** Phase 9 — judge validation and regression runner.

@@ -45,6 +45,12 @@ rerank = [
 ]
 observability = [
     "langfuse>=4.0,<5",
+    # Langfuse pulls the OTLP *http* exporter; chromadb's installed OTLP *grpc*
+    # exporter pins opentelemetry-{proto,sdk,common} to its own exact version.
+    # Unconstrained, pip resolves http to the newer line and `pip check` breaks
+    # (both exporters pin, incompatibly). Keep this matched to the grpc exporter
+    # version and re-check on any chromadb bump. Verified clean at 1.43.0.
+    "opentelemetry-exporter-otlp-proto-http==1.43.0",
 ]
 # Phase 5  (structured out):   none added — native Ollama JSON `format` +
 #                              hand-rolled repair loop instead of instructor (ADR-0002)
