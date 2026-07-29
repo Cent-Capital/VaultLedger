@@ -29,7 +29,7 @@ cfg = load_config()
 st.title("🔒 VaultLedger")
 st.caption(
     "Your private financial analyst that never phones home. "
-    f"Build {__version__} · Phase 8 (observability and cost)."
+    f"Build {__version__} · Phase 9 (validated judge and regression)."
 )
 
 with st.sidebar:
@@ -271,6 +271,27 @@ with evals:
         )
     else:
         st.info("No product query traces yet. Ask a question to populate observability.")
+
+    judge_path = Path("reports/phase9_judge_latest.json")
+    regression_path = Path("reports/regression_latest.json")
+    if judge_path.exists():
+        judge_manifest = json.loads(judge_path.read_text())
+        judge_metrics = judge_manifest["metrics"]
+        st.subheader("Judge validation")
+        j1, j2, j3 = st.columns(3)
+        j1.metric("TPR", f"{judge_metrics['judge_tpr']:.0%}")
+        j2.metric("TNR", f"{judge_metrics['judge_tnr']:.0%}")
+        j3.metric("Human labels", int(judge_metrics["judge_validation_n"]))
+    if regression_path.exists():
+        regression = json.loads(regression_path.read_text())
+        st.subheader("Regression gate")
+        if regression["passed"]:
+            st.success(
+                f"Green against baseline `{regression['baseline_run_id']}`"
+            )
+        else:
+            st.error("Regression detected")
+        st.dataframe(regression["deltas"], width="stretch", hide_index=True)
     st.write("Retrieval eval CLI:")
     st.code("make eval-smoke", language="bash")
     st.code(

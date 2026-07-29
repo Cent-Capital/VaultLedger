@@ -17,7 +17,7 @@ never financial advice.
 
 ## Status
 
-**Phases 0-8 complete** — scaffold/config, deterministic synthetic corpus,
+**Phases 0-9 complete** — scaffold/config, deterministic synthetic corpus,
 ingestion/indexing, an 80-example golden set, measured naive-vs-hybrid
 retrieval, and structured-output reliability. Phase 4 lifted recall@20 from
 0.9587 to 0.9786 and MRR from 0.4974 to 0.7856
@@ -32,7 +32,10 @@ golden questions abstained and the poisoned-document case answered normally
 without dumping account numbers (`reports/phase7_latest.json`).
 Phase 8 added durable six-stage local query traces, latency/token/health
 telemetry, optional Langfuse export, and cost/latency rollups on the dashboard.
-**Next: Phase 9** — judge validation and the regression runner. See the
+Phase 9 validated the versioned local LLM judge against 20 balanced human
+labels (TPR/TNR both 1.00 on the clear calibration set) and added a
+manifest-backed regression gate that catches threshold-breaking metric drops.
+**Next: Phase 10** — Track-A polish and fresh-machine verification. See the
 phase plan in SPEC.md Section 16 and the build log in PROGRESS.md.
 
 ## Prerequisites

@@ -27,8 +27,17 @@ eval-smoke:  ## Fast deterministic eval subset (Phase 3+)
 eval-safety:  ## Phase 7 live local-model gate (10 unanswerable + poisoned doc)
 	$(PYTHON) -m vaultledger.evals safety
 
+judge-validate:  ## Phase 9: validate judge against 20 human labels
+	$(PYTHON) -m vaultledger.evals judge-validate
+
+regression:  ## Phase 9: compare latest retrieval manifest with baseline
+	$(PYTHON) -m vaultledger.evals regression
+
 eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
-	@echo "eval-full: not implemented until Phase 9."
+	$(PYTHON) -m vaultledger.evals validate
+	$(PYTHON) -m vaultledger.evals safety
+	$(PYTHON) -m vaultledger.evals judge-validate
+	$(PYTHON) -m vaultledger.evals regression
 
 matrix:  ## Multi-model benchmark matrix (Phase 11+)
 	@echo "matrix: not implemented until Phase 11."

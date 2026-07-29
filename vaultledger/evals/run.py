@@ -18,7 +18,21 @@ from vaultledger.evals.golden import (
     load_golden_set,
     validate_expected_snippets,
 )
+from vaultledger.evals.judge import (
+    DEFAULT_LABELS_PATH,
+    judge_item,
+    load_human_labels,
+    rubric_hash,
+    validation_metrics,
+)
 from vaultledger.evals.metrics import abstention_confusion, retrieval_metrics
+from vaultledger.evals.regression import (
+    DEFAULT_BASELINE_PATH,
+    compare_files,
+    compare_manifest,
+    load_baseline,
+    write_report,
+)
 from vaultledger.generate import OllamaGenerator, answer_question_reliable
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import load_chunks
@@ -292,6 +306,81 @@ def run_safety_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_judge_validation(args: argparse.Namespace) -> int:
+    """Validate the configured local judge against 20 human labels."""
+    cfg = load_config()
+    items = load_human_labels(args.labels)
+    generator = OllamaGenerator(args.model or cfg.models.T1.id, cfg.embedding.ollama_url)
+    if not generator.is_available():
+        raise RuntimeError(f"judge model {generator.model!r} is unavailable in Ollama")
+
+    verdicts = {}
+    rows = []
+    for item in items:
+        verdict = judge_item(generator, item)
+        verdicts[item.id] = verdict
+        rows.append(
+            {
+                "item_id": item.id,
+                "human_pass": item.human_pass,
+                "judge": verdict.model_dump(),
+                "aligned": verdict.passed == item.human_pass,
+            }
+        )
+    metrics, failures = validation_metrics(items, verdicts)
+    labels_hash = hashlib.sha256(Path(args.labels).read_bytes()).hexdigest()
+    manifest = RunManifest(
+        run_id=f"phase9_judge_{uuid4().hex[:12]}",
+        timestamp=datetime.now(UTC).isoformat(),
+        git_sha=_git_sha(),
+        config_hash=_config_hash(),
+        golden_set_hash=labels_hash,
+        seed=cfg.seed,
+        variant="B_hybrid",
+        model=args.model or cfg.models.T1.id,
+        metrics=metrics,
+        total_cost_usd=0.0,
+        failures=failures,
+    )
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = out_dir / f"{manifest.run_id}.json"
+    verdicts_path = out_dir / f"{manifest.run_id}_verdicts.json"
+    latest_path = out_dir / "phase9_judge_latest.json"
+    manifest_json = manifest.model_dump_json(indent=2) + "\n"
+    manifest_path.write_text(manifest_json)
+    latest_path.write_text(manifest_json)
+    verdicts_path.write_text(
+        json.dumps(
+            {
+                "rubric_hash": rubric_hash(),
+                "labels_hash": labels_hash,
+                "items": rows,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    print(json.dumps({"manifest": str(manifest_path), "metrics": metrics}, indent=2))
+    return int(metrics["judge_tpr"] <= 0.8 or metrics["judge_tnr"] <= 0.8)
+
+
+def run_regression(args: argparse.Namespace) -> int:
+    if args.inject_metric:
+        baseline = load_baseline(args.baseline)
+        current = RunManifest.model_validate_json(Path(args.current).read_text())
+        if args.inject_metric not in current.metrics:
+            raise ValueError(f"cannot inject unknown metric: {args.inject_metric}")
+        current.metrics[args.inject_metric] -= args.inject_drop
+        current.run_id += "_injected"
+        report = compare_manifest(baseline, current)
+    else:
+        report = compare_files(args.baseline, args.current)
+    write_report(report, args.output)
+    print(report.model_dump_json(indent=2))
+    return 0 if report.passed else 1
+
+
 def _write_comparison(
     baseline_path: Path,
     current: RunManifest,
@@ -380,6 +469,24 @@ def build_parser() -> argparse.ArgumentParser:
     safety.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
     safety.add_argument("--out-dir", default="reports")
     safety.set_defaults(func=run_safety_eval)
+
+    judge = sub.add_parser(
+        "judge-validate", help="Validate the LLM judge against 20 human labels"
+    )
+    judge.add_argument("--labels", default=str(DEFAULT_LABELS_PATH))
+    judge.add_argument("--model", default="")
+    judge.add_argument("--out-dir", default="reports")
+    judge.set_defaults(func=run_judge_validation)
+
+    regression = sub.add_parser(
+        "regression", help="Compare a RunManifest against the persisted baseline"
+    )
+    regression.add_argument("--baseline", default=str(DEFAULT_BASELINE_PATH))
+    regression.add_argument("--current", default="reports/phase4_latest.json")
+    regression.add_argument("--output", default="reports/regression_latest.json")
+    regression.add_argument("--inject-metric", default="")
+    regression.add_argument("--inject-drop", type=float, default=0.0)
+    regression.set_defaults(func=run_regression)
     return parser
 
 

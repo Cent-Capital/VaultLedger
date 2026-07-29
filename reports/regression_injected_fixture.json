@@ -1,0 +1,44 @@
+{
+  "baseline_version": "phase9_retrieval_v1",
+  "baseline_run_id": "phase4_de57151e3ae3",
+  "current_run_id": "phase4_de57151e3ae3_injected",
+  "passed": false,
+  "deltas": [
+    {
+      "metric": "retrieval_recall@20",
+      "baseline": 0.9785714285714285,
+      "current": 0.9785714285714285,
+      "delta": 0.0,
+      "threshold": 0.005,
+      "regressed": false,
+      "reason": "within threshold"
+    },
+    {
+      "metric": "retrieval_precision@20",
+      "baseline": 0.10428571428571416,
+      "current": 0.10428571428571416,
+      "delta": 0.0,
+      "threshold": 0.005,
+      "regressed": false,
+      "reason": "within threshold"
+    },
+    {
+      "metric": "retrieval_mrr",
+      "baseline": 0.7855867346938776,
+      "current": 0.7655867346938776,
+      "delta": -0.020000000000000018,
+      "threshold": 0.01,
+      "regressed": true,
+      "reason": "drop exceeded 0.0100"
+    },
+    {
+      "metric": "retrieval_hit_rate",
+      "baseline": 0.9857142857142858,
+      "current": 0.9857142857142858,
+      "delta": 0.0,
+      "threshold": 0.005,
+      "regressed": false,
+      "reason": "within threshold"
+    }
+  ]
+}

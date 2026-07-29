@@ -780,3 +780,96 @@ than assumed, and the check found a real bug.
   installed and absent.
 
 **Next:** Phase 9 — judge validation and regression runner.
+
+---
+
+## Phase 9 — Judge validation + regression runner  (2026-07-28)
+
+**Built**
+- `vaultledger/evals/judge/human_labels.yaml` — exactly 20 manually classified
+  candidate answers, balanced 10 acceptable / 10 unacceptable. The cases cover
+  exact and paraphrased facts, correct abstention, aggregation, comparison,
+  discrepancy explanation, wrong numbers/entities/periods, false abstention,
+  unsupported claims, partial aggregation, and injection-following output.
+- `rubric_v1.md` — a versioned correctness + faithfulness rubric. PASS requires
+  both semantic correctness and complete evidence support; false abstention,
+  unsupported extras, advice, leaked account data, and document-instruction
+  obedience explicitly fail.
+- `judge/validate.py` — typed labels/verdicts, schema-constrained judge prompts,
+  rubric hashing, balanced-set validation, and independent TPR/TNR confusion
+  metrics.
+- `python -m vaultledger.evals judge-validate` / `make judge-validate` runs the
+  strongest configured available tier, writes a manifested result and all
+  item-level verdicts/reasons, and exits nonzero unless both TPR and TNR are
+  strictly above 0.80.
+- `vaultledger/evals/regression.py` plus committed
+  `regression_baseline.json` — metric policies tied to the measured Phase-4
+  manifest and frozen golden hash. Missing required metrics fail closed.
+- `python -m vaultledger.evals regression` / `make regression` writes a
+  machine-readable delta report and exits nonzero when any drop exceeds its
+  metric-specific threshold. CLI injection flags create a reproducible negative
+  control without editing the source manifest.
+- `make eval-full` now runs golden validation, Phase-7 live safety, judge
+  validation, and regression in sequence.
+- Streamlit Evals now shows judge TPR/TNR/label count and a green/red regression
+  table against the persisted baseline.
+- `tests/test_phase9.py` — six deterministic tests for label balance/versioning,
+  independent TPR/TNR math, baseline green path, missing-metric fail-closed,
+  and deliberate-regression detection.
+
+**Acceptance criteria** — met.
+- *Judge TPR/TNR >80% against 20 human labels:* live configured
+  `ollama/qwen3:8b` run `phase9_judge_2eed824d4657` produced TP=10, TN=10,
+  FP=0, FN=0: TPR=1.00, TNR=1.00, accuracy=1.00.
+- *Regression runner catches a deliberately injected regression:* the CLI
+  negative control subtracts 0.02 from retrieval MRR. The allowed drop is 0.01,
+  so `regression_injected_fixture.json` reports `passed=false`, flags only MRR,
+  and exits 1. The untouched `phase4_latest` comparison is green.
+
+**Artifacts**
+- `reports/phase9_judge_2eed824d4657.json` and
+  `phase9_judge_latest.json` — RunManifest with model, hashes, metrics, and
+  failures.
+- `reports/phase9_judge_2eed824d4657_verdicts.json` — rubric hash
+  `ad2b94ce951d...`, label hash `89533bd082e4...`, and every human/judge verdict
+  with rationale.
+- `reports/regression_latest.json` — green comparison against
+  `phase4_de57151e3ae3`.
+- `reports/regression_injected_fixture.json` — intentional red control.
+
+**Verification**
+- Full regression: `79 passed, 1 skipped`.
+- Ruff, syntax compilation, CLI parser, and `git diff --check` passed.
+
+**Honest boundaries**
+- The 20 labels were authored as clear calibration cases, not sampled from a
+  noisy production-answer distribution. Perfect alignment proves the rubric and
+  configured judge can separate these boundaries; it does not imply 100%
+  accuracy on subtle, partially correct, or out-of-distribution answers.
+- SPEC's “100% means the suite is too easy” principle applies. The next judge
+  set should add ambiguous partial-credit and paraphrase-stress cases while
+  keeping this v1 set frozen as a regression receipt.
+- No rubric iteration was needed on v1; there is therefore no claimed
+  before/after alignment improvement.
+- The strongest *configured and available* judge was local `qwen3:8b`: cloud
+  T3 had no configured endpoint/key and was not silently invoked. The run cost
+  is correctly recorded as `$0`.
+- The regression v1 baseline covers mature deterministic retrieval metrics.
+  Generation, safety, cost, and judge baselines should be added as their
+  populations stabilize; metrics from incompatible golden hashes cannot be
+  compared.
+- `RunManifest.golden_set_hash` contains the human-label file hash for the judge
+  validation run. This reuses the existing manifested-dataset field rather than
+  pretending the 80-item QA golden hash was used.
+
+**Trickiest piece (plain English)**
+A judge score is not trustworthy merely because another model emitted it. The
+judge is a classifier, so it needs the same validation discipline as any other
+classifier: known positives, known negatives, and both error directions
+measured separately. TPR alone would let an always-PASS judge look perfect;
+TNR alone would reward an always-FAIL judge. The balanced human set makes both
+shortcuts visible. The regression runner follows the same principle: the green
+path proves compatibility, while the deliberately damaged MRR is the negative
+control proving the alarm actually rings.
+
+**Next:** Phase 10 — Track-A polish, fresh-machine run, demo, and report draft.

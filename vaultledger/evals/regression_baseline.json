@@ -1,0 +1,27 @@
+{
+  "version": "phase9_retrieval_v1",
+  "source_run_id": "phase4_de57151e3ae3",
+  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "metrics": {
+    "retrieval_recall@20": {
+      "baseline": 0.9785714285714285,
+      "max_drop": 0.005,
+      "higher_is_better": true
+    },
+    "retrieval_precision@20": {
+      "baseline": 0.10428571428571416,
+      "max_drop": 0.005,
+      "higher_is_better": true
+    },
+    "retrieval_mrr": {
+      "baseline": 0.7855867346938776,
+      "max_drop": 0.01,
+      "higher_is_better": true
+    },
+    "retrieval_hit_rate": {
+      "baseline": 0.9857142857142858,
+      "max_drop": 0.005,
+      "higher_is_better": true
+    }
+  }
+}
