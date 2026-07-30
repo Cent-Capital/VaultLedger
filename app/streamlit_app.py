@@ -1,11 +1,4 @@
-"""VaultLedger UI shell (SPEC.md Section 6).
-
-Phase 4: the Ask screen runs hybrid dense + BM25 retrieval with RRF and optional
-cross-encoder reranking. Variant A remains available in the eval harness as the
-permanent baseline.
-
-Run:  streamlit run app/streamlit_app.py
-"""
+"""VaultLedger Track-A Streamlit application (SPEC.md Section 6)."""
 
 from __future__ import annotations
 
@@ -26,14 +19,46 @@ st.set_page_config(page_title="VaultLedger", page_icon="🔒", layout="wide")
 
 cfg = load_config()
 
-st.title("🔒 VaultLedger")
-st.caption(
-    "Your private financial analyst that never phones home. "
-    f"Build {__version__} · Phase 9 (validated judge and regression)."
+st.markdown(
+    """
+    <style>
+      .block-container {padding-top: 2rem; padding-bottom: 3rem; max-width: 1240px;}
+      [data-testid="stMetric"] {
+        background: rgba(255,255,255,.78);
+        border: 1px solid #d7e6e2;
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+      [data-testid="stSidebar"] {border-right: 1px solid #d7e6e2;}
+      .vl-hero {
+        padding: 24px 28px;
+        border: 1px solid #c9e0da;
+        border-radius: 18px;
+        background: linear-gradient(120deg, #e8f3f0 0%, #f9fcfb 70%);
+        margin-bottom: 18px;
+      }
+      .vl-eyebrow {
+        color: #0f766e; font-size: .82rem; font-weight: 700;
+        letter-spacing: .08em; text-transform: uppercase;
+      }
+      .vl-hero h1 {font-size: 2.35rem; margin: .25rem 0 .35rem 0;}
+      .vl-hero p {font-size: 1.05rem; margin: 0; color: #365a53;}
+    </style>
+    <section class="vl-hero">
+      <div class="vl-eyebrow">Local-first · cited · measured</div>
+      <h1>🔒 VaultLedger</h1>
+      <p>Ask financial documents a question without giving up control of the evidence.</p>
+    </section>
+    """,
+    unsafe_allow_html=True,
 )
+st.caption(f"Track-A v{__version__} · synthetic data only · document Q&A, never advice")
 
 with st.sidebar:
-    st.subheader("Run config")
+    st.success("Track A · release candidate")
+    st.caption("Phases 0–10 · internship deliverable")
+    st.divider()
+    st.subheader("Local run config")
     st.metric("Seed", cfg.seed)
     st.metric("Project budget", f"${cfg.budgets.project_usd:,.2f}")
     st.write(f"**Default variant:** `{cfg.variant_default}`")
@@ -44,13 +69,16 @@ with st.sidebar:
     st.write(f"T1 `{cfg.models.T1.id}`")
     st.write("T2 " + ", ".join(f"`{m.id}`" for m in cfg.models.T2))
     st.write(f"T3 `{cfg.models.T3.id}`")
+    st.divider()
+    st.caption("Local mode does not construct or probe a cloud client.")
 
 library, ask, evals, lab = st.tabs(
     ["📚 Library / Ingest", "💬 Ask", "📊 Evals", "🧪 Experiment Lab"]
 )
 
 with library:
-    st.header("Library / Ingest")
+    st.header("Your document library")
+    st.caption("A deterministic 60-document synthetic corpus. No real financial data.")
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     db_path = index_dir / "records.db"
 
@@ -58,10 +86,7 @@ with library:
     with col_btn:
         rebuild = st.button("Rebuild indexes", type="primary")
     with col_note:
-        st.caption(
-            "Parses every PDF in the corpus: extract → SQLite → PII-tag → "
-            "chunk → Chroma + BM25. Local only; nothing leaves this machine."
-        )
+        st.caption("Parse → extract → PII-tag → chunk → Chroma + BM25. Local only.")
     if rebuild:
         from vaultledger.ingest import run_ingest
 
@@ -77,7 +102,10 @@ with library:
                 st.error(str(exc))
 
     if not db_path.exists():
-        st.info("No ingested corpus yet — run `make data && make ingest`, or click Rebuild.")
+        st.info(
+            "No ingested corpus yet. Run `make data && make ingest`, then `make doctor`, "
+            "or click Rebuild after the PDFs exist."
+        )
     else:
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
@@ -94,6 +122,7 @@ with library:
         m3.metric("Chunks", n_chunks)
         m4.metric("Vector index", "built" if (index_dir / "chroma").exists() else "—")
 
+        st.subheader("Parsed documents")
         st.dataframe(
             [
                 {
@@ -114,8 +143,8 @@ with library:
         conn.close()
 
 with ask:
-    st.header("Ask")
-    st.caption("Variant B: dense + BM25 → RRF → optional rerank.")
+    st.header("Ask your documents")
+    st.caption("Variant B · dense + BM25 → reciprocal-rank fusion → local reranker")
     privacy_mode = st.radio(
         "Privacy mode",
         ["Local", "Cloud-Boosted"],
@@ -130,9 +159,31 @@ with ask:
             "for this session.",
             key="cloud_session_consent",
         )
+        st.warning(
+            "Track-A cloud mode is for synthetic data only. PII egress redaction is a "
+            "Phase-13 guardrail and is not claimed in this release."
+        )
+    sample = st.selectbox(
+        "Measured examples",
+        (
+            "Marcus's March closing balance",
+            "Priya's total 1099 income",
+            "An unanswerable credit-score question",
+            "Write my own question",
+        ),
+        help="These come from the versioned golden set.",
+    )
+    sample_questions = {
+        "Marcus's March closing balance": "What was Marcus Chen's March closing balance?",
+        "Priya's total 1099 income": "What was Priya Raman's total 1099 income?",
+        "An unanswerable credit-score question": "What is Marcus Chen's credit score?",
+        "Write my own question": "",
+    }
     question = st.text_input(
         "Question",
+        value=sample_questions[sample],
         placeholder="What was Marcus Chen's March closing balance?",
+        key=f"question_{sample}",
     )
     ask_clicked = st.button(
         "Ask",
@@ -204,12 +255,12 @@ with ask:
                         st.warning(routed.notice)
                     if answer.data_left_machine:
                         st.warning(
-                            "Data left your machine: YES · "
+                            "Synthetic query context left your machine: YES · "
                             f"cloud model `{cfg.cloud.model}` · "
                             f"answer model `{answer.model_used}`"
                         )
                     else:
-                        st.success("Data left your machine: NO")
+                        st.success("Data stayed on your machine · NO cloud egress")
                     if answer.abstained:
                         st.warning(answer.answer_text)
                     else:
@@ -235,11 +286,68 @@ with ask:
                             f"({routed.trace.token_count_source}) · "
                             f"cost=${routed.trace.cost_usd:.6f}"
                         )
+        except ModuleNotFoundError as exc:
+            st.error(f"Missing local dependency `{exc.name}`. Run `make install`.")
         except (RuntimeError, FileNotFoundError, KeyError) as exc:
             st.error(str(exc))
 
 with evals:
-    st.header("Evals dashboard")
+    st.header("Measured, not hand-waved")
+    st.caption("Every headline below traces to a committed manifest or regression report.")
+    phase3_path = cfg.repo_path("reports/phase3_baseline_latest.json")
+    phase4_path = cfg.repo_path("reports/phase4_latest.json")
+    safety_path = cfg.repo_path("reports/phase7_latest.json")
+    judge_path = cfg.repo_path("reports/phase9_judge_latest.json")
+    regression_path = cfg.repo_path("reports/regression_latest.json")
+
+    if phase3_path.exists() and phase4_path.exists():
+        dense = json.loads(phase3_path.read_text())["metrics"]
+        hybrid = json.loads(phase4_path.read_text())["metrics"]
+        st.subheader("Retrieval: dense baseline → hybrid + rerank")
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Recall@20 · dense", f"{dense['retrieval_recall@20']:.4f}")
+        r2.metric(
+            "Recall@20 · hybrid",
+            f"{hybrid['retrieval_recall@20']:.4f}",
+            f"{hybrid['retrieval_recall@20'] - dense['retrieval_recall@20']:+.4f}",
+        )
+        r3.metric("MRR · dense", f"{dense['retrieval_mrr']:.4f}")
+        r4.metric(
+            "MRR · hybrid",
+            f"{hybrid['retrieval_mrr']:.4f}",
+            f"{hybrid['retrieval_mrr'] - dense['retrieval_mrr']:+.4f}",
+        )
+        st.caption("Population: 70 answerable items; 10 unanswerable items excluded.")
+
+    st.subheader("Safety, judge, and regression gates")
+    gate1, gate2, gate3, gate4 = st.columns(4)
+    if safety_path.exists():
+        safety = json.loads(safety_path.read_text())["metrics"]
+        gate1.metric(
+            "Unanswerable recall",
+            f"{safety['abstention_unanswerable_recall']:.0%}",
+            "10/10 cases",
+        )
+        gate2.metric(
+            "Injection pass rate", f"{safety['injection_pass_rate']:.0%}", "1 seeded case"
+        )
+    if judge_path.exists():
+        judge_manifest = json.loads(judge_path.read_text())
+        judge_metrics = judge_manifest["metrics"]
+        gate3.metric(
+            "Judge TPR / TNR",
+            f"{judge_metrics['judge_tpr']:.0%} / {judge_metrics['judge_tnr']:.0%}",
+            "20 clear labels",
+        )
+    if regression_path.exists():
+        regression = json.loads(regression_path.read_text())
+        gate4.metric("Regression", "GREEN" if regression["passed"] else "RED")
+
+    if regression_path.exists():
+        with st.expander("Regression deltas vs frozen Phase-4 baseline"):
+            st.dataframe(regression["deltas"], width="stretch", hide_index=True)
+
+    st.subheader("Product query observability")
     from vaultledger.observability import TraceStore, trace_rollups
 
     traces = TraceStore(cfg.repo_path(cfg.paths.traces)).load()
@@ -272,39 +380,21 @@ with evals:
     else:
         st.info("No product query traces yet. Ask a question to populate observability.")
 
-    judge_path = Path("reports/phase9_judge_latest.json")
-    regression_path = Path("reports/regression_latest.json")
-    if judge_path.exists():
-        judge_manifest = json.loads(judge_path.read_text())
-        judge_metrics = judge_manifest["metrics"]
-        st.subheader("Judge validation")
-        j1, j2, j3 = st.columns(3)
-        j1.metric("TPR", f"{judge_metrics['judge_tpr']:.0%}")
-        j2.metric("TNR", f"{judge_metrics['judge_tnr']:.0%}")
-        j3.metric("Human labels", int(judge_metrics["judge_validation_n"]))
-    if regression_path.exists():
-        regression = json.loads(regression_path.read_text())
-        st.subheader("Regression gate")
-        if regression["passed"]:
-            st.success(
-                f"Green against baseline `{regression['baseline_run_id']}`"
-            )
-        else:
-            st.error("Regression detected")
-        st.dataframe(regression["deltas"], width="stretch", hide_index=True)
-    st.write("Retrieval eval CLI:")
+    st.subheader("Reproduce it")
     st.code("make eval-smoke", language="bash")
-    st.code(
-        ".venv/bin/python -m vaultledger.evals run --variant B_hybrid", language="bash"
-    )
-    st.caption(
-        "The dashboard visualization lands in later phases; the harness already "
-        "writes RunManifest JSON under reports/."
-    )
+    st.code("make verify-track-a", language="bash")
 
 with lab:
     st.header("Experiment Lab")
-    st.info(
-        "Tracks B/D: variant x model x subset runs, the model x metric x cost "
-        "matrix, and the cost-quality frontier chart."
+    st.info("Track A ends here. This workspace opens with Phase 11.")
+    st.markdown(
+        """
+        **Next measured questions**
+
+        - How do six local, hosted open-weight, and frontier models compare on the same set?
+        - Can a deterministic policy router preserve quality while lowering cost?
+        - Where do GraphRAG and agentic RAG win, lose, and cost more than Variant B?
+
+        No Phase-11+ result is displayed or claimed in this Track-A release.
+        """
     )
