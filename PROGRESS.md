@@ -893,3 +893,109 @@ path proves compatibility, while the deliberately damaged MRR is the negative
 control proving the alarm actually rings.
 
 **Next:** Phase 10 — Track-A polish, fresh-machine run, demo, and report draft.
+
+---
+
+## Phase 10 — Track-A polish  (2026-07-30)  — **OPEN**
+
+Written on review, after the two Phase 10 commits (`7689f79`, `91c41b8`) landed
+without a build-log entry. The phase is deliberately recorded as open: one
+acceptance criterion is not met and is not claimed to be.
+
+**Built**
+- `vaultledger/doctor.py` + `make doctor` — a read-only readiness check over the
+  documented setup: Python version, config load, required imports, 60/60
+  synthetic PDFs, the four local index artifacts, Ollama embedding/generation
+  models, and the presence of Track-A eval receipts. Every failing check carries
+  the exact remedy command. It installs, downloads, generates, and ingests
+  nothing.
+- `make verify-track-a` — the phase gate as one target: `lint test eval-full`,
+  where `eval-full` chains golden validation, the live safety eval, judge
+  validation, and the regression comparison.
+- README rewritten around the fresh-checkout path, with the previously missing
+  steps now explicit and ordered: venv → `make install` → `ollama pull
+  nomic-embed-text` → `ollama pull qwen3:8b` → `make data` → `make ingest` →
+  `make doctor` → `make run`.
+- `tests/test_phase10.py` — release version and Streamlit config pins, a
+  Streamlit `AppTest` smoke test asserting the four-tab tree renders with no
+  exception, an assertion that the README's setup commands appear *in order*,
+  and a doctor test proving it reports missing corpus/index without creating
+  anything.
+- `.streamlit/config.toml` + a `make run` that passes `--server.headless` and
+  `--browser.gatherUsageStats=false`, so a first launch raises no telemetry
+  prompt and phones nothing home. Consistent with the product thesis.
+- App polish: Track-A version caption, synthetic-data notices, population stated
+  on the retrieval headline (70 answerable of 80), and the Experiment Lab
+  labelled as post-internship Phase 11+ scope.
+- `demo/README.md` — the recording script, committed before the recording
+  exists.
+- Version bumped `0.0.0` → `0.1.0` (Track-A internship deliverable).
+
+**Acceptance criteria** — one met, one partially met, one not met.
+- *Full regression green:* **met.** Re-verified on review, not taken on trust —
+  see Verification below.
+- *Fresh-machine run from README:* **partially met.** The documented path is now
+  complete and ordered, a test enforces that order so the README cannot silently
+  drift, and `doctor` diagnoses a fresh checkout correctly (confirmed on review
+  against a clean clone: `0/60 PDFs → run make data`, missing indexes → `run
+  make ingest`). What is *not* committed is a transcript of an actual
+  clone-to-`make run` walkthrough in a clean virtualenv. The repo-side work is
+  done; the end-to-end proof is not on file.
+- *Demo recorded:* **not met.** `demo/README.md` states plainly that the
+  artifact does not exist until a real browser walkthrough is recorded, and the
+  README says the phase stays open until then. No demo is claimed.
+
+**Deviations from SPEC**
+- SPEC 16 scopes Phase 10 as "README, demo v1, internship report draft."
+  `doctor.py` and `verify-track-a` are additions beyond that text. They were
+  kept because a setup document drifts silently while a read-only checker fails
+  loudly on the user's actual machine — the AC is "a fresh machine works," not
+  "a fresh machine is described."
+- The internship report draft is not in this repo. Per `CLAUDE.md`'s routing
+  rule — compiler/harness output here, recruiter/lead output in PM-OS — it
+  belongs in `~/Desktop/PM-OS`. It remains outstanding.
+
+**Verification** (measured on review, 2026-07-30)
+- `make verify-track-a` — **exit 0**, 2m13s wall clock, all four stages green:
+  - ruff clean; `85 passed`
+  - safety: 10 rightly abstained, 0 wrongly abstained, `injection_pass_rate 1.0`
+  - judge: `judge_tpr 1.0`, `judge_tnr 1.0`
+  - regression: `passed: true`
+- `make doctor` on the development machine: 7/7 checks pass.
+- `doctor` against a fresh `git clone`: correctly fails the corpus and index
+  checks with the right remedies, and creates nothing.
+
+**Honest boundaries**
+- The phase is open. Two Phase 10 commits exist, but the demo — an explicit AC
+  — has not been recorded.
+- The gate result above is a re-run on the development machine. It is not
+  evidence that a clean virtualenv install succeeds from scratch; nobody has
+  committed that transcript.
+- Unchanged and still true from earlier phases, and none of it may be overstated
+  in the README or the report: the 20 judge labels have not been adjudicated by
+  a human (owner review pending), so they are calibration labels rather than
+  human labels, and TPR/TNR of 1.00 reflects a deliberately clear set with no
+  headroom to detect a judge getting worse; no Langfuse span has ever reached a
+  Langfuse project; hosted token counts and cost are estimates, and zero
+  provider rates mean unpriced, not free.
+- The demo script is committed but untested against a live run. If the model
+  abstains or emits an unverifiable citation during recording, that outcome is
+  to be kept visible as a reliability finding, not re-rolled away.
+
+**Trickiest piece (plain English)**
+The obvious way to pass "a fresh machine works" is to write better setup
+instructions. That fails quietly: documentation drifts away from the code the
+moment a path, a model name, or an install step changes, and nothing in the
+build catches it. Two mechanisms replace the prose. A read-only doctor runs on
+the user's real machine and reports which documented step is still missing, with
+the exact command to fix it — so the check happens where the truth is rather
+than in a paragraph. And a test asserts the README's commands appear in the
+correct order, which turns the setup narrative itself into something CI can
+fail. The general habit: when a criterion is about the world rather than the
+code, find the smallest executable thing that observes the world, because a
+claim nobody can re-run is indistinguishable from a claim nobody checked.
+
+**Next:** close Phase 10 (record the demo; optionally commit a clean-virtualenv
+transcript), then the owner's judge-label review, then Phase 11 — model gateway
+and benchmark matrix, where `kimi-k2.6` and `glm-5.2` get real rates and a
+measured comparison.
