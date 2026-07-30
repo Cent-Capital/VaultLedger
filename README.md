@@ -15,9 +15,9 @@ account data, and provides document extraction and Q&A, never financial advice.
 
 ## Track-A status
 
-Phase 10 is the Track-A release candidate (`v0.1.0`). Phases 0-9 are complete;
-the final Phase 10 gate is the fresh-checkout workflow and `make verify-track-a`.
-Measured receipts already committed:
+Phase 10 is the Track-A release candidate (`v0.1.0`). The fresh-checkout
+workflow and `make verify-track-a` passed on July 30, 2026. The phase remains
+open until the real browser walkthrough is recorded. Measured receipts:
 
 - Hybrid retrieval raised recall@20 from `0.9587` to `0.9786` and MRR from
   `0.4974` to `0.7856` on the 70 answerable examples in the 80-item golden set.

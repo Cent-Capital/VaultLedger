@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from streamlit.testing.v1 import AppTest
+
 from vaultledger import __version__
 from vaultledger.doctor import run_checks
 
@@ -42,6 +44,24 @@ def test_phase10_entrypoints_and_demo_script_exist():
     demo = (REPO_ROOT / "demo" / "README.md").read_text()
     assert "What was Marcus Chen's March closing balance?" in demo
     assert "Data stayed on your machine" in demo
+
+
+def test_track_a_streamlit_tree_renders_without_exceptions():
+    app = AppTest.from_file(str(REPO_ROOT / "app" / "streamlit_app.py"), default_timeout=30)
+    app.run()
+    assert not app.exception
+    assert [tab.label for tab in app.tabs] == [
+        "📚 Library / Ingest",
+        "💬 Ask",
+        "📊 Evals",
+        "🧪 Experiment Lab",
+    ]
+    assert [header.value for header in app.header] == [
+        "Your document library",
+        "Ask your documents",
+        "Measured, not hand-waved",
+        "Experiment Lab",
+    ]
 
 
 def test_doctor_is_read_only_and_reports_actionable_missing_steps(tmp_path):
