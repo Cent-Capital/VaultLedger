@@ -833,13 +833,33 @@ than assumed, and the check found a real bug.
 - `reports/phase9_judge_2eed824d4657_verdicts.json` — rubric hash
   `ad2b94ce951d...`, label hash `89533bd082e4...`, and every human/judge verdict
   with rationale.
-- `reports/regression_latest.json` — green comparison against
-  `phase4_de57151e3ae3`.
+- `reports/regression_latest.json` — green comparison of a fresh run
+  (`phase4_be55865df056`, 2026-07-30) against the frozen baseline
+  (`phase4_de57151e3ae3`). Regenerated on review: the first version compared
+  the baseline run against itself, so every delta was necessarily `0.0` and the
+  artifact proved only that the file parsed.
 - `reports/regression_injected_fixture.json` — intentional red control.
+- `reports/phase4_be55865df056.json` — the fresh run behind the green
+  comparison, full pipeline (Ollama embeddings → Chroma + BM25 → RRF →
+  BGE rerank) re-run five days after the baseline was frozen.
 
 **Verification**
-- Full regression: `79 passed, 1 skipped`.
+- Full regression: `79 passed, 1 skipped` (`80 passed` with the optional
+  `observability` extra installed, which un-skips the Langfuse auth gate).
 - Ruff, syntax compilation, CLI parser, and `git diff --check` passed.
+- *Runner checked behaviourally, not only arithmetically (added on review).*
+  The CLI negative control subtracts a constant from a metric, which exercises
+  the threshold comparison rather than the system. Fed the real Phase-3
+  naive-retrieval manifest instead, the runner flags `recall@20` (−0.0199) and
+  `retrieval_mrr` (−0.2882), leaves `precision@20` and `hit_rate` green, and
+  exits 1 — so it catches a genuine measured degradation and not just an edited
+  number.
+- *Determinism confirmed across days (2026-07-30).* The fresh
+  `phase4_be55865df056` run reproduced all four baseline retrieval metrics
+  bit-for-bit (deltas exactly `0.0`) five days after the baseline was frozen.
+  A green regression report is meant to show reproduction, so identical deltas
+  are the expected result here — but they only mean something because the run
+  ids differ.
 
 **Honest boundaries**
 - The 20 labels were authored as clear calibration cases, not sampled from a
