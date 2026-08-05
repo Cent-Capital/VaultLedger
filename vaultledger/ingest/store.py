@@ -17,7 +17,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from vaultledger.schemas import DocMeta
+from vaultledger.schemas import DocMeta, GuardrailEvent
 
 from .records import (
     ExtractedRecord,
@@ -47,6 +47,7 @@ CREATE TABLE documents (
     is_synthetic INTEGER NOT NULL DEFAULT 1,
     page_count INTEGER NOT NULL,
     pii_entity_types TEXT NOT NULL DEFAULT '[]',  -- JSON array of entity type names
+    guardrail_events TEXT NOT NULL DEFAULT '[]',
     parse_status TEXT NOT NULL,                   -- 'ok' | 'failed'
     error TEXT
 );
@@ -135,9 +136,15 @@ class RecordStore:
         self._conn.executescript(_SCHEMA)
         self._conn.commit()
 
-    def write_document(self, meta: DocMeta, parse_status: str, error: str | None = None) -> None:
+    def write_document(
+        self,
+        meta: DocMeta,
+        parse_status: str,
+        error: str | None = None,
+        guardrail_events: list[GuardrailEvent] | None = None,
+    ) -> None:
         self._conn.execute(
-            "INSERT OR REPLACE INTO documents VALUES (?,?,?,?,?,?,?,?,?,?)",
+            "INSERT OR REPLACE INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (
                 meta.doc_id,
                 meta.doc_type,
@@ -147,6 +154,7 @@ class RecordStore:
                 int(meta.is_synthetic),
                 meta.page_count,
                 json.dumps(meta.pii_entity_types),
+                json.dumps([event.model_dump() for event in guardrail_events or []]),
                 parse_status,
                 error,
             ),

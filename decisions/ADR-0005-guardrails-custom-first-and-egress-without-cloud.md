@@ -84,7 +84,8 @@ and it invents infrastructure to test a function.
 
 ## Decision
 
-**Proposed: A + D.** Recommendation, not a settled call.
+**Choose A + D.** The accepted decision is custom-first guards plus an offline,
+captured-payload egress contract.
 
 **Custom-first (A).** Consistent with §13.4's own instruction and with ADR-0002's
 precedent of preferring a hand-rolled bounded loop over a framework's control

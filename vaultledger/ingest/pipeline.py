@@ -23,6 +23,11 @@ from datetime import date
 from pathlib import Path
 
 from vaultledger.config import Config, load_config
+from vaultledger.guardrails.input import (
+    injection_scan,
+    pii_tagging_event,
+    validate_file,
+)
 from vaultledger.index.bm25 import Bm25Index
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.index.vector import VectorIndex
@@ -74,11 +79,26 @@ def run_ingest(config: Config | None = None, embed: bool = True) -> IngestResult
     all_chunks: list[Chunk] = []
 
     for path in pdfs:
+        ingest_events = []
         try:
+            if cfg.guardrails.file_validation:
+                file_event = validate_file(
+                    path.name,
+                    path.read_bytes(),
+                    max_bytes=cfg.guardrails.max_upload_bytes,
+                )
+                ingest_events.append(file_event)
+                if file_event.action == "block":
+                    raise ValueError(file_event.details)
             parsed = parse_pdf(path)
             doc_type = classify_doc_type(parsed.full_text)
             record = extract_record(parsed, doc_type)
-            pii_types = tagger.entity_types(parsed.full_text)
+            spans = tagger.analyze(parsed.full_text) if cfg.guardrails.pii_tagging else []
+            pii_types = sorted({span.entity_type for span in spans})
+            if cfg.guardrails.pii_tagging:
+                ingest_events.append(pii_tagging_event(spans))
+            if cfg.guardrails.injection_scan:
+                ingest_events.append(injection_scan(parsed.full_text))
             period_start, period_end = _period_of(record)
             meta = DocMeta(
                 doc_id=parsed.doc_id,
@@ -94,7 +114,7 @@ def run_ingest(config: Config | None = None, embed: bool = True) -> IngestResult
                 max_chars=cfg.chunking.max_chars,
                 overlap_frac=cfg.chunking.overlap_frac,
             )
-            store.write_document(meta, parse_status="ok")
+            store.write_document(meta, parse_status="ok", guardrail_events=ingest_events)
             store.write_record(parsed.doc_id, record)
             all_chunks.extend(chunks)
             result.docs_ok += 1
@@ -106,7 +126,12 @@ def run_ingest(config: Config | None = None, embed: bool = True) -> IngestResult
                 source_filename=path.name,
                 page_count=0,
             )
-            store.write_document(meta, parse_status="failed", error=str(exc))
+            store.write_document(
+                meta,
+                parse_status="failed",
+                error=str(exc),
+                guardrail_events=ingest_events,
+            )
             result.docs_failed += 1
             result.failures.append(f"{path.stem}: {exc}")
 

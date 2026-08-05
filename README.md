@@ -36,7 +36,7 @@ closed, with the real browser walkthrough committed as the
 The design source of truth is [SPEC.md](SPEC.md). The build receipt, including
 deviations and measured boundaries, is [PROGRESS.md](PROGRESS.md).
 
-## Tracks B status
+## Tracks B/C status
 
 The local LiteLLM gateway, matrix runner, and deterministic Phase-12 policy
 router are implemented. The current [model matrix](reports/model_matrix.md)
@@ -50,6 +50,14 @@ Its useful result is the measured policy comparison: strict match was 47.5%
 versus 42.5% for always-T1, at 11.0s versus 9.7s average gateway latency in one
 noisy run. Both source cells covered 79/80 generations; the same case timed out
 in each and is retained as a scored miss.
+
+Phase 13 adds the named, toggleable guardrail pipeline and a generated
+[guardrail acceptance report](reports/guardrail_eval.md). Its captured outbound
+payload contains zero raw tagged PII and rehydrates exactly; the SQLite numeric
+verifier catches the seeded wrong-total invoice; all six seeded cross-persona
+leaks are blocked; and the current live injection gate remains at 100%. The
+benign control result is reported honestly as 0 of 6 observed over-refusals—not
+as proof that the true rate is below 5%.
 
 ## Fresh-machine quickstart
 
@@ -172,6 +180,7 @@ re-recording script.
 | `make verify-track-a` | Run lint, tests, and the full Track-A eval gate |
 | `make matrix` | Run the configured local Phase-11 model matrix and regenerate its report |
 | `make router-eval` | Regenerate the Phase-12 four-policy frontier from full cached matrix receipts |
+| `make guardrails-eval` | Regenerate the Phase-13 named-guard acceptance report |
 | `make run` | Launch Streamlit headlessly with usage telemetry disabled |
 
 ## Troubleshooting

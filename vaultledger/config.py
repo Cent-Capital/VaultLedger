@@ -71,6 +71,22 @@ class Router(BaseModel):
     projected_cost_usd: dict[str, float] = {"T0": 0.0, "T1": 0.0}
 
 
+class Guardrails(BaseModel):
+    """Phase 13 named guard toggles (ADR-0005)."""
+
+    file_validation: bool = True
+    pii_tagging: bool = True
+    injection_scan: bool = True
+    query_injection_guard: bool = True
+    advice_steer: bool = True
+    egress_redaction: bool = True
+    citation_verify: bool = True
+    numeric_verify: bool = True
+    cross_persona_check: bool = True
+    advice_linter: bool = True
+    max_upload_bytes: int = Field(default=10_000_000, gt=0)
+
+
 class Reranker(BaseModel):
     enabled: bool = True
     model: str = "BAAI/bge-reranker-base"
@@ -125,6 +141,7 @@ class Config(BaseSettings):
     models: ModelRegistry
     matrix: Matrix = Matrix()
     router: Router = Router()
+    guardrails: Guardrails = Guardrails()
     variant_default: str = "B_hybrid"
     reranker: Reranker = Reranker()
     retrieval: Retrieval = Retrieval()
@@ -178,6 +195,7 @@ __all__ = [
     "ModelRegistry",
     "Matrix",
     "Router",
+    "Guardrails",
     "Reranker",
     "Retrieval",
     "Generation",

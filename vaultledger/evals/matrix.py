@@ -18,6 +18,7 @@ from vaultledger.config import CONFIG_PATH, Config, load_config
 from vaultledger.evals.golden import golden_hash, load_golden_set
 from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
 from vaultledger.generate import answer_question_reliable
+from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever, NaiveDenseRetriever
 from vaultledger.schemas import Answer, QAExample, RoutingDecision, RunManifest
@@ -188,18 +189,24 @@ def _run_cell(
     examples: list[QAExample],
     golden_set_hash: str,
     out_dir: Path,
+    guardrail_toggles: GuardrailToggles | None = None,
+    records_db: Path | None = None,
 ) -> tuple[Path, Path]:
     generator = LiteLLMGenerator(model, base_url=cfg.embedding.ollama_url)
     if not generator.is_available():
         raise RuntimeError(f"matrix model {model!r} is unavailable in Ollama")
 
     slug = re.sub(r"[^a-z0-9]+", "_", model.casefold()).strip("_")
-    checkpoint_path = out_dir / f".matrix_checkpoint_{slug}_{variant.casefold()}.json"
+    arm = "on" if guardrail_toggles is not None else "off"
+    checkpoint_path = out_dir / f".matrix_checkpoint_{slug}_{variant.casefold()}_{arm}.json"
     checkpoint_key = {
         "model": model,
         "variant": variant,
         "config_hash": _config_hash(),
         "golden_set_hash": golden_set_hash,
+        # The guard arm is part of the key: an off-arm checkpoint must never be
+        # resumed into an on-arm run, or the cell would mix two pipelines.
+        "guardrails": arm,
         "example_ids": [example.id for example in examples],
     }
     rows: list[dict] = []
@@ -239,6 +246,9 @@ def _run_cell(
                 min_snippet_chars=cfg.generation.min_snippet_chars,
                 routing=routing,
                 reorder_context=cfg.generation.litm_reorder,
+                guardrail_toggles=guardrail_toggles,
+                records_db=records_db,
+                numeric_epsilon=cfg.thresholds.numeric_epsilon,
             )
         except Exception as exc:
             failure = {
@@ -325,6 +335,9 @@ def _run_cell(
     rows.sort(key=lambda row: order[str(row["example_id"])])
     totals = _totals_from_rows(rows)
     metrics = _cell_metrics(examples, rows, totals)
+    # Self-describing arm: a manifest must say which guard stack produced it, or
+    # on-arm and off-arm cells become silently incomparable in the matrix.
+    metrics["guardrails_enabled"] = 1.0 if guardrail_toggles is not None else 0.0
     failures = [row["failure"] for row in rows if row.get("failure")]
     manifest = RunManifest(
         run_id=f"phase11_{slug}_{variant.casefold()}_{uuid4().hex[:12]}",
@@ -419,6 +432,18 @@ def run_matrix(args: Namespace) -> int:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Phase 13 ablation arm. Default "off" preserves the meaning of every
+    # manifest committed before the guards existed; "on" measures the stack the
+    # product actually ships. Which arm becomes canonical is a Phase 17 decision,
+    # deliberately not made silently by changing this default.
+    guardrails_on = getattr(args, "guardrails", "off") == "on"
+    guardrail_toggles = GuardrailToggles.from_config(cfg.guardrails) if guardrails_on else None
+    records_db = cfg.repo_path(cfg.paths.index_dir) / "records.db" if guardrails_on else None
+    if guardrails_on and not records_db.exists():
+        raise RuntimeError(
+            f"--guardrails on needs the record-of-truth database at {records_db}; run make ingest"
+        )
+
     paths: list[Path] = []
     receipts: list[str] = []
     for model in models:
@@ -431,6 +456,8 @@ def run_matrix(args: Namespace) -> int:
                 examples=examples,
                 golden_set_hash=golden_hash(args.golden),
                 out_dir=out_dir,
+                guardrail_toggles=guardrail_toggles,
+                records_db=records_db,
             )
             paths.append(manifest_path)
             receipts.append(str(answers_path))

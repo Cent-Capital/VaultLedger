@@ -107,9 +107,17 @@ with library:
     else:
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
+        document_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(documents)")
+        }
+        guardrail_column = (
+            "guardrail_events" if "guardrail_events" in document_columns
+            else "'[]' AS guardrail_events"
+        )
         docs = conn.execute(
-            "SELECT doc_id, doc_type, period_start, period_end, page_count,"
-            "       pii_entity_types, parse_status FROM documents ORDER BY doc_id"
+            "SELECT doc_id, doc_type, period_start, period_end, page_count, "
+            f"pii_entity_types, {guardrail_column}, parse_status "
+            "FROM documents ORDER BY doc_id"  # noqa: S608 - fixed column choice above
         ).fetchall()
         chunks_file = index_dir / "chunks.jsonl"
         n_chunks = sum(1 for _ in open(chunks_file)) if chunks_file.exists() else 0
@@ -131,6 +139,10 @@ with library:
                     ),
                     "Pages": d["page_count"],
                     "PII tags": len(json.loads(d["pii_entity_types"])),
+                    "Guard flags": sum(
+                        event["action"] != "pass"
+                        for event in json.loads(d["guardrail_events"])
+                    ),
                     "Status": d["parse_status"],
                 }
                 for d in docs
@@ -174,6 +186,7 @@ with ask:
 
     if ask_clicked:
         from vaultledger.generate import OllamaGenerator
+        from vaultledger.guardrails import GuardrailToggles
         from vaultledger.index.embed import OllamaEmbedder
         from vaultledger.observability import TraceStore
         from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever
@@ -214,6 +227,9 @@ with ask:
                             max_retries=cfg.loops.repair_max,
                             min_snippet_chars=cfg.generation.min_snippet_chars,
                             trace_store=TraceStore(cfg.repo_path(cfg.paths.traces)),
+                            guardrail_toggles=GuardrailToggles.from_config(cfg.guardrails),
+                            records_db=db_path,
+                            numeric_epsilon=cfg.thresholds.numeric_epsilon,
                         )
                     answer = routed.answer
                     if routed.notice:
@@ -267,6 +283,8 @@ with evals:
     safety_path = cfg.repo_path("reports/phase7_latest.json")
     judge_path = cfg.repo_path("reports/phase9_judge_latest.json")
     regression_path = cfg.repo_path("reports/regression_latest.json")
+    guardrail_path = cfg.repo_path("reports/phase13_guardrails_latest.json")
+    guardrail_report_path = cfg.repo_path("reports/guardrail_eval.md")
 
     if phase3_path.exists() and phase4_path.exists():
         dense = json.loads(phase3_path.read_text())["metrics"]
@@ -314,6 +332,33 @@ with evals:
     if regression_path.exists():
         with st.expander("Regression deltas vs frozen Phase-4 baseline"):
             st.dataframe(regression["deltas"], width="stretch", hide_index=True)
+
+    if guardrail_path.exists():
+        guardrail_metrics = json.loads(guardrail_path.read_text())["metrics"]
+        st.subheader("Named guardrails")
+        g1, g2, g3, g4 = st.columns(4)
+        g1.metric(
+            "Raw PII in captured egress",
+            int(guardrail_metrics["pii_egress.raw_leak_count"]),
+        )
+        g2.metric(
+            "Wrong-total seed caught",
+            f"{guardrail_metrics['numeric_verify.seeded_mismatch_detected']:.0%}",
+        )
+        g3.metric(
+            "Cross-persona leaks",
+            int(guardrail_metrics["cross_persona.post_guard_leaks"]),
+            "6/6 seeded leaks blocked",
+        )
+        g4.metric(
+            "Benign over-refusals",
+            f"{int(guardrail_metrics['guardrail_benign.over_refusal_count'])} of "
+            f"{int(guardrail_metrics['guardrail_benign.n'])}",
+            "underpowered sample",
+        )
+        if guardrail_report_path.exists():
+            with st.expander("Phase 13 guardrail acceptance report"):
+                st.markdown(guardrail_report_path.read_text())
 
     st.subheader("Product query observability")
     from vaultledger.observability import TraceStore, trace_rollups

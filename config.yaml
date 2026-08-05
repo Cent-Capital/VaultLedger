@@ -38,6 +38,19 @@ router:                        # Phase 12 deterministic initial-routing policy (
   t0_categories: ["single_doc", "guardrail_benign"]
   projected_cost_usd: { T0: 0.0, T1: 0.0 }  # unpriced local inference, not free
 
+guardrails:                    # Phase 13 named guards; every switch supports ablation
+  file_validation: true
+  pii_tagging: true
+  injection_scan: true
+  query_injection_guard: true
+  advice_steer: true
+  egress_redaction: true
+  citation_verify: true
+  numeric_verify: true
+  cross_persona_check: true
+  advice_linter: true
+  max_upload_bytes: 10000000
+
 variant_default: B_hybrid
 
 reranker:

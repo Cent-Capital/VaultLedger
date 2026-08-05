@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
 from vaultledger.generate.ollama import GenerationError
 from vaultledger.generate.reliable import StructuredGenerator, answer_question_reliable
+from vaultledger.guardrails import GuardrailToggles
 from vaultledger.observability import (
     QueryTrace,
     TraceRecorder,
@@ -83,6 +85,9 @@ def answer_with_privacy(
     export_langfuse: bool = False,
     input_per_million_usd: float = 0.0,
     output_per_million_usd: float = 0.0,
+    guardrail_toggles: GuardrailToggles | None = None,
+    records_db: str | Path | None = None,
+    numeric_epsilon: float = 0.01,
 ) -> RoutedAnswer:
     """Route one query without touching the cloud on the local branch."""
     recorder = TraceRecorder(
@@ -115,6 +120,9 @@ def answer_with_privacy(
         "max_retries": max_retries,
         "min_snippet_chars": min_snippet_chars,
         "trace_recorder": recorder,
+        "guardrail_toggles": guardrail_toggles,
+        "records_db": records_db,
+        "numeric_epsilon": numeric_epsilon,
     }
     if mode == "local":
         answer = answer_question_reliable(

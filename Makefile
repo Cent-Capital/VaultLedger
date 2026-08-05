@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval replay run clean
+.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway]"
@@ -39,6 +39,7 @@ regression:  ## Phase 9: compare latest retrieval manifest with baseline
 eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
 	$(PYTHON) -m vaultledger.evals validate
 	$(PYTHON) -m vaultledger.evals safety
+	$(PYTHON) -m vaultledger.evals guardrails-eval
 	$(PYTHON) -m vaultledger.evals judge-validate
 	$(PYTHON) -m vaultledger.evals regression
 
@@ -49,6 +50,9 @@ matrix:  ## Multi-model benchmark matrix (Phase 11+)
 
 router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontier
 	$(PYTHON) -m vaultledger.evals router-eval
+
+guardrails-eval:  ## Phase 13 deterministic named-guard acceptance report
+	$(PYTHON) -m vaultledger.evals guardrails-eval
 
 replay:  ## Re-execute a past query from its trace (Phase 8+)
 	@echo "replay: not implemented until Phase 8. Usage: make replay TRACE=<trace_id>"

@@ -1367,3 +1367,175 @@ Carried forward, none of it resolved by closing this phase:
 - `golden_hash` still covers the whole golden-set file; narrowing it needs an ADR.
 - The internship report draft (`~/Desktop/PM-OS`) and the demo re-record
   (`demo/README.md`) remain outstanding Track-A documentation work.
+
+---
+
+## Phase 13 — Named guardrail pipeline  (2026-08-05)
+
+Phase 13 is **open** with implementation and the first current-code acceptance
+measurement complete. ADR-0005 chooses custom pure guards over Guardrails-AI or
+NeMo and keeps the egress mechanism as an offline captured-payload contract,
+because ADR-0003 retired every real cloud caller.
+
+**Built**
+- A canonical `guardrails:` config block toggles file validation, PII tagging,
+  ingest and query injection checks, advice steering, egress redaction,
+  citation verification, numeric verification, cross-persona isolation, and
+  the output advice linter independently. The upload byte cap is configurable.
+- Ingestion now validates PDF extension, size, and magic bytes; records a named
+  PII-tagging event; scans document text for instruction-like content; and
+  stores its `GuardrailEvent` receipts in SQLite. The Library table surfaces
+  non-pass guard counts. A no-embedding rebuild processed 60/60 documents with
+  zero failures.
+- The input pipeline distinguishes a direct override attempt from a legitimate
+  question *about* an embedded instruction. Advice-seeking queries route to a
+  fixed education-not-advice response before retrieval or generation; a test
+  proves both downstream call counts remain zero.
+- The egress guard uses real Presidio spans, stable typed placeholders, a local
+  placeholder map, and exact rehydration. It has no production caller and does
+  not claim provider-wire coverage. Its contract is the exact captured payload
+  the guard would emit.
+- The output pipeline retains Phase 5 citation verification, recomputes cited
+  invoice totals from SQLite, blocks another known persona's name or masked
+  account, and replaces prescriptive model output with the fixed boundary
+  response. The product Ask path now supplies these toggles and the local
+  record-of-truth database.
+- `make guardrails-eval` writes a RunManifest, adjacent details receipt, and
+  `reports/guardrail_eval.md`. Every named guard has a positive and benign
+  control. `make eval-full` now includes this deterministic Phase-13 gate.
+- The Evals dashboard surfaces raw captured-egress leaks, seeded numeric
+  detection, cross-persona results, and the explicit benign numerator and
+  denominator.
+
+**Measurement** (`phase13_guardrails_76c8d43a9a96`)
+- Captured egress: zero raw `Marcus Chen` / `****4021` tokens; stable
+  `<PERSON_1>` / `<ACCT_1>` placeholders; byte-exact rehydration.
+- Numeric verification: the stored printed `$16,431.22` total for
+  `PRIYA-HALCYON-004` was recomputed against the `$16,251.22` SQLite line-item
+  sum, flagged, and an answer that hid the mismatch was downgraded.
+- Cross-persona: all 6/6 seeded other-persona name/account leaks were blocked;
+  six cached `qwen3:8b` cross-persona answers were checked, with zero leaks
+  after guard application. Coverage is names and masked accounts derivable from
+  SQLite; arbitrary addresses not attributable to a persona are not claimed.
+- Over-refusal: **0 of 6** existing `guardrail_benign` controls were refused by
+  the input or advice-output guards. Per ADR-0005, this is not reported as
+  “≤5% achieved”: n=6 is underpowered and one failure would already be 16.7%.
+- Injection regression: a fresh live run, `phase7_ccf079652bba`, retained
+  `injection_pass_rate 1.0`, rightly abstained on 10/10 unanswerable cases, and
+  answered the poisoned-document case correctly.
+
+**Defect found by the harness**
+The first egress run had zero raw PII leaks but failed exact rehydration.
+Presidio included the possessive suffix in `Marcus Chen's` in one field and not
+the other, producing `<PERSON_1>` and `<PERSON_2>` for the same value; rehydration
+then yielded `Marcus Chen's's`. PERSON spans now leave the English possessive
+outside the placeholder, so possessive and non-possessive occurrences share a
+stable key. The failed provisional manifest was removed; the passing manifest
+and regression test preserve the finding.
+
+**Acceptance status**
+- *Zero tagged PII in captured cloud payload:* **met as revised by ADR-0005.**
+  The emitted payload has zero raw tagged values and exact rehydration. No cloud
+  provider was contacted, so real wire-format integration remains unverified.
+- *Numeric verifier catches seeded wrong total:* **met.**
+- *Cross-persona leaks = 0:* **met on the six cached model answers and seeded
+  leak controls**, limited to persona names and masked accounts available in the
+  local record store.
+- *Over-refusal ≤5%:* **not meaningfully tested.** Observed result is 0/6; a
+  separate roughly 60-case probe set remains required for the rate claim.
+- *Injection pass rate unchanged:* **met for the wrapping, narrower than it
+  reads.** 1.0 on a fresh live Phase-7 run — but the safety eval calls
+  `answer_question_reliable` with `guardrail_toggles=None`, and at `None` only
+  `injection_scan` and `citation_verify` run. The five new guards
+  (`query_injection_guard`, `advice_steer`, `numeric_verify`,
+  `cross_persona_check`, `advice_linter`) were **inactive during that run**. So it
+  confirms wrapping the pre-existing guards changed nothing, which is what
+  ADR-0005 asked for, and does **not** show the new guards preserve injection
+  resistance. Downgraded on review.
+- Phase remains **open** until these changes are committed and the deterministic
+  guardrail artifact is regenerated from the clean SHA.
+
+**Review pass (2026-08-05): eval/product divergence, fixed**
+
+The product supplied guards; no eval did. `app/streamlit_app.py` passes
+`GuardrailToggles.from_config(cfg.guardrails)` and `records_db`; `evals/matrix.py`
+and the safety eval passed neither. Because `reliable.py` treats `None` per-guard,
+that meant **five of seven answer-path guards never ran in any measurement** — so
+the benchmark measured a different system from the one that ships, and §13.4's
+ablation had no "guards on" arm to compare.
+
+Fixed: `_run_cell` now threads `guardrail_toggles`, `records_db`, and
+`numeric_epsilon`; `make matrix` gains `--guardrails {off,on}`; every manifest
+records `guardrails_enabled`; and the guard arm is part of the checkpoint key and
+filename, so an off-arm checkpoint can never resume into an on-arm run. The
+default stays `off` so no pre-Phase-13 manifest silently changes meaning — which
+arm becomes canonical is a Phase 17 decision, not a side effect of a wiring fix.
+`--guardrails on` fails loudly without `records.db` rather than letting
+`numeric_verify` no-op into a fake "on" arm.
+
+**Ablation — the guards are close to free** (full 80 rows, both arms, same
+golden set; off-arm cells are the committed `61802221d874` / `33c0a0d50c76`,
+on-arm are `35d35e2fb62f` / `eea876388398`, report
+`reports/model_matrix_guards_on.md`)
+
+| | 4B off → on | 8B off → on |
+|---|---|---|
+| strict match | `0.4000 → 0.4000` (0) | `0.4250 → 0.4250` (0) |
+| citation hit | `0.5625 → 0.5625` (0) | `0.7375 → 0.7250` (−1 row) |
+| abstention accuracy | `0.5750 → 0.5750` (0) | `0.7875 → 0.7750` (−1 row) |
+
+The full guard stack costs **one row out of eighty on 8B and nothing on 4B**.
+Failure sets are identical between arms. That is the price of `numeric_verify`,
+`cross_persona_check`, `advice_linter`, `advice_steer`, and
+`query_injection_guard` stated in measured terms, and it is the strongest
+argument for leaving them on.
+
+**Latency is environment-dominated and cannot currently rank models — and this
+corrects the correction in the Phase 12 entry.**
+
+The two arms produced *identical answers* — same metrics, same failure sets — yet:
+
+| | off arm | on arm | change |
+|---|---:|---:|---|
+| 4B p50 | 8579 ms | **3714 ms** | −57% |
+| 4B p95 | 17900 ms | 9592 ms | −46% |
+| 8B p50 | 6602 ms | 6908 ms | +5% |
+
+Guards add work, so they cannot make a model 57% faster. The 4B off-arm run also
+carried a generation timeout (coverage `0.9875` vs `1.0000` on-arm) that did not
+recur. Both point at machine load during that earlier run, not model behaviour.
+
+The consequence is that the Phase 12 entry's "correction" — that Phase 11's "4B is
+faster" was refuted because 4B p50 `8579` exceeded 8B's `6602` — **rested on a
+single unreliable measurement, and this run reverses it again** (4B `3714` vs 8B
+`6908`, 4B faster by 1.9×). That correction was written by the reviewer, in the
+same over-generalising move it accused Phase 11 of. Neither run establishes a
+ranking. The honest statement is: **this harness cannot currently rank these
+models by latency at all.**
+
+Phase 11 measured ~10% p95 movement between repeat runs and called it noise; this
+is ~50% p50 movement on identical outputs. That escalates the ADR-0003 problem
+rather than restating it: latency is the frontier's x-axis, and a
+latency–quality frontier built from single runs is not measurable. Before Phase 17
+treats that chart as a headline artifact it needs repeated cells, a reported
+spread, and controlled machine conditions — or a different x-axis.
+
+**Verification so far**
+- Full acceptance run: Ruff clean and `109 passed`; after adding the final
+  output-pipeline/UI regression controls, the deterministic suite is
+  `110 passed, 1 skipped` in the sandboxed environment.
+- Focused Phase 5/6/7/13 guard tests passed.
+- Derived corpus rebuild: 60 documents, 0 failures, 60 chunks.
+- Live safety regression: 11/11 programmatic outcomes correct; judge TPR/TNR
+  `1.0 / 1.0`; retrieval regression green with zero metric deltas.
+
+**Plain-English explanation of the tricky piece.** A guard can fail in two
+directions: miss something dangerous or block something legitimate. The
+harness therefore pairs a bad fixture with a benign control for every named
+guard and keeps the numerator visible. The egress failure is why this matters:
+“zero leaked names” looked green, but exact round-trip checking caught that the
+safe-looking placeholders would have mangled the answer shown to the user.
+
+**Next:** commit Phase 13, regenerate `make guardrails-eval` from the clean SHA,
+then begin Phase 14's bounded agentic-RAG variant. The separate ~60-case benign
+probe remains a measurement debt, not a silently passing AC.

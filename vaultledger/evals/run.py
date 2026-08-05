@@ -393,6 +393,12 @@ def run_policy_router_eval(args: argparse.Namespace) -> int:
     return run_router_eval(args)
 
 
+def run_guardrails_eval(args: argparse.Namespace) -> int:
+    from vaultledger.evals.guardrails import run_guardrail_eval
+
+    return run_guardrail_eval(args)
+
+
 def _write_comparison(
     baseline_path: Path,
     current: RunManifest,
@@ -515,6 +521,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Examples per cell (default: config matrix.smoke_limit; 0 = full set)",
     )
     matrix.add_argument("--out-dir", default="reports")
+    matrix.add_argument(
+        "--guardrails",
+        choices=["off", "on"],
+        default="off",
+        help=(
+            "Phase 13 ablation arm. 'off' (default) is the unguarded pipeline every "
+            "pre-Phase-13 manifest measured; 'on' is the guard stack the product ships. "
+            "The arm is recorded in each manifest as guardrails_enabled."
+        ),
+    )
     matrix.add_argument("--report", default="reports/model_matrix.md")
     matrix.set_defaults(func=run_model_matrix)
 
@@ -533,6 +549,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Development only: evaluate the intersection instead of requiring all 80 rows",
     )
     router.set_defaults(func=run_policy_router_eval)
+
+    guardrails = sub.add_parser(
+        "guardrails-eval", help="Evaluate Phase 13 named guardrails and acceptance gates"
+    )
+    guardrails.add_argument("--records-db", default="")
+    guardrails.add_argument("--out-dir", default="reports")
+    guardrails.add_argument("--report", default="reports/guardrail_eval.md")
+    guardrails.set_defaults(func=run_guardrails_eval)
     return parser
 
 

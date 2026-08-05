@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Protocol
 from uuid import uuid4
 
@@ -35,6 +36,16 @@ from vaultledger.generate.schema import (
     AnswerDraft,
     DraftParseError,
     parse_draft,
+)
+from vaultledger.guardrails import GuardrailToggles
+from vaultledger.guardrails.input import guard_query
+from vaultledger.guardrails.output import (
+    advice_linter,
+    cited_doc_ids,
+    cross_persona_check,
+    load_invoice_totals,
+    load_personas,
+    numeric_verify,
 )
 from vaultledger.observability import TraceRecorder
 from vaultledger.retrieve import Retriever, assemble_context
@@ -327,9 +338,10 @@ def _abstained_answer(
     events: list[GuardrailEvent],
     privacy_mode: str = "local",
     data_left_machine: bool = False,
+    answer_text: str = ABSTAIN_SENTENCE,
 ) -> Answer:
     return Answer(
-        answer_text=ABSTAIN_SENTENCE,
+        answer_text=answer_text,
         citations=[],
         abstained=True,
         confidence=0.0,
@@ -366,6 +378,9 @@ def answer_question_reliable(
     data_left_machine: bool = False,
     reorder_context: bool = True,
     trace_recorder: TraceRecorder | None = None,
+    guardrail_toggles: GuardrailToggles | None = None,
+    records_db: str | Path | None = None,
+    numeric_epsilon: float = 0.01,
 ) -> Answer:
     """Reliable Phase 5 answer path. Always returns a valid ``Answer``.
 
@@ -373,17 +388,6 @@ def answer_question_reliable(
     after repairs or an unverifiable-citation answer degrades to a safe
     abstention rather than surfacing an unsupported claim.
     """
-    if trace_recorder:
-        with trace_recorder.span("retrieve", k=k):
-            hits = retriever.retrieve(question, k=k)
-        with trace_recorder.span("assemble", reorder=reorder_context):
-            context = assemble_context(hits, reorder=reorder_context)
-        with trace_recorder.span("guards_in"):
-            context, injection_removed = sanitize_context(context)
-    else:
-        hits = retriever.retrieve(question, k=k)
-        context = assemble_context(hits, reorder=reorder_context)
-        context, injection_removed = sanitize_context(context)
     query_id = f"q_{uuid4().hex[:12]}"
     if routing is None:
         routing = RoutingDecision(
@@ -396,6 +400,48 @@ def answer_question_reliable(
             actual_cost_usd=0.0,
         )
 
+    query_events: list[GuardrailEvent] = []
+    if guardrail_toggles is not None:
+        query_result = guard_query(
+            question,
+            injection_enabled=guardrail_toggles.query_injection_guard,
+            advice_enabled=guardrail_toggles.advice_steer,
+        )
+        query_events.extend(query_result.events)
+        if query_result.blocked or query_result.fixed_response:
+            answer = _abstained_answer(
+                model_id=model_id,
+                variant=retriever.variant,
+                routing=routing,
+                events=query_events,
+                privacy_mode=privacy_mode,
+                data_left_machine=data_left_machine,
+                answer_text=query_result.fixed_response or ABSTAIN_SENTENCE,
+            )
+            if trace_recorder:
+                with trace_recorder.span("guards_in", short_circuit=True):
+                    pass
+                trace_recorder.finish(answer, avg_retrieval_score=0.0)
+            return answer
+
+    if trace_recorder:
+        with trace_recorder.span("retrieve", k=k):
+            hits = retriever.retrieve(question, k=k)
+        with trace_recorder.span("assemble", reorder=reorder_context):
+            context = assemble_context(hits, reorder=reorder_context)
+        with trace_recorder.span("guards_in"):
+            if guardrail_toggles is None or guardrail_toggles.injection_scan:
+                context, injection_removed = sanitize_context(context)
+            else:
+                injection_removed = False
+    else:
+        hits = retriever.retrieve(question, k=k)
+        context = assemble_context(hits, reorder=reorder_context)
+        if guardrail_toggles is None or guardrail_toggles.injection_scan:
+            context, injection_removed = sanitize_context(context)
+        else:
+            injection_removed = False
+
     if trace_recorder:
         with trace_recorder.span("generate_repair", max_retries=max_retries):
             repair = repair_loop(generator, question, context, max_retries=max_retries)
@@ -405,7 +451,7 @@ def answer_question_reliable(
         )
     else:
         repair = repair_loop(generator, question, context, max_retries=max_retries)
-    events: list[GuardrailEvent] = []
+    events: list[GuardrailEvent] = list(query_events)
     if injection_removed:
         events.append(
             GuardrailEvent(
@@ -457,11 +503,26 @@ def answer_question_reliable(
             privacy_mode=privacy_mode, data_left_machine=data_left_machine,
         ))
 
-    if trace_recorder:
-        with trace_recorder.span("guards_out"):
+    citation_enabled = guardrail_toggles is None or guardrail_toggles.citation_verify
+    if citation_enabled:
+        if trace_recorder:
+            with trace_recorder.span("guards_out"):
+                verify = verify_citations(draft, hits, min_snippet_chars=min_snippet_chars)
+        else:
             verify = verify_citations(draft, hits, min_snippet_chars=min_snippet_chars)
     else:
-        verify = verify_citations(draft, hits, min_snippet_chars=min_snippet_chars)
+        by_id = {hit.chunk.chunk_id: hit.chunk for hit in hits}
+        citations = [
+            Citation(
+                chunk_id=chunk.chunk_id,
+                doc_id=chunk.doc_id,
+                page=chunk.page,
+                snippet=citation.snippet,
+            )
+            for citation in draft.citations
+            if (chunk := by_id.get(citation.chunk_id)) is not None
+        ]
+        verify = VerifyResult(citations=citations)
     events.extend(verify.events)
     if verify.downgrade_to_abstain:
         return _finish(_abstained_answer(
@@ -469,7 +530,7 @@ def answer_question_reliable(
             privacy_mode=privacy_mode, data_left_machine=data_left_machine,
         ))
 
-    return _finish(Answer(
+    answer = Answer(
         answer_text=draft.answer_text.strip(),
         citations=verify.citations,
         abstained=False,
@@ -481,7 +542,54 @@ def answer_question_reliable(
         data_left_machine=data_left_machine,
         routing=routing,
         guardrail_events=events,
-    ))
+    )
+
+    if guardrail_toggles is not None and records_db is not None:
+        if guardrail_toggles.numeric_verify:
+            numeric = numeric_verify(
+                question,
+                answer.answer_text,
+                load_invoice_totals(records_db, cited_doc_ids(answer.citations)),
+                epsilon=numeric_epsilon,
+            )
+            answer.guardrail_events.extend(numeric.events)
+            if numeric.downgrade_to_abstain:
+                return _finish(_abstained_answer(
+                    model_id=model_id,
+                    variant=retriever.variant,
+                    routing=routing,
+                    events=answer.guardrail_events,
+                    privacy_mode=privacy_mode,
+                    data_left_machine=data_left_machine,
+                ))
+        if guardrail_toggles.cross_persona_check:
+            isolation = cross_persona_check(
+                question, answer.answer_text, load_personas(records_db)
+            )
+            answer.guardrail_events.extend(isolation.events)
+            if isolation.downgrade_to_abstain:
+                return _finish(_abstained_answer(
+                    model_id=model_id,
+                    variant=retriever.variant,
+                    routing=routing,
+                    events=answer.guardrail_events,
+                    privacy_mode=privacy_mode,
+                    data_left_machine=data_left_machine,
+                ))
+    if guardrail_toggles is not None and guardrail_toggles.advice_linter:
+        advice = advice_linter(answer.answer_text)
+        answer.guardrail_events.extend(advice.events)
+        if advice.downgrade_to_abstain:
+            return _finish(_abstained_answer(
+                model_id=model_id,
+                variant=retriever.variant,
+                routing=routing,
+                events=answer.guardrail_events,
+                privacy_mode=privacy_mode,
+                data_left_machine=data_left_machine,
+                answer_text=advice.replacement_text or ABSTAIN_SENTENCE,
+            ))
+    return _finish(answer)
 
 
 __all__ = [
