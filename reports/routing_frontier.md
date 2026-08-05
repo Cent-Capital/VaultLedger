@@ -1,6 +1,6 @@
 # Phase 12 routing frontier
 
-Router manifest: `phase12_router_a105114011f7`
+Router manifest: `phase12_router_83f6f7c036c0`
 Golden set hash: `b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c`
 Source model cells: `phase11_ollama_qwen3_4b_b_hybrid_61802221d874`, `phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76`
 

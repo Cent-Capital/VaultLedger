@@ -1174,7 +1174,8 @@ report draft in `~/Desktop/PM-OS`, and the demo re-record noted in
 
 ## Phase 12 — Deterministic local-size policy router v2  (2026-08-05)
 
-Phase 12 is **open** with its implementation and first full measurement complete.
+Implementation and first full measurement complete; closed after the router
+artifact was regenerated from a clean SHA.
 ADR-0004 resolves the heuristic-versus-learned choice: the first router is an
 inspectable category policy over the two local models, not a classifier trained
 and evaluated on the same 80 authored examples. A learned router stays deferred
@@ -1242,11 +1243,20 @@ until an independently labelled routing set exists.
 - *Phase-6 privacy regression remains green:* **met.** The full suite passes and
   still covers local socket blocking, no cloud-generator calls, badges, and the
   historical degraded path.
-- The phase remains **open** until the implementation is committed and the
-  deterministic router artifact is regenerated from that clean SHA. The two
-  expensive source matrix receipts were intentionally preserved from this
-  implementation run; their manifests identify the pre-phase base SHA and the
-  report discloses the exact source IDs.
+- *Phase closed 2026-08-05.* The implementation landed in `7b31c18`, the
+  baseline re-pin in `8014f5d`, and the router artifact was regenerated from that
+  clean SHA: `phase12_router_83f6f7c036c0` replaces
+  `phase12_router_a105114011f7`, whose run_id identified no commit. Every metric
+  in the regenerated run is **bit-identical** to the pre-commit run, which
+  confirms the router evaluation is deterministic — it replays cached answers and
+  never rerolls generation, so the same inputs produce the same frontier. The
+  stale pair was removed; git history retains it.
+- The two expensive source matrix receipts (`phase11_..._61802221d874`,
+  `phase11_..._33c0a0d50c76`) were deliberately **not** regenerated. They cost a
+  160-call run, their manifests identify the pre-phase base SHA, and the report
+  names the exact source IDs it consumed. That is a disclosed tradeoff, not an
+  oversight — but it does mean the frontier's source cells and its router
+  manifest were produced at different commits.
 
 **Correction to the Phase 11 entry (found on review, 2026-08-05)**
 Phase 11 concluded "8B is materially more reliable and 4B is materially faster"
@@ -1344,6 +1354,16 @@ isolates the routing decision from model randomness and exposes the real result:
 this router buys five strict-match points, but it does not buy speed in the
 current run.
 
-**Next:** commit Phase 12, regenerate the router manifest from the clean SHA,
-then begin Phase 13's named guardrail pipeline. The internship report draft and
-demo re-record remain outstanding Track-A documentation work.
+**Next:** Phase 13 — the named guardrail pipeline (Presidio tagging already
+ingested → egress redaction/rehydration → numeric verifier → cross-persona check
+→ advice steer → guardrail evals including over-refusal).
+
+Carried forward, none of it resolved by closing this phase:
+- Routing accuracy is **met in form only** and must not appear as a passing AC in
+  Phase 16's DoD or the report until an independently labelled routing set exists.
+- Phase 11's "4B is faster" claim is corrected above, and bears on ADR-0003's
+  choice of latency as the frontier axis. Phase 17 must establish there is a real
+  tradeoff to plot before that chart is treated as a headline artifact.
+- `golden_hash` still covers the whole golden-set file; narrowing it needs an ADR.
+- The internship report draft (`~/Desktop/PM-OS`) and the demo re-record
+  (`demo/README.md`) remain outstanding Track-A documentation work.
