@@ -1,9 +1,18 @@
 # Track-A demo v1
 
-Recording target: `vaultledger_track_a_v1.gif`. The artifact is not present
-until a real browser walkthrough has been recorded. It is a visual demo, not an
-eval artifact; every measured claim shown in it must come from a committed
-RunManifest under `reports/`.
+`vaultledger_track_a_v1.gif` was recorded from a live browser walkthrough and
+committed in `c376b44`. It is a visual demo, not an eval artifact; every measured
+claim shown in it comes from a committed RunManifest under `reports/`. About two
+seconds of the credit-score query's roughly nine-second spinner are shown at 4x
+speed; the rest is continuous real time and the on-screen trace latency is
+unaltered.
+
+> **Out of date as of 2026-08-05 (ADR-0003 amendment).** The recording shows a
+> Local / Cloud-Boosted privacy radio. Phase 11 retired the paid tiers and
+> removed that control, so the app no longer matches this GIF. The answer,
+> citation, abstention, and eval content it shows are all still accurate.
+> Re-record at the next demo revision — do not describe the artifact as current
+> until then.
 
 ## Re-recording script
 

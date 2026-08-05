@@ -126,7 +126,12 @@ def test_config_loads_expected_values():
     assert cfg.loops.agent_steps_max == 6
     assert cfg.thresholds.over_refusal_max == 0.05
     assert cfg.models.T1.id.startswith("ollama/")
-    assert len(cfg.models.T2) >= 2  # open-weight hosted candidates
+    assert [model.id for model in cfg.models.matrix] == [
+        "ollama/qwen3:4b",
+        "ollama/qwen3:8b",
+    ]
+    assert not hasattr(cfg.models, "T2")  # ADR-0003 retires paid hosted tiers
+    assert cfg.matrix.variants == ["B_hybrid"]
     assert cfg.variant_default == "B_hybrid"
     assert cfg.reranker.model == "BAAI/bge-reranker-base"
     assert cfg.retrieval.rrf_constant == 60

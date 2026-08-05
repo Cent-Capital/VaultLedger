@@ -1,0 +1,76 @@
+{
+  "run_id": "phase11_ollama_qwen3_4b_b_hybrid_0535d0fe994f",
+  "timestamp": "2026-08-05T04:18:51.359613+00:00",
+  "git_sha": "e17edfb5ad4c8bf4a9633974d4cf649e49edc40c",
+  "config_hash": "70ded92b99a5e6aebbc776d081bbe2b0a1d89f56bd1feb0fe8362ec8fb6ee77a",
+  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "ollama/qwen3:4b",
+  "metrics": {
+    "matrix_examples": 12.0,
+    "generation_eval_coverage": 1.0,
+    "strict_answer_match_rate": 0.16666666666666666,
+    "citation_doc_hit_rate": 0.3333333333333333,
+    "abstention_accuracy": 0.3333333333333333,
+    "median_gateway_latency_ms": 3327.624,
+    "p95_gateway_latency_ms": 5853.792,
+    "gateway_calls": 12.0,
+    "input_tokens": 22235.0,
+    "output_tokens": 741.0,
+    "model_unpriced": 1.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "sd_001",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_002",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "sd_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "sd_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_007",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_009",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_010",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_011",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  ]
+}

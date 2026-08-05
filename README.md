@@ -6,8 +6,8 @@ evaluation harness.
 VaultLedger parses synthetic bank statements, 1099s, invoices, and pay stubs on
 your machine. It combines dense and lexical retrieval, reranks the evidence, and
 uses a local model to answer questions. Every surfaced fact must retain a
-verifiable source snippet. A privacy switch makes cloud use explicit and the
-answer badge reports what actually happened, including local fallback.
+verifiable source snippet. Paid hosted tiers are retired by ADR-0003, so the
+live product and model experiments stay on the local Ollama service.
 
 **Synthetic data only.** VaultLedger is an engineering and evaluation project,
 not a production financial service. It has no bank connection, contains no real
@@ -36,6 +36,15 @@ closed, with the real browser walkthrough committed as the
 The design source of truth is [SPEC.md](SPEC.md). The build receipt, including
 deviations and measured boundaries, is [PROGRESS.md](PROGRESS.md).
 
+## Phase 11 kickoff
+
+The local LiteLLM gateway and model-matrix runner are implemented. The generated
+[kickoff matrix](reports/model_matrix.md) compares `qwen3:4b` and `qwen3:8b` on
+the first 12 single-document golden examples, with one RunManifest and complete
+answer receipt per model × variant cell. This is a machinery proof, not the
+six-model bake-off: the full two-family × three-size comparison remains Phase
+17, after all retrieval variants exist.
+
 ## Fresh-machine quickstart
 
 ### 1. Prerequisites
@@ -61,12 +70,13 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 make install
 ollama pull nomic-embed-text
+ollama pull qwen3:4b
 ollama pull qwen3:8b
 ```
 
-`make install` installs the Track-A package, tests, synthetic-PDF generator,
-local PII tooling, and the Variant-B reranker. It also downloads spaCy's
-`en_core_web_sm` model. No API key is needed for Local mode.
+`make install` installs the package, tests, synthetic-PDF generator, local PII
+tooling, Variant-B reranker, and Phase-11 LiteLLM gateway. It also downloads
+spaCy's `en_core_web_sm` model. No API key is needed.
 
 ### 3. Generate and index the synthetic corpus
 
@@ -122,8 +132,8 @@ acceptance.
   model/tier/variant, guard events, latency, estimated tokens, cost, and trace.
 - **Evals** shows dense-to-hybrid retrieval evidence, safety and judge results,
   regression deltas, and local trace rollups.
-- **Experiment Lab** marks the post-Track-A expansion boundary. Multi-model
-  benchmarking and policy routing begin in Phase 11; they are not claimed here.
+- **Experiment Lab** surfaces the limited Phase-11 kickoff matrix and keeps the
+  six-model Phase-17 bake-off boundary explicit.
 
 The [Track-A demo plan](demo/README.md) contains the exact recording and
 re-recording script.
@@ -132,15 +142,10 @@ re-recording script.
 
 - **Local:** only local Ollama endpoints are used; routing tests socket-block the
   local path and assert that no cloud generator is called.
-- **Cloud-Boosted:** disabled unless a provider URL and environment API key are
-  configured and the user gives session consent.
-- **Important boundary:** Track A does not yet redact PII before cloud egress.
-  The corpus is synthetic, and real-document cloud use should not ship before
-  Phase 13. A failed cloud request is conservatively labeled as data egress if
-  its payload may already have reached the provider.
-
-Copy `.env.example` to `.env` only for intentional synthetic-data cloud tests.
-Never commit the file.
+- **No hosted tier:** the former Cloud-Boosted UI and hosted model configuration
+  were removed at Phase 11 kickoff. The generic Phase-6 routing helper remains
+  covered by historical privacy/fallback regression tests, but the app cannot
+  select it and the matrix cannot send a cell to it.
 
 ## Commands
 
@@ -158,18 +163,19 @@ Never commit the file.
 | `make regression` | Compare the latest retrieval manifest with the frozen baseline |
 | `make eval-full` | Run the full Track-A LLM evaluation sequence |
 | `make verify-track-a` | Run lint, tests, and the full Track-A eval gate |
+| `make matrix` | Run the configured local Phase-11 model matrix and regenerate its report |
 | `make run` | Launch Streamlit headlessly with usage telemetry disabled |
 
 ## Troubleshooting
 
 - **`make doctor` says Ollama is unavailable:** open the Ollama app or run
-  `ollama serve`, then re-run the two `ollama pull` commands.
+  `ollama serve`, then re-run the three `ollama pull` commands.
 - **The app says no ingested corpus:** run `make data && make ingest`.
 - **First Ask is slow:** the BGE reranker downloads once and is cached locally.
+- **Matrix model unavailable:** pull both `qwen3:4b` and `qwen3:8b`, then rerun
+  `make matrix`.
 - **Embedding-model mismatch:** delete only the derived `data/index/` directory
   and run `make ingest`; never change `config.yaml` silently around an old index.
-- **Cloud selected but answered locally:** check the in-app notice. A blank URL,
-  missing key, or provider failure intentionally degrades to local.
 
 ## Repository map
 

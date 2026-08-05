@@ -1025,3 +1025,110 @@ claim nobody can re-run is indistinguishable from a claim nobody checked.
 **Next:** the internship report draft remains outstanding in `~/Desktop/PM-OS`.
 Phase 11 begins with an ADR for the model lineup/config contradiction, then the
 model gateway and benchmark matrix; no Phase 11 work is started here.
+
+---
+
+## Phase 11 — Local model gateway + benchmark-matrix machinery — **OPEN** (2026-08-05)
+
+ADR-0003 had already resolved the kickoff contradiction: paid T2/T3 providers
+are retired, Phase 11 proves the gateway/matrix on the two installed Qwen
+models, and the final six-local-model bake-off moves to Phase 17. This pass
+turned that decision into runtime behavior. `config.yaml` no longer names Kimi,
+GLM, Claude, provider URLs, or API-key settings; the app exposes only Local
+mode. The generic Phase-6 cloud-routing helper remains for its historical
+privacy/fallback regression tests, but no product or matrix entrypoint can
+select it.
+
+**Built**
+- `LiteLLMGenerator` preserves the existing `generate_json` seam and records
+  provider token usage, completion latency, cost, token source, and pricing
+  status per call. LiteLLM imports lazily, so importing the app or deterministic
+  tests does not probe a model service.
+- Qwen 3 thinking is explicitly disabled for matrix calls. The first live 4B
+  probe spent all three schema attempts on hidden reasoning and returned empty
+  visible content; with `think=False`, it returned valid schema output in one
+  call. This is a gateway correctness fix, not a prompt-quality tweak.
+- `python -m vaultledger.evals matrix` runs model × variant cells, enforces the
+  session cost cap, writes one `RunManifest` and full `_answers.json` receipt per
+  cell, then generates `reports/model_matrix.md` only by reloading those
+  manifests. `make matrix` is the stable entrypoint.
+- The deterministic scorer is deliberately narrow: unanswerables require the
+  correct abstention; answerable references require their literal
+  amounts/dates/identifiers, or a normalized full-reference substring when no
+  such anchors exist. It is labelled a lower bound throughout and never called
+  an LLM-judge result.
+
+**Kickoff measurement** (Variant B, first 12 golden rows — all `single_doc`)
+- `ollama/qwen3:4b`: strict match `16.7%`, citation-document hit `33.3%`,
+  abstention accuracy `33.3%`, median/p95 gateway latency `3.328s / 5.854s`,
+  `22,235 / 741` input/output tokens, `$0.000000` measured API spend.
+- `ollama/qwen3:8b`: strict match `58.3%`, citation-document hit `58.3%`,
+  abstention accuracy `83.3%`, median/p95 gateway latency `5.380s / 8.576s`,
+  `22,307 / 788` input/output tokens, `$0.000000` measured API spend.
+- On this small easy slice, 8B is materially more reliable and 4B is materially
+  faster. That finding must not be generalized to the other 68 golden rows,
+  another family, or another RAG variant.
+
+**Acceptance status**
+- The ADR-revised Phase-11 machinery criterion is functionally met: two local
+  models registered, LiteLLM gateway live, matrix command live, two cell
+  manifests plus answer receipts, generated report, and spend inside budget.
+- The phase remains **open** until these worktree changes are committed and the
+  matrix is rerun from that clean source state. The current manifests correctly
+  contain the pre-phase base SHA `e17edfb`, but the schema has no dirty-tree
+  field, so they are useful live receipts rather than a fully replayable release
+  receipt.
+- The original SPEC wording of six models across three hosting tiers is not met
+  and will never be reinterpreted as met. ADR-0003 records that scope reduction;
+  Phase 17 owns six local models, measured sizes, the full golden set across the
+  finished variants, and per-model judge reasons.
+
+**Review pass (2026-08-05, before commit)**
+- **Defect found and fixed: the egress badge had become a hardcoded string.** The
+  implementation replaced `if answer.data_left_machine: ... else: st.success(...)`
+  with an unconditional `st.success("Data stayed on your machine · NO cloud
+  egress")`. The string was accurate — `mode` is hardcoded to local — but the
+  claim was no longer derived from the field that makes it true, so any future
+  change re-enabling a remote path would have left the badge silently lying. The
+  conditional is restored, and
+  `test_privacy_badge_is_derived_from_the_answer_not_asserted` fails if the guard
+  is removed while the badge remains. That test was negative-controlled against a
+  simulated regression rather than assumed to work.
+- **ADR-0003 amended.** It had said the Local/Cloud-Boosted switch would stay
+  exactly as Phase 6 built it. The implementation removed it. On review the
+  removal stands and the ADR clause was wrong: a toggle that can never do
+  anything advertises a capability the product does not have. The amendment
+  records what was preserved (`privacy.py` and its Phase 6 tests, untouched) and
+  what it costs.
+- **SPEC's Phase 6 AC "badge + `model_used` flip correctly" is no longer
+  demonstrable in the product.** It holds at the unit level only. Recorded as a
+  scope reduction, not a passing AC.
+- **`demo/vaultledger_track_a_v1.gif` is now out of date** — it shows a privacy
+  radio the app no longer has. Flagged in `demo/README.md`; re-record at the next
+  demo revision.
+
+**Verification so far**
+- Full deterministic suite at this commit, re-run independently during review:
+  `89 passed`; ruff clean. (The implementation pass reported `87 passed, 1
+  skipped` on its own environment; the review environment has the optional extra
+  installed, so that test runs, and the new badge guard adds one more.)
+- Live LiteLLM/Ollama probe: both `qwen3:4b` and `qwen3:8b` produced manifests,
+  answer receipts, provider token counts, and a generated report at zero
+  measured API spend.
+- Configured live kickoff matrix: 2 models × 1 variant × 12 examples, 24/24
+  generation outcomes recorded; total measured API spend `$0.000000`.
+
+**Honest boundaries**
+- Zero dollars means **unpriced, not free**. Electricity, hardware, and local
+  compute are not billing telemetry.
+- The kickoff sample is the first 12 rows, all easy/medium single-document
+  questions. It is a plumbing proof with an early signal, not a representative
+  quality comparison.
+- Strict matching under-credits valid paraphrases and cannot establish semantic
+  correctness. Phase 17 owns judged verdicts with reasons.
+- Exact model digests, parameter counts, and resident sizes are not pinned here;
+  ADR-0003 assigns that work to Phase 17 kickoff.
+
+**Next:** commit this Phase-11 implementation, rerun `make matrix` from the
+clean source state so manifests identify the code exactly, close the phase, then
+start Phase 12's local-size policy router.

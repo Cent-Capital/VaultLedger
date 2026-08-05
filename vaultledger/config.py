@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -49,8 +49,19 @@ class ModelRef(BaseModel):
 class ModelRegistry(BaseModel):
     T0: ModelRef
     T1: ModelRef
-    T2: list[ModelRef]  # open-weight hosted tier is a list of candidates
-    T3: ModelRef
+    matrix: list[ModelRef] = Field(min_length=1)
+
+
+class Matrix(BaseModel):
+    """Phase 11 local model-matrix defaults.
+
+    The full six-model lineup is deliberately pinned at Phase 17 kickoff. The
+    two models here prove the matrix machinery without claiming the deferred
+    bake-off has happened.
+    """
+
+    variants: list[str] = ["B_hybrid"]
+    smoke_limit: int = Field(default=12, ge=0)
 
 
 class Reranker(BaseModel):
@@ -71,17 +82,6 @@ class Generation(BaseModel):
     # Minimum normalized snippet length a citation must carry to be verifiable.
     min_snippet_chars: int = 16
     litm_reorder: bool = True
-
-
-class Cloud(BaseModel):
-    """Routing-v1 cloud endpoint. Secrets are read from the environment."""
-
-    model: str = "moonshot/kimi-k2.6"
-    base_url: str = ""
-    api_key_env: str = "VAULTLEDGER_CLOUD_API_KEY"
-    timeout_seconds: int = 180
-    input_per_million_usd: float = 0.0
-    output_per_million_usd: float = 0.0
 
 
 class Embedding(BaseModel):
@@ -116,11 +116,11 @@ class Config(BaseSettings):
     loops: Loops
     thresholds: Thresholds
     models: ModelRegistry
+    matrix: Matrix = Matrix()
     variant_default: str = "B_hybrid"
     reranker: Reranker = Reranker()
     retrieval: Retrieval = Retrieval()
     generation: Generation = Generation()
-    cloud: Cloud = Cloud()
     embedding: Embedding = Embedding()
     chunking: Chunking = Chunking()
     paths: Paths = Paths()
@@ -168,10 +168,10 @@ __all__ = [
     "Thresholds",
     "ModelRef",
     "ModelRegistry",
+    "Matrix",
     "Reranker",
     "Retrieval",
     "Generation",
-    "Cloud",
     "Embedding",
     "Chunking",
     "Paths",

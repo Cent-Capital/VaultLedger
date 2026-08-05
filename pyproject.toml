@@ -42,6 +42,9 @@ synth = [
 rerank = [
     "sentence-transformers>=3.0,<6",  # BAAI/bge-reranker-base; model downloaded on first use
 ]
+gateway = [
+    "litellm>=1.74,<2",
+]
 observability = [
     "langfuse>=4.0,<5",
     # Langfuse pulls the OTLP *http* exporter; chromadb's installed OTLP *grpc*
@@ -54,7 +57,7 @@ observability = [
 # Phase 5  (structured out):   none added — native Ollama JSON `format` +
 #                              hand-rolled repair loop instead of instructor (ADR-0002)
 # Phase 8: local traces are built in; `observability` adds optional Langfuse export
-# Phase 11 (gateway):          litellm
+# Phase 11: LiteLLM is isolated in the `gateway` extra; `make install` includes it.
 # Phase 15 (graph):            lightrag-hku, networkx
 
 [tool.setuptools.packages.find]

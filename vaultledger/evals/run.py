@@ -381,6 +381,12 @@ def run_regression(args: argparse.Namespace) -> int:
     return 0 if report.passed else 1
 
 
+def run_model_matrix(args: argparse.Namespace) -> int:
+    from vaultledger.evals.matrix import run_matrix
+
+    return run_matrix(args)
+
+
 def _write_comparison(
     baseline_path: Path,
     current: RunManifest,
@@ -487,6 +493,24 @@ def build_parser() -> argparse.ArgumentParser:
     regression.add_argument("--inject-metric", default="")
     regression.add_argument("--inject-drop", type=float, default=0.0)
     regression.set_defaults(func=run_regression)
+
+    matrix = sub.add_parser(
+        "matrix", help="Run the Phase 11 local model x variant benchmark matrix"
+    )
+    matrix.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
+    matrix.add_argument("--models", nargs="+", default=None)
+    matrix.add_argument(
+        "--variants", nargs="+", choices=["A_naive", "B_hybrid"], default=None
+    )
+    matrix.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Examples per cell (default: config matrix.smoke_limit; 0 = full set)",
+    )
+    matrix.add_argument("--out-dir", default="reports")
+    matrix.add_argument("--report", default="reports/model_matrix.md")
+    matrix.set_defaults(func=run_model_matrix)
     return parser
 
 

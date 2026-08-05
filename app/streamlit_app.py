@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -64,13 +63,12 @@ with st.sidebar:
     st.write(f"**Default variant:** `{cfg.variant_default}`")
     st.write(f"**Reranker:** {'on' if cfg.reranker.enabled else 'off'}")
     st.divider()
-    st.caption("Tier map")
+    st.caption("Local capability map · ADR-0003")
     st.write(f"T0 `{cfg.models.T0.id}`")
     st.write(f"T1 `{cfg.models.T1.id}`")
-    st.write("T2 " + ", ".join(f"`{m.id}`" for m in cfg.models.T2))
-    st.write(f"T3 `{cfg.models.T3.id}`")
+    st.write("Matrix " + ", ".join(f"`{m.id}`" for m in cfg.models.matrix))
     st.divider()
-    st.caption("Local mode does not construct or probe a cloud client.")
+    st.caption("Paid hosted tiers are retired; no cloud client is constructed or probed.")
 
 library, ask, evals, lab = st.tabs(
     ["📚 Library / Ingest", "💬 Ask", "📊 Evals", "🧪 Experiment Lab"]
@@ -145,24 +143,7 @@ with library:
 with ask:
     st.header("Ask your documents")
     st.caption("Variant B · dense + BM25 → reciprocal-rank fusion → local reranker")
-    privacy_mode = st.radio(
-        "Privacy mode",
-        ["Local", "Cloud-Boosted"],
-        horizontal=True,
-        help="Cloud-Boosted sends the retrieved question context to the configured provider.",
-    )
-    cloud_selected = privacy_mode == "Cloud-Boosted"
-    cloud_consent = False
-    if cloud_selected:
-        cloud_consent = st.checkbox(
-            "I consent to sending this query and retrieved context to the cloud provider "
-            "for this session.",
-            key="cloud_session_consent",
-        )
-        st.warning(
-            "Track-A cloud mode is for synthetic data only. PII egress redaction is a "
-            "Phase-13 guardrail and is not claimed in this release."
-        )
+    st.success("Privacy mode: Local · paid hosted tiers retired by ADR-0003")
     sample = st.selectbox(
         "Measured examples",
         (
@@ -188,11 +169,10 @@ with ask:
     ask_clicked = st.button(
         "Ask",
         type="primary",
-        disabled=not question.strip() or (cloud_selected and not cloud_consent),
+        disabled=not question.strip(),
     )
 
     if ask_clicked:
-        from vaultledger.gateway import OpenAICompatibleGenerator
         from vaultledger.generate import OllamaGenerator
         from vaultledger.index.embed import OllamaEmbedder
         from vaultledger.observability import TraceStore
@@ -223,40 +203,28 @@ with ask:
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
                 else:
-                    cloud_generator = None
-                    if cloud_selected and cfg.cloud.base_url:
-                        api_key = os.getenv(cfg.cloud.api_key_env, "")
-                        if api_key:
-                            cloud_generator = OpenAICompatibleGenerator(
-                                cfg.cloud.model,
-                                cfg.cloud.base_url,
-                                api_key,
-                                cfg.cloud.timeout_seconds,
-                            )
                     with st.spinner("Retrieving and answering..."):
                         routed = answer_with_privacy(
                             question,
                             retriever,
                             generator,
                             local_model=cfg.models.T1.id,
-                            mode="cloud" if cloud_selected else "local",
-                            cloud_consent=cloud_consent,
-                            cloud_generator=cloud_generator,
-                            cloud_model=cfg.cloud.model,
+                            mode="local",
                             k=cfg.retrieval.answer_top_n,
                             max_retries=cfg.loops.repair_max,
                             min_snippet_chars=cfg.generation.min_snippet_chars,
                             trace_store=TraceStore(cfg.repo_path(cfg.paths.traces)),
-                            input_per_million_usd=cfg.cloud.input_per_million_usd,
-                            output_per_million_usd=cfg.cloud.output_per_million_usd,
                         )
                     answer = routed.answer
                     if routed.notice:
                         st.warning(routed.notice)
+                    # Derived from the answer, never asserted. ADR-0003 retired the
+                    # paid tiers, so this resolves to the success branch today --
+                    # but the badge must keep reading the field that makes it true,
+                    # or a future remote path would leave it silently lying.
                     if answer.data_left_machine:
                         st.warning(
                             "Synthetic query context left your machine: YES · "
-                            f"cloud model `{cfg.cloud.model}` · "
                             f"answer model `{answer.model_used}`"
                         )
                     else:
@@ -386,15 +354,21 @@ with evals:
 
 with lab:
     st.header("Experiment Lab")
-    st.info("Track A ends here. This workspace opens with Phase 11.")
+    st.info("Phase 11 kickoff · local gateway and limited matrix machinery proof")
+    matrix_path = cfg.repo_path("reports/model_matrix.md")
+    if matrix_path.exists():
+        st.markdown(matrix_path.read_text())
+    else:
+        st.warning("No model matrix receipt yet. Run `make matrix`.")
     st.markdown(
         """
         **Next measured questions**
 
-        - How do six local, hosted open-weight, and frontier models compare on the same set?
-        - Can a deterministic policy router preserve quality while lowering cost?
+        - How do two local model families across three measured sizes compare on the full set?
+        - Can a deterministic policy router preserve quality while lowering latency?
         - Where do GraphRAG and agentic RAG win, lose, and cost more than Variant B?
 
-        No Phase-11+ result is displayed or claimed in this Track-A release.
+        The table above covers two Qwen models, one variant, and a 12-example slice only.
+        The six-model, all-variant bake-off and judged reasons remain Phase 17.
         """
     )

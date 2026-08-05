@@ -172,6 +172,50 @@ boundary, not omitted.
 pinnable free endpoint appears. The manifest schema keeps its cost fields for
 exactly that reason.
 
+## Amendment — 2026-08-05 (Phase 11 implementation)
+
+**What this ADR originally said:** *"its privacy ACs are unaffected — the
+Local/Cloud-Boosted switch and consent flow stay exactly as Phase 6 built them,
+with Cloud-Boosted permanently in its pre-egress fallback state."*
+
+**What was actually built:** the switch and consent checkbox were removed from
+the app, and the `cloud:` config block and `Cloud` settings class were deleted.
+
+**Amended: the removal stands.** The original clause was wrong. A Local /
+Cloud-Boosted toggle with the paid tiers retired is a control that can never do
+anything — it advertises a capability the product does not have and cannot
+acquire, and a user who selects it learns only that it falls back. Dead UI that
+implies a feature is worse product than no UI, and worse *honesty*, which is the
+axis this project is optimised on. Keeping a switch purely to satisfy a sentence
+in a decision record would be cargo-culting the process.
+
+**What is preserved, deliberately:**
+
+- `vaultledger/route/privacy.py` is untouched. `answer_with_privacy`, the consent
+  gate, both degraded-fallback branches, and the conservative
+  "data may have left your machine" path all remain, and `tests/test_phase6.py`
+  still exercises them. The capability is retired from the product surface, not
+  deleted from the codebase.
+- **The egress badge must stay derived from `answer.data_left_machine`, never
+  hardcoded.** The Phase 11 pass initially replaced the conditional with an
+  unconditional success string. That was corrected, and
+  `test_privacy_badge_is_derived_from_the_answer_not_asserted` now fails if the
+  guard is removed while the badge remains. With one privacy mode the branch is
+  currently constant — which is precisely why it needs a test rather than a
+  reviewer's memory.
+
+**What this costs, recorded rather than discovered later:**
+
+- **SPEC's Phase 6 AC "badge + `model_used` flip correctly" can no longer be
+  demonstrated in the product.** It holds at the unit level — `test_phase6.py`
+  calls `answer_with_privacy` directly — but no UI path can show the flip. This
+  is a scope reduction, not a passing AC. It must not be reported as
+  demonstrated.
+- **`demo/vaultledger_track_a_v1.gif` (committed `c376b44`) is now out of date.**
+  It shows a Local / Cloud-Boosted radio the app no longer has, and README links
+  it as the current demo. Noted in `demo/README.md`; re-record at the next demo
+  revision rather than pretending the artifact is current.
+
 ## Evidence
 
 - Local models present on the dev machine, measured 2026-08-04/05 via the Ollama

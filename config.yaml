@@ -2,8 +2,9 @@
 # Single source of runtime knobs: seed, budgets, loop caps, thresholds,
 # and the model registry / tier map. Code reads this via vaultledger.config.
 #
-# NOTE: model IDs and hosted pricing drift. Verify T2/T3 IDs + prices at the
-# Phase 11 kickoff; manifests will pin whatever actually ran.
+# ADR-0003 retires paid hosted tiers. Phase 11 proves the local gateway and
+# matrix against the two models already pinned; Phase 17 pins the final 2x3
+# local lineup and records measured parameter/resident sizes.
 
 seed: 42
 
@@ -25,10 +26,13 @@ thresholds:
 models:
   T0: { id: "ollama/qwen3:4b" }          # local small: classification, query rewrite
   T1: { id: "ollama/qwen3:8b" }          # local primary (use qwen3:30b-a3b on >=36GB RAM)
-  T2:                                     # open-weight hosted (not laptop-runnable)
-    - { id: "moonshot/kimi-k2.6" }
-    - { id: "openrouter/z-ai/glm-5.2" }
-  T3: { id: "anthropic/claude-sonnet-latest" }  # frontier, opt-in, budget-capped
+  matrix:
+    - { id: "ollama/qwen3:4b" }
+    - { id: "ollama/qwen3:8b" }
+
+matrix:
+  variants: ["B_hybrid"]
+  smoke_limit: 12             # 0 = full golden set; full six-model sweep is Phase 17
 
 variant_default: B_hybrid
 
@@ -45,14 +49,6 @@ retrieval:
 generation:                       # Phase 5 structured output + citation verify
   min_snippet_chars: 16           # shortest normalized snippet a citation may carry
   litm_reorder: true              # put highest-value evidence at context edges
-
-cloud:                            # Phase 6 routing v1; secret stays in the environment
-  model: "moonshot/kimi-k2.6"
-  base_url: ""                    # OpenAI-compatible /v1 URL; blank means unavailable
-  api_key_env: "VAULTLEDGER_CLOUD_API_KEY"
-  timeout_seconds: 180
-  input_per_million_usd: 0.0       # set verified provider rates before cloud use
-  output_per_million_usd: 0.0
 
 embedding:
   model: "nomic-embed-text"          # local via Ollama; changing this invalidates the index

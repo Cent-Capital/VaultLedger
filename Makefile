@@ -4,8 +4,8 @@ PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else e
 
 .PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix replay run clean
 
-install:  ## Install the package + dev, synth, and Phase-4 reranking tools
-	$(PYTHON) -m pip install -e ".[dev,synth,rerank]"
+install:  ## Install the package + dev, synth, reranking, and model gateway tools
+	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway]"
 	$(PYTHON) -m spacy download en_core_web_sm
 
 doctor:  ## Read-only check of the documented local Track-A setup
@@ -45,7 +45,7 @@ eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
 verify-track-a: lint test eval-full  ## Phase 10 acceptance gate
 
 matrix:  ## Multi-model benchmark matrix (Phase 11+)
-	@echo "matrix: not implemented until Phase 11."
+	$(PYTHON) -m vaultledger.evals matrix
 
 replay:  ## Re-execute a past query from its trace (Phase 8+)
 	@echo "replay: not implemented until Phase 8. Usage: make replay TRACE=<trace_id>"
