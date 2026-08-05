@@ -3,42 +3,41 @@
     "example_id": "sd_001",
     "category": "single_doc",
     "expected_answer": "$4,207.55",
-    "strict_match": true,
-    "score_reason": "matched 1 literal anchor(s)",
-    "citation_doc_hit": true,
-    "abstention_correct": true,
-    "wall_latency_ms": 9049.661,
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 8970.125,
     "gateway": {
       "calls": 1,
-      "latency_ms": 8576.42,
-      "input_tokens": 2031,
-      "output_tokens": 70,
-      "cost_usd": 0.0
+      "latency_ms": 4467.243,
+      "input_tokens": 2025,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
-      "answer_text": "Closing balance: $4,207.55",
-      "citations": [
-        {
-          "chunk_id": "stmt_marcus_checking_2025-03#c0",
-          "doc_id": "stmt_marcus_checking_2025-03",
-          "page": 1,
-          "snippet": "Closing balance: $4,207.55"
-        }
-      ],
-      "abstained": false,
-      "confidence": 0.7292364036941175,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_36b92c3a3144",
+        "query_id": "q_27521113ca94",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -59,42 +58,41 @@
     "example_id": "sd_002",
     "category": "single_doc",
     "expected_answer": "$36,411.77",
-    "strict_match": true,
-    "score_reason": "matched 1 literal anchor(s)",
-    "citation_doc_hit": true,
-    "abstention_correct": true,
-    "wall_latency_ms": 8476.591,
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 4269.063,
     "gateway": {
       "calls": 1,
-      "latency_ms": 7857.449,
-      "input_tokens": 2528,
-      "output_tokens": 82,
-      "cost_usd": 0.0
+      "latency_ms": 3277.004,
+      "input_tokens": 2522,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
-      "answer_text": "Priya Raman's June 2025 checking closing balance was $36,411.77.",
-      "citations": [
-        {
-          "chunk_id": "stmt_priya_checking_2025-06#c0",
-          "doc_id": "stmt_priya_checking_2025-06",
-          "page": 1,
-          "snippet": "Ending balance $36,411.77"
-        }
-      ],
-      "abstained": false,
-      "confidence": 0.6925275402874079,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_984a0dea4d82",
+        "query_id": "q_511dbc67d3d1",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -110,15 +108,21 @@
     "expected_answer": "The checking account suffix is 4021.",
     "strict_match": false,
     "score_reason": "normalized reference substring absent",
-    "citation_doc_hit": false,
+    "citation_doc_hit": true,
     "abstention_correct": true,
-    "wall_latency_ms": 6480.765,
+    "wall_latency_ms": 6235.486,
     "gateway": {
       "calls": 1,
-      "latency_ms": 5868.601,
-      "input_tokens": 2028,
-      "output_tokens": 60,
-      "cost_usd": 0.0
+      "latency_ms": 5784.785,
+      "input_tokens": 2022,
+      "output_tokens": 156,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
       "answer_text": "4021",
@@ -128,22 +132,34 @@
           "doc_id": "stmt_marcus_checking_2025-01",
           "page": 1,
           "snippet": "Account: ****4021 (Checking)"
+        },
+        {
+          "chunk_id": "stmt_marcus_checking_2025-03#c0",
+          "doc_id": "stmt_marcus_checking_2025-03",
+          "page": 1,
+          "snippet": "Account: ****4021 (Checking)"
+        },
+        {
+          "chunk_id": "stmt_marcus_checking_2025-05#c0",
+          "doc_id": "stmt_marcus_checking_2025-05",
+          "page": 1,
+          "snippet": "Account: ****4021 (Checking)"
         }
       ],
       "abstained": false,
       "confidence": 0.7305692879115695,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_93b448374a36",
+        "query_id": "q_600f899ddcbf",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -168,13 +184,19 @@
     "score_reason": "normalized reference substring absent",
     "citation_doc_hit": true,
     "abstention_correct": true,
-    "wall_latency_ms": 7522.665,
+    "wall_latency_ms": 4603.985,
     "gateway": {
       "calls": 1,
-      "latency_ms": 6939.362,
-      "input_tokens": 1864,
-      "output_tokens": 93,
-      "cost_usd": 0.0
+      "latency_ms": 3854.075,
+      "input_tokens": 1858,
+      "output_tokens": 85,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
       "answer_text": "Halcyon Retail Group",
@@ -183,29 +205,23 @@
           "chunk_id": "f1099_halcyon_priya_2024#c0",
           "doc_id": "f1099_halcyon_priya_2024",
           "page": 1,
-          "snippet": "Payer Halcyon Retail Group"
-        },
-        {
-          "chunk_id": "f1099_cedargrove_priya_2024#c0",
-          "doc_id": "f1099_cedargrove_priya_2024",
-          "page": 1,
-          "snippet": "PAYER Cedar Grove Media"
+          "snippet": "1099-NEC (2024) Payer Halcyon Retail Group"
         }
       ],
       "abstained": false,
       "confidence": 0.710044528352186,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_f34fed3b7604",
+        "query_id": "q_10a7dcbbf63c",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -223,13 +239,19 @@
     "score_reason": "matched 1 literal anchor(s)",
     "citation_doc_hit": true,
     "abstention_correct": true,
-    "wall_latency_ms": 6124.786,
+    "wall_latency_ms": 4228.818,
     "gateway": {
       "calls": 1,
-      "latency_ms": 5544.455,
-      "input_tokens": 1419,
-      "output_tokens": 80,
-      "cost_usd": 0.0
+      "latency_ms": 3542.584,
+      "input_tokens": 1413,
+      "output_tokens": 93,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
       "answer_text": "Box 1 - Nonemployee compensation $8,500.00",
@@ -243,18 +265,18 @@
       ],
       "abstained": false,
       "confidence": 0.7290961535047353,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_438c43419d31",
+        "query_id": "q_2f8564b20dcb",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -268,42 +290,41 @@
     "example_id": "sd_006",
     "category": "single_doc",
     "expected_answer": "$2,525.39",
-    "strict_match": true,
-    "score_reason": "matched 1 literal anchor(s)",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
     "citation_doc_hit": false,
-    "abstention_correct": true,
-    "wall_latency_ms": 5573.345,
+    "abstention_correct": false,
+    "wall_latency_ms": 2657.927,
     "gateway": {
       "calls": 1,
-      "latency_ms": 5003.823,
-      "input_tokens": 1605,
-      "output_tokens": 62,
-      "cost_usd": 0.0
+      "latency_ms": 2171.661,
+      "input_tokens": 1599,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
-      "answer_text": "Net pay $2,525.39",
-      "citations": [
-        {
-          "chunk_id": "paystub_marcus_02#c0",
-          "doc_id": "paystub_marcus_02",
-          "page": 1,
-          "snippet": "Net pay $2,525.39"
-        }
-      ],
-      "abstained": false,
-      "confidence": 0.7067511813239088,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_2651b13248aa",
+        "query_id": "q_7f7e594c3fc3",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -317,42 +338,41 @@
     "example_id": "sd_007",
     "category": "single_doc",
     "expected_answer": "$4,038.46",
-    "strict_match": true,
-    "score_reason": "matched 1 literal anchor(s)",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
     "citation_doc_hit": false,
-    "abstention_correct": true,
-    "wall_latency_ms": 5418.45,
+    "abstention_correct": false,
+    "wall_latency_ms": 2467.942,
     "gateway": {
       "calls": 1,
-      "latency_ms": 4865.095,
-      "input_tokens": 1605,
-      "output_tokens": 64,
-      "cost_usd": 0.0
+      "latency_ms": 2059.289,
+      "input_tokens": 1599,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
-      "answer_text": "Gross pay $4,038.46",
-      "citations": [
-        {
-          "chunk_id": "paystub_marcus_02#c0",
-          "doc_id": "paystub_marcus_02",
-          "page": 1,
-          "snippet": "Gross pay $4,038.46"
-        }
-      ],
-      "abstained": false,
-      "confidence": 0.7165725255520283,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_c0b29c577e82",
+        "query_id": "q_c95561a49fb6",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -370,31 +390,85 @@
     "score_reason": "abstained on an answerable example",
     "citation_doc_hit": false,
     "abstention_correct": false,
-    "wall_latency_ms": 5640.579,
+    "wall_latency_ms": 2525.327,
     "gateway": {
       "calls": 1,
-      "latency_ms": 5012.578,
-      "input_tokens": 1535,
-      "output_tokens": 62,
-      "cost_usd": 0.0
+      "latency_ms": 2170.285,
+      "input_tokens": 1529,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
       "answer_text": "I couldn't find that in your documents.",
       "citations": [],
       "abstained": true,
       "confidence": 0.0,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_0cb0293e4115",
+        "query_id": "q_d47f17d250c2",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [],
+      "agent_steps": []
+    }
+  },
+  {
+    "example_id": "sd_009",
+    "category": "single_doc",
+    "expected_answer": "Halcyon Retail Group was billed.",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 4376.845,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 3848.796,
+      "input_tokens": 1515,
+      "output_tokens": 102,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
+      "variant": "B_hybrid",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_abc516ec6564",
+        "allowed_tiers": [
+          "T0"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -405,7 +479,7 @@
           "stage": "output",
           "guard": "citation_verify",
           "action": "flag",
-          "details": "dropped citation: snippet not found verbatim in inv_priya_cedargrove_03#c0 (matched 0 others)"
+          "details": "dropped citation: snippet not found verbatim in inv_david_halcyon_01#c0 (matched 3 others)"
         },
         {
           "stage": "output",
@@ -418,94 +492,44 @@
     }
   },
   {
-    "example_id": "sd_009",
-    "category": "single_doc",
-    "expected_answer": "Halcyon Retail Group was billed.",
-    "strict_match": false,
-    "score_reason": "normalized reference substring absent",
-    "citation_doc_hit": true,
-    "abstention_correct": true,
-    "wall_latency_ms": 5180.955,
-    "gateway": {
-      "calls": 1,
-      "latency_ms": 4581.214,
-      "input_tokens": 1521,
-      "output_tokens": 54,
-      "cost_usd": 0.0
-    },
-    "answer": {
-      "answer_text": "Halcyon Retail Group",
-      "citations": [
-        {
-          "chunk_id": "inv_david_halcyon_01#c0",
-          "doc_id": "inv_david_halcyon_01",
-          "page": 1,
-          "snippet": "Bill To: Halcyon Retail Group"
-        }
-      ],
-      "abstained": false,
-      "confidence": 0.7135606199688588,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
-      "variant": "B_hybrid",
-      "privacy_mode": "local",
-      "data_left_machine": false,
-      "routing": {
-        "query_id": "q_19fc6c83c040",
-        "allowed_tiers": [
-          "T1"
-        ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
-        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
-        "escalations": 0,
-        "est_cost_usd": 0.0,
-        "actual_cost_usd": 0.0
-      },
-      "guardrail_events": [],
-      "agent_steps": []
-    }
-  },
-  {
     "example_id": "sd_010",
     "category": "single_doc",
     "expected_answer": "$7,400.09",
-    "strict_match": true,
-    "score_reason": "matched 1 literal anchor(s)",
-    "citation_doc_hit": true,
-    "abstention_correct": true,
-    "wall_latency_ms": 7952.281,
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 3791.437,
     "gateway": {
       "calls": 1,
-      "latency_ms": 7309.741,
-      "input_tokens": 2532,
-      "output_tokens": 69,
-      "cost_usd": 0.0
+      "latency_ms": 3372.943,
+      "input_tokens": 2526,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
-      "answer_text": "Closing balance: $7,400.09",
-      "citations": [
-        {
-          "chunk_id": "stmt_david_checking_2025-01#c0",
-          "doc_id": "stmt_david_checking_2025-01",
-          "page": 1,
-          "snippet": "Closing balance: $7,400.09"
-        }
-      ],
-      "abstained": false,
-      "confidence": 0.729162240985195,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_aca154a6c0e6",
+        "query_id": "q_8789b65ea541",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -523,31 +547,37 @@
     "score_reason": "abstained on an answerable example",
     "citation_doc_hit": false,
     "abstention_correct": false,
-    "wall_latency_ms": 5166.626,
+    "wall_latency_ms": 3193.122,
     "gateway": {
       "calls": 1,
-      "latency_ms": 4493.392,
-      "input_tokens": 2031,
-      "output_tokens": 28,
-      "cost_usd": 0.0
+      "latency_ms": 2755.285,
+      "input_tokens": 2025,
+      "output_tokens": 32,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
       "answer_text": "I couldn't find that in your documents.",
       "citations": [],
       "abstained": true,
       "confidence": 0.0,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_37c238a4d9da",
+        "query_id": "q_cac0efb93b3d",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,
@@ -572,13 +602,19 @@
     "score_reason": "matched 1 literal anchor(s)",
     "citation_doc_hit": true,
     "abstention_correct": true,
-    "wall_latency_ms": 5982.129,
+    "wall_latency_ms": 3753.134,
     "gateway": {
       "calls": 1,
-      "latency_ms": 5215.043,
-      "input_tokens": 1608,
-      "output_tokens": 64,
-      "cost_usd": 0.0
+      "latency_ms": 3392.932,
+      "input_tokens": 1602,
+      "output_tokens": 81,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
     },
     "answer": {
       "answer_text": "2025-06-28",
@@ -587,23 +623,23 @@
           "chunk_id": "paystub_marcus_12#c0",
           "doc_id": "paystub_marcus_12",
           "page": 1,
-          "snippet": "Pay date: 2025-06-28"
+          "snippet": "Employee: Marcus Chen Pay date: 2025-06-28"
         }
       ],
       "abstained": false,
       "confidence": 0.7291806504412882,
-      "model_used": "ollama/qwen3:8b",
-      "tier": "T1",
+      "model_used": "ollama/qwen3:4b",
+      "tier": "T0",
       "variant": "B_hybrid",
       "privacy_mode": "local",
       "data_left_machine": false,
       "routing": {
-        "query_id": "q_95f96a577355",
+        "query_id": "q_937e6355731e",
         "allowed_tiers": [
-          "T1"
+          "T0"
         ],
-        "chosen_tier": "T1",
-        "chosen_model": "ollama/qwen3:8b",
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
         "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
         "escalations": 0,
         "est_cost_usd": 0.0,

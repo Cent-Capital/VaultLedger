@@ -8,8 +8,8 @@ Total measured API spend: **$0.000000** (local models are unpriced, not free)
 
 | Model | Variant | N | Strict match | Citation hit | Abstention accuracy | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| `ollama/qwen3:4b` | `B_hybrid` | 12 | 16.7% | 33.3% | 33.3% | 3328 ms | 5854 ms | 22235 / 741 | $0.000000 | `phase11_ollama_qwen3_4b_b_hybrid_0535d0fe994f` |
-| `ollama/qwen3:8b` | `B_hybrid` | 12 | 58.3% | 58.3% | 83.3% | 5380 ms | 8576 ms | 22307 / 788 | $0.000000 | `phase11_ollama_qwen3_8b_b_hybrid_59435b710ec7` |
+| `ollama/qwen3:4b` | `B_hybrid` | 12 | 16.7% | 33.3% | 33.3% | 3383 ms | 5785 ms | 22235 / 741 | $0.000000 | `phase11_ollama_qwen3_4b_b_hybrid_28dd82352c14` |
+| `ollama/qwen3:8b` | `B_hybrid` | 12 | 58.3% | 58.3% | 83.3% | 5604 ms | 9453 ms | 22307 / 788 | $0.000000 | `phase11_ollama_qwen3_8b_b_hybrid_f9640c192353` |
 
 ## Reading the result
 
