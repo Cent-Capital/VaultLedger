@@ -111,4 +111,10 @@ def test_baseline_file_is_valid_json_and_self_describing():
         json.dumps(baseline.model_dump())
     )
     assert round_trip.version == "phase9_retrieval_v1"
-    assert round_trip.source_run_id == "phase4_de57151e3ae3"
+    # Pinned deliberately so the frozen reference cannot be re-pointed silently.
+    # Re-pinned 2026-08-05 from phase4_de57151e3ae3 after Phase 12's
+    # expected_tier relabel changed the golden-set hash. All four retrieval
+    # metrics were bit-identical across the two runs, which is the only
+    # condition under which moving this pin is safe. Changing it must stay a
+    # reviewed edit, not a side effect.
+    assert round_trip.source_run_id == "phase4_551b3b20b9f9"

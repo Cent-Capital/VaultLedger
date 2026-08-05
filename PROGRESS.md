@@ -1277,7 +1277,46 @@ where one point dominates is a finding, not a chart.
   pass reported `97 passed, 1 skipped`; the optional extra is installed here).
 - `pip check`: no dependency conflicts.
 
-**Known breakage, not fixed here — the regression gate is green on stale
+**Resolved 2026-08-05 — baseline re-pinned with proof.** The breakage below was
+real: regenerating a retrieval manifest raised
+`ValueError: baseline and Phase-4 run use different golden-set hashes`, exactly
+as predicted, so the gate had been green only by comparing stale artifacts. The
+hybrid retrieval eval was re-run on the current golden set
+(`phase4_551b3b20b9f9`) and **all four metrics came back bit-identical to the
+frozen baseline** — not within tolerance, equal to 16 decimal places:
+
+| Metric | Baseline | Re-run | Delta |
+|---|---:|---:|---:|
+| `retrieval_recall@20` | 0.9785714285714285 | 0.9785714285714285 | `0.0` |
+| `retrieval_precision@20` | 0.1042857142857142 | 0.1042857142857142 | `0.0` |
+| `retrieval_mrr` | 0.7855867346938776 | 0.7855867346938776 | `0.0` |
+| `retrieval_hit_rate` | 0.9857142857142858 | 0.9857142857142858 | `0.0` |
+
+That is the only condition under which re-pointing a frozen reference is safe: it
+proves the `expected_tier` relabel was metric-neutral for retrieval (no retrieval
+metric reads that field) and, incidentally, that retrieval is deterministic
+across runs weeks apart. `regression_baseline.json` now points at
+`phase4_551b3b20b9f9` with hash `b59ee2659a17714c`. **Only the two identity
+fields changed — every metric value and threshold is untouched**, because there
+was nothing to update.
+
+`tests/test_phase9.py` hard-pins the baseline's `source_run_id` and failed on the
+re-pin. That is the tripwire working: the frozen reference cannot be re-pointed
+without a test failing and a human looking. The constant was updated and the
+reason recorded beside it, rather than the assertion being loosened.
+
+Not done, and deliberately: `golden_hash` still hashes the whole golden-set file,
+so any future metric-irrelevant edit will trip the guard again. Narrowing it to
+metric-relevant fields would make the guard smarter and also make it capable of
+missing something. That is a design change to a safety mechanism and needs its
+own ADR.
+
+Measured after the re-pin: `make verify-track-a` exit `0`, 108s wall clock, ruff
+clean, `98 passed`, safety 10 rightly abstained with `injection_pass_rate 1.0`,
+`judge_tpr 1.0` / `judge_tnr 1.0`, regression `passed: true` against the fresh
+manifest.
+
+**Original finding, kept for the record — the regression gate was green on stale
 artifacts.** `golden_hash` is a sha256 over the raw golden-set file, and
 `compare_manifest` raises on any mismatch. Changing `expected_tier` changed that
 hash from `ece0ea370052e5fe` to `b59ee2659a17714c`. The new Phase 11/12 manifests

@@ -1,7 +1,7 @@
 {
   "version": "phase9_retrieval_v1",
-  "source_run_id": "phase4_de57151e3ae3",
-  "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+  "source_run_id": "phase4_551b3b20b9f9",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
   "metrics": {
     "retrieval_recall@20": {
       "baseline": 0.9785714285714285,
