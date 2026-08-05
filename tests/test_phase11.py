@@ -6,9 +6,15 @@ import json
 from pathlib import Path
 
 from vaultledger.evals.golden import load_golden_set
-from vaultledger.evals.matrix import strict_answer_match, write_matrix_report
+from vaultledger.evals.matrix import (
+    category_metrics,
+    numeric_exact_match,
+    score_answer,
+    strict_answer_match,
+    write_matrix_report,
+)
 from vaultledger.gateway import LiteLLMGenerator
-from vaultledger.schemas import Answer, RoutingDecision, RunManifest
+from vaultledger.schemas import Answer, QAExample, RoutingDecision, RunManifest
 
 
 def _answer(text: str, *, abstained: bool = False) -> Answer:
@@ -81,6 +87,143 @@ def test_strict_matrix_scorer_is_explicit_about_literal_matching():
     assert matched
 
 
+def _example(
+    example_id: str,
+    category: str,
+    expected_answer: str,
+) -> QAExample:
+    return QAExample(
+        id=example_id,
+        question="q",
+        expected_answer=expected_answer,
+        expected_doc_ids=[],
+        expected_snippets=[],
+        category=category,  # type: ignore[arg-type]
+        difficulty="easy",
+    )
+
+
+def test_numeric_exact_match_compares_parsed_numbers_not_normalized_strings():
+    """The distinction that makes this a separate metric from `strict_match`.
+
+    Phase 14's AC names *numeric* exact-match. `strict_answer_match` compares
+    literal strings after normalization, so an answer that is numerically correct
+    but formatted differently scores as a miss. If the two metrics agreed here
+    there would be no reason to add one, and the AC could simply have been
+    restated against the scorer that already existed.
+    """
+    example = _example("ag_x", "aggregation", "The total was $1,234.50.")
+    candidate = _answer("The total was 1234.5 dollars.")
+
+    assert strict_answer_match(example, candidate)[0] is False
+    matched, reason = numeric_exact_match(example, candidate, epsilon=0.01)
+    assert matched is True
+    assert "matched 1" in reason
+
+
+def test_numeric_exact_match_reports_the_quantity_that_is_missing():
+    example = _example("ag_y", "aggregation", "$12,000.00 plus $8,500.00.")
+    matched, reason = numeric_exact_match(
+        example, _answer("It was $12,000.00."), epsilon=0.01
+    )
+    assert matched is False
+    assert "8,500.00" in reason
+
+
+def test_numeric_exact_match_holds_rows_without_quantities_out_of_scope():
+    """Out of scope is `None`, never `False`.
+
+    Scoring a row that has no number to reproduce as a numeric *failure* would
+    understate every model on this corpus, and the understatement would be
+    invisible because it lands in the same denominator as real misses.
+    """
+    no_quantity = _example("ag_z", "aggregation", "Halcyon Retail Group and Cedar Grove Media.")
+    matched, reason = numeric_exact_match(
+        no_quantity, _answer("Halcyon and Cedar Grove."), epsilon=0.01
+    )
+    assert matched is None
+    assert "out of scope" in reason
+
+    # `unanswerable` is out of scope even when the reference mentions a figure;
+    # declining correctly is what `abstention_accuracy` measures.
+    unanswerable = _example("ua_z", "unanswerable", "Not in the documents; no $5.00 figure exists.")
+    matched, _ = numeric_exact_match(
+        unanswerable, _answer("I can't find that.", abstained=True), epsilon=0.01
+    )
+    assert matched is None
+
+
+def test_bare_integers_are_not_treated_as_quantities():
+    """`1099` is a form, `2026` is a year, neither is a measurable quantity.
+
+    Requiring them would put rows in scope that carry no number worth checking,
+    and would credit a match for repeating the form name back.
+    """
+    example = _example("mh_x", "multi_hop", "Yes. The 1099 amount is $8,500.00.")
+    matched, _ = numeric_exact_match(example, _answer("The figure is $8,500.00."), epsilon=0.01)
+    assert matched is True
+
+    form_only = _example("mh_y", "multi_hop", "It came from the 1099 filed in 2026.")
+    assert numeric_exact_match(form_only, _answer("From the 1099."), epsilon=0.01)[0] is None
+
+
+def test_abstaining_on_a_numeric_row_is_a_miss_not_an_exemption():
+    example = _example("ag_w", "aggregation", "$48,461.52")
+    matched, reason = numeric_exact_match(
+        example, _answer("I couldn't determine that.", abstained=True), epsilon=0.01
+    )
+    assert matched is False
+    assert "abstained" in reason
+
+
+def test_category_denominators_come_from_examples_so_failed_rows_stay_misses():
+    """A row that never produced an `Answer` must not shrink its category.
+
+    This mirrors the aggregate convention. If errored rows shrank the
+    denominator, a model that crashed on its hardest questions would score
+    *higher* than one that answered them badly.
+    """
+    examples = [
+        _example("ag_1", "aggregation", "$100.00"),
+        _example("ag_2", "aggregation", "$200.00"),
+        _example("sd_1", "single_doc", "$300.00"),
+    ]
+    rows = [
+        {**score_answer(examples[0], _answer("$100.00"), numeric_epsilon=0.01),
+         "example_id": "ag_1"},
+        {"example_id": "ag_2", "category": "aggregation", "error": "boom"},
+        {**score_answer(examples[2], _answer("$999.99"), numeric_epsilon=0.01),
+         "example_id": "sd_1"},
+    ]
+
+    metrics = category_metrics(examples, rows)
+
+    assert metrics["matrix_examples__aggregation"] == 2.0
+    assert metrics["strict_answer_match_rate__aggregation"] == 0.5
+    assert metrics["numeric_exact_match_examples__aggregation"] == 2.0
+    assert metrics["numeric_exact_match_rate__aggregation"] == 0.5
+    assert metrics["numeric_exact_match_rate__single_doc"] == 0.0
+
+
+def test_out_of_scope_categories_omit_the_rate_rather_than_reporting_zero():
+    """`metrics` is dict[str, float] and cannot hold "not applicable".
+
+    A stored `0.0` is indistinguishable from a measured total failure, which is
+    precisely how this repo's withdrawn claims drifted. Absence is the honest
+    encoding; the report renders it as an em dash.
+    """
+    examples = [_example("gs_1", "global_summary", "Three employers, no figures given.")]
+    rows = [
+        {**score_answer(examples[0], _answer("Three employers."), numeric_epsilon=0.01),
+         "example_id": "gs_1"}
+    ]
+
+    metrics = category_metrics(examples, rows)
+
+    assert metrics["numeric_exact_match_examples__global_summary"] == 0.0
+    assert "numeric_exact_match_rate__global_summary" not in metrics
+
+
 def _manifest(run_id: str, model: str) -> RunManifest:
     return RunManifest(
         run_id=run_id,
@@ -128,6 +271,52 @@ def test_matrix_report_is_generated_only_from_manifest_receipts(tmp_path: Path):
     assert "50.0%" in report
     assert "unpriced, not free" in report
     assert "generated, never hand-edited" in report
+
+
+def test_report_renders_categories_and_never_back_fills_a_missing_metric(tmp_path: Path):
+    """A manifest predating a metric must show an em dash, not 0%.
+
+    Every committed pre-Phase-14 manifest lacks the numeric and per-category keys.
+    Rendering those as `0.0%` would publish a measured-looking total failure for a
+    run that never computed the metric at all.
+    """
+    old = _manifest("phase11_old", "ollama/qwen3:4b")
+    new = _manifest("phase11_new", "ollama/qwen3:8b")
+    new.metrics.update(
+        {
+            "numeric_exact_match_examples": 2.0,
+            "numeric_exact_match_rate": 0.5,
+            "matrix_examples__aggregation": 2.0,
+            "strict_answer_match_rate__aggregation": 0.5,
+            "citation_doc_hit_rate__aggregation": 0.5,
+            "abstention_accuracy__aggregation": 1.0,
+            "numeric_exact_match_examples__aggregation": 2.0,
+            "numeric_exact_match_rate__aggregation": 0.5,
+            # An out-of-scope category: `n` is present, the rate key is absent.
+            "matrix_examples__global_summary": 1.0,
+            "strict_answer_match_rate__global_summary": 0.0,
+            "citation_doc_hit_rate__global_summary": 0.0,
+            "abstention_accuracy__global_summary": 1.0,
+            "numeric_exact_match_examples__global_summary": 0.0,
+        }
+    )
+
+    paths = []
+    for manifest in (old, new):
+        path = tmp_path / f"{manifest.run_id}.json"
+        path.write_text(manifest.model_dump_json())
+        paths.append(path)
+
+    output = tmp_path / "model_matrix.md"
+    write_matrix_report(paths, output)
+    report = output.read_text()
+
+    assert "## By category" in report
+    assert "`aggregation`" in report and "`global_summary`" in report
+    # The old manifest contributes no category rows and no invented zero.
+    assert "phase11_old" in report
+    assert "— |" in report, "an absent metric must render as an em dash"
+    assert "50.0% (n=2)" in report
 
 
 def test_privacy_badge_is_derived_from_the_answer_not_asserted():

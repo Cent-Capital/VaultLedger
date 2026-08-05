@@ -45,6 +45,13 @@ This is the single source of truth for building VaultLedger. It is written to be
 >    `python -m vaultledger.replay` does not exist. Revisit only with an explicit
 >    retention design.
 > 7. **Phase 17 (multi-model bake-off) was added after Phase 16** (**ADR-0003**).
+> 8. **`AgentStep` carries a failure field that §8 does not list** (**ADR-0006**,
+>    accepted 2026-08-05). §8 fixes the contract at `step / tool / input /
+>    output_summary / tokens_used`, none of which can record that a tool *raised*.
+>    Since ADR-0006 hand-rolls partial-failure handling, the alternative was prose
+>    stuffed into `output_summary`. Affects §8 and §14.4. Added before Phase 14
+>    writes any receipt, so no committed artifact is migrated. Not yet implemented
+>    as of 2026-08-05 — it lands with Phase 14's first commit.
 >
 > Deviations are added here at the moment their ADR is accepted. If you are an agent
 > reading this file, treat any section below that contradicts this list as stale.

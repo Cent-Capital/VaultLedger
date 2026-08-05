@@ -1,6 +1,7 @@
 # ADR-0006: Variant D's agent loop — hand-rolled, not LangGraph
 
-2026-08-05 · Status: **proposed** (owner decision pending)
+2026-08-05 · Status: **accepted** (owner, 2026-08-05, with the `AgentStep` amendment
+below)
 
 ## Context
 
@@ -54,7 +55,8 @@ loop is 6 bounded steps over 4 local tools.
 
 ## Decision
 
-**Proposed: A — hand-rolled bounded loop.** Recommendation, not a settled call.
+**Accepted: A — hand-rolled bounded loop.** Owner decision 2026-08-05, with the
+`AgentStep` amendment recorded under *Design commitments*.
 
 The decisive argument is not engineering taste, it is that **the loop is the
 deliverable**. SPEC G11 is "loop & harness engineering: every loop in the system
@@ -86,34 +88,71 @@ against a 60-document local corpus.
   without them.
 - Variant D runs behind the same `Retriever` interface, so the matrix scores it
   without special-casing.
+- **`AgentStep` gains an explicit failure representation** (owner amendment,
+  2026-08-05). SPEC §8 fixes the contract at five fields — `step`, `tool`, `input`,
+  `output_summary`, `tokens_used` — none of which can say that a tool *raised*.
+  This ADR commits to hand-written partial-failure handling, so without a
+  structural field the only place a failure could go is prose inside
+  `output_summary`, which is unqueryable and indistinguishable from a tool that
+  succeeded and returned bad news. The field is added before Phase 14 writes any
+  receipt against the contract, so no committed receipt needs migrating. This is a
+  **deviation from SPEC §8** and is recorded in SPEC §0's ACTIVE DEVIATIONS banner.
+
+  *Not yet implemented.* The field lands with Phase 14's first commit; the owner's
+  instruction was that no Phase 14 code start before the baseline is reviewed, and
+  deferring costs nothing because "before any receipts exist" still holds.
 
 ## Prerequisites — Phase 14 cannot state its AC without these
 
 Phase 14's AC is *"numeric exact-match on multi_hop/aggregation improves by a
-stated, measured margin vs B."* Two gaps block it, both found in review:
+stated, measured margin vs B."* Two gaps blocked it, both found in review. **Both
+were closed on 2026-08-05, before any Phase 14 code**, as reporting changes only —
+no inference was re-run.
 
-1. **No per-category metrics exist.** Every matrix manifest emits aggregate
-   `strict_answer_match_rate` only. The AC needs `multi_hop` and `aggregation`
-   isolated. The per-row answer receipts do carry `category`, `strict_match`,
-   `citation_doc_hit`, and `abstention_correct`, so the baseline is recoverable
-   offline without re-running inference — but the matrix should emit these
-   directly so the next such error is visible without a script.
-2. **No "numeric exact-match" metric exists.** `strict_answer_match_rate` is a
-   literal-anchor scorer explicitly labelled a lower bound, not the numeric
-   exact-match SPEC names. Either define numeric exact-match as its own metric or
-   restate the AC against the scorer that exists — and say which was done.
+1. **~~No per-category metrics exist.~~ Closed.** `category_metrics()` in
+   `evals/matrix.py` emits `<metric>__<category>` keys into every manifest and
+   `write_matrix_report` renders a per-category table. Denominators come from the
+   golden set rather than the completed rows, so a row that failed to produce an
+   `Answer` counts as a miss in its category instead of shrinking the population.
+2. **~~No "numeric exact-match" metric exists.~~ Closed — the metric was added.
+   The AC was *not* restated.** `numeric_exact_match()` parses quantities on both
+   sides and compares them within `thresholds.numeric_epsilon`, so `$1,234.50`
+   against `1234.5` scores as a match where `strict_answer_match` scores a miss.
+   The two names stay distinct in code, in the manifest keys, and in the generated
+   report. Its limits are stated where it is defined: it is a presence test, its
+   bias runs toward *over*-crediting (the opposite direction from
+   `strict_answer_match`), and it is not a judge verdict. Rows whose reference
+   carries no quantity — including every `unanswerable` row — are held out of the
+   denominator rather than scored as failures, so the metric has its own `n`.
+
+**Comparability is enforced in code, not by convention.** `score_answer()` is the
+single per-row scorer; the live matrix and the offline `rescore` path both call it,
+so the variant-B baseline below and a future variant-D cell cannot be scored by
+drifting versions of the same metric.
 
 **Variant B baseline, computed offline from the committed guards-on receipts**
-(the number Phase 14 must beat):
+(the number Phase 14 must beat). Regenerate with
+`python -m vaultledger.evals rescore --answers <receipts> --report
+reports/phase14_baseline_by_category.md`; the full eight-category table is in that
+file.
 
-| category | n | `qwen3:4b` | `qwen3:8b` |
-|---|---:|---:|---:|
-| `aggregation` | 14 | 28.6% | 14.3% |
-| `multi_hop` | 12 | 16.7% | **0.0%** |
+| category | n | strict `4b` | strict `8b` | numeric n | numeric `4b` | numeric `8b` |
+|---|---:|---:|---:|---:|---:|---:|
+| `aggregation` | 14 | 28.6% | 14.3% | 12 | 33.3% | 16.7% |
+| `multi_hop` | 12 | 16.7% | **0.0%** | 12 | 16.7% | **0.0%** |
 
-The headroom is large and the floor is honest: 8B currently answers **zero of
-twelve** multi-hop questions to strict match. If variant D cannot beat that, the
-null result is worth publishing.
+The strict columns were hand-computed during the pre-Phase-14 review and are
+reproduced here by the shipped scorer, which is why they are stated as measured
+rather than estimated. The numeric columns are new and were never available before.
+
+The headroom is large and the floor is honest: 8B answers **zero of twelve**
+multi-hop questions on both scorers. If variant D cannot beat that, the null result
+is worth publishing.
+
+**Which number is the AC's baseline:** `numeric_exact_match_rate__multi_hop` and
+`numeric_exact_match_rate__aggregation`, against the same model variant D runs on.
+Comparing variant D's numeric rate to variant B's *strict* rate would be a
+scorer-swap dressed as an improvement.
 
 ## Consequences
 
@@ -140,6 +179,9 @@ carrying real weight rather than ceremony.
 - `AgentStep`, `Answer.agent_steps`, and `Variant["D_agentic"]` already exist in
   `schemas.py`, inspected 2026-08-05.
 - `loops.agent_steps_max: 6` and `loops.escalations_max: 2` are in `config.yaml`.
+- SPEC §8 defines `AgentStep` with exactly five fields and no failure channel;
+  `schemas.py:74` matches it field-for-field. Inspected 2026-08-05, which is why
+  the amendment above is classed as a deviation rather than a clarification.
 - Per-category variant-B baselines above computed from committed receipts
   `phase11_ollama_qwen3_4b_b_hybrid_35d35e2fb62f_answers.json` and
   `..._8b_..._eea876388398_answers.json` (guards-on arm, n=80, failed rows scored

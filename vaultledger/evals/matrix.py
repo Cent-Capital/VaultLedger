@@ -27,6 +27,21 @@ _AMOUNT = re.compile(r"\$\s*\d[\d,]*(?:\.\d{2})?")
 _DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 _IDENTIFIER = re.compile(r"\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+){2,}\b")
 
+# The two sides of numeric exact-match are read with deliberately different
+# patterns, and the asymmetry is the point.
+#
+# Reference side (strict): a quantity is a currency figure or a bare two-decimal
+# number. Bare integers are excluded — this corpus is full of 1099s, four-digit
+# years, and invoice counts, and treating "1099" as a figure the answer must
+# reproduce would put rows in scope that carry no measurable number at all.
+#
+# Candidate side (permissive): any number, with or without a currency marker,
+# commas, or cents. Scoring "$8,500" as a miss against a reference of "$8,500.00"
+# would be a formatting judgement, and `strict_answer_match` already makes that
+# judgement — a second metric that repeated it would earn its place nowhere.
+_REFERENCE_QUANTITY = re.compile(r"\$\s*\d[\d,]*(?:\.\d+)?|(?<![\w$.])\d[\d,]*\.\d{2}(?![\d])")
+_CANDIDATE_QUANTITY = re.compile(r"(?<![\w.])\$?\s*\d[\d,]*(?:\.\d+)?(?![\d])")
+
 
 def _git_sha() -> str:
     try:
@@ -69,6 +84,87 @@ def strict_answer_match(example: QAExample, answer: Answer) -> tuple[bool, str]:
     return matched, "normalized reference substring matched" if matched else (
         "normalized reference substring absent"
     )
+
+
+def _quantities(pattern: re.Pattern[str], text: str) -> list[float]:
+    return [float(match.lstrip("$").replace(",", "").strip()) for match in pattern.findall(text)]
+
+
+def numeric_reference_quantities(example: QAExample) -> list[float]:
+    """The numeric quantities a correct answer has to reproduce.
+
+    An empty list means the example is **out of scope** for numeric exact-match —
+    not that it failed.  Scope is a property of the reference answer alone, so an
+    example that never produced an `Answer` can still be placed in or out of the
+    denominator.  `unanswerable` rows are always out of scope; whether the model
+    should have declined to answer is what `abstention_accuracy` measures.
+    """
+    if example.category == "unanswerable":
+        return []
+    return _quantities(_REFERENCE_QUANTITY, example.expected_answer)
+
+
+def numeric_exact_match(
+    example: QAExample,
+    answer: Answer,
+    *,
+    epsilon: float,
+) -> tuple[bool | None, str]:
+    """Numeric exact-match: every quantity in the reference, present in the answer.
+
+    Distinct from `strict_answer_match`, which compares literal *strings* after
+    normalization and so scores "$1,234.50" against "1234.5" as a miss.  Here both
+    sides are parsed to floats and compared within `epsilon`, which is what SPEC's
+    "numeric exact-match" names.
+
+    Returns `None` when the example is out of scope (see
+    `numeric_reference_quantities`), so callers can hold out-of-scope rows out of
+    the denominator instead of scoring them as failures.
+
+    **This is a presence test, not a correctness test.** It asks whether each
+    reference figure appears somewhere in the answer; it cannot tell whether the
+    answer *used* the figure correctly, and because the candidate side reads any
+    number, a verbose answer reciting many figures can satisfy it by coincidence.
+    That bias runs toward crediting the model, the opposite direction from
+    `strict_answer_match`'s bias — so the two are not interchangeable and neither
+    is an LLM-judge verdict.
+    """
+    expected = numeric_reference_quantities(example)
+    if not expected:
+        return None, "no numeric quantity in the reference; out of scope"
+    if answer.abstained:
+        return False, "abstained on a numeric example"
+    candidate = _quantities(_CANDIDATE_QUANTITY, answer.answer_text)
+    missing = [
+        value
+        for value in expected
+        if not any(abs(value - found) <= epsilon for found in candidate)
+    ]
+    if missing:
+        return False, "missing quantities: " + ", ".join(f"{value:,.2f}" for value in missing)
+    return True, f"matched {len(expected)} quantity/quantities within {epsilon}"
+
+
+def score_answer(example: QAExample, answer: Answer, *, numeric_epsilon: float) -> dict:
+    """Every per-row score in one place.
+
+    The live matrix and the offline `rescore` path both call this, so a baseline
+    recomputed from a committed receipt and a fresh variant-D cell are comparable
+    by construction rather than by a number someone pasted between them.
+    """
+    matched, reason = strict_answer_match(example, answer)
+    numeric, numeric_reason = numeric_exact_match(example, answer, epsilon=numeric_epsilon)
+    expected_docs = set(example.expected_doc_ids)
+    cited_docs = {citation.doc_id for citation in answer.citations}
+    return {
+        "category": example.category,
+        "strict_match": matched,
+        "score_reason": reason,
+        "numeric_exact_match": numeric,
+        "numeric_score_reason": numeric_reason,
+        "citation_doc_hit": not expected_docs or bool(expected_docs & cited_docs),
+        "abstention_correct": answer.abstained == (example.category == "unanswerable"),
+    }
 
 
 def _percentile(values: list[float], percentile: float) -> float:
@@ -124,6 +220,63 @@ def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
     return built
 
 
+#: Row-level flags that get a rate, aggregate and per category.
+_RATES = (
+    ("strict_answer_match_rate", "strict_match"),
+    ("citation_doc_hit_rate", "citation_doc_hit"),
+    ("abstention_accuracy", "abstention_correct"),
+)
+
+
+def _rate(rows: list[dict], field: str, denominator: int) -> float:
+    return sum(bool(row.get(field)) for row in rows) / denominator if denominator else 0.0
+
+
+def category_metrics(examples: list[QAExample], rows: list[dict]) -> dict[str, float]:
+    """Category-scoped rates, keyed `<metric>__<category>`.
+
+    Denominators come from `examples`, never from `rows`: a row that failed to
+    produce an `Answer` counts as a miss inside its category rather than quietly
+    shrinking the population.  That is the same convention the aggregate rates
+    already use, and keeping it identical is what makes the two comparable.
+
+    Emitting these is what makes a per-category regression visible without a
+    one-off script.  Aggregate-only metrics are what let the router's
+    category→tier map stay backwards on 44 of 80 rows without anything failing.
+    """
+    scored = {str(row["example_id"]): row for row in rows}
+    metrics: dict[str, float] = {}
+    for category in sorted({example.category for example in examples}):
+        members = [example for example in examples if example.category == category]
+        completed = [
+            row
+            for row in (scored.get(example.id) for example in members)
+            if row is not None and not row.get("error")
+        ]
+        metrics[f"matrix_examples__{category}"] = float(len(members))
+        for key, field in _RATES:
+            metrics[f"{key}__{category}"] = _rate(completed, field, len(members))
+
+        # Numeric exact-match carries its own denominator: rows whose reference
+        # has no quantity are out of scope, not failures. Scope is read off the
+        # example so an errored row still lands in the right population.
+        in_scope = {
+            example.id for example in members if numeric_reference_quantities(example)
+        }
+        metrics[f"numeric_exact_match_examples__{category}"] = float(len(in_scope))
+        # The rate key is omitted, not set to 0.0, when nothing is in scope.
+        # `metrics` is dict[str, float] and cannot hold "not applicable", and a
+        # stored 0.0 is indistinguishable from a measured total failure — exactly
+        # the kind of drift this repo has already had to withdraw twice.
+        if in_scope:
+            metrics[f"numeric_exact_match_rate__{category}"] = _rate(
+                [row for row in completed if str(row["example_id"]) in in_scope],
+                "numeric_exact_match",
+                len(in_scope),
+            )
+    return metrics
+
+
 def _cell_metrics(
     examples: list[QAExample],
     rows: list[dict],
@@ -131,6 +284,9 @@ def _cell_metrics(
 ) -> dict[str, float]:
     completed = [row for row in rows if not row.get("error")]
     n = len(examples)
+    numeric_scope = {
+        example.id for example in examples if numeric_reference_quantities(example)
+    }
     latencies = [float(row["gateway"]["latency_ms"]) for row in completed]
     calls = [
         call
@@ -145,15 +301,20 @@ def _cell_metrics(
     return {
         "matrix_examples": float(n),
         "generation_eval_coverage": len(completed) / n if n else 0.0,
-        "strict_answer_match_rate": (
-            sum(bool(row["strict_match"]) for row in completed) / n if n else 0.0
+        **{key: _rate(completed, field, n) for key, field in _RATES},
+        "numeric_exact_match_examples": float(len(numeric_scope)),
+        **(
+            {
+                "numeric_exact_match_rate": _rate(
+                    [row for row in completed if str(row["example_id"]) in numeric_scope],
+                    "numeric_exact_match",
+                    len(numeric_scope),
+                )
+            }
+            if numeric_scope
+            else {}
         ),
-        "citation_doc_hit_rate": (
-            sum(bool(row["citation_doc_hit"]) for row in completed) / n if n else 0.0
-        ),
-        "abstention_accuracy": (
-            sum(bool(row["abstention_correct"]) for row in completed) / n if n else 0.0
-        ),
+        **category_metrics(examples, rows),
         "median_gateway_latency_ms": round(float(median(latencies)), 3) if latencies else 0.0,
         "p95_gateway_latency_ms": round(_percentile(latencies, 0.95), 3),
         "gateway_calls": float(totals.calls),
@@ -259,6 +420,9 @@ def _run_cell(
             rows.append(
                 {
                     "example_id": example.id,
+                    # Category travels even on the failure path, so a per-category
+                    # receipt can be read without joining back to the golden set.
+                    "category": example.category,
                     "error": str(exc),
                     "wall_latency_ms": round((perf_counter() - started) * 1000, 3),
                     "failure": failure,
@@ -274,11 +438,11 @@ def _run_cell(
 
         usage = generator.snapshot().delta(before)
         gateway_calls = generator.calls[call_start:]
-        matched, reason = strict_answer_match(example, answer)
-        expected_docs = set(example.expected_doc_ids)
-        cited_docs = {citation.doc_id for citation in answer.citations}
-        citation_hit = not expected_docs or bool(expected_docs & cited_docs)
-        abstention_correct = answer.abstained == (example.category == "unanswerable")
+        scores = score_answer(example, answer, numeric_epsilon=cfg.thresholds.numeric_epsilon)
+        matched = scores["strict_match"]
+        reason = scores["score_reason"]
+        citation_hit = scores["citation_doc_hit"]
+        abstention_correct = scores["abstention_correct"]
         failure = None
         if not abstention_correct:
             failure = {
@@ -305,12 +469,8 @@ def _run_cell(
         rows.append(
             {
                 "example_id": example.id,
-                "category": example.category,
                 "expected_answer": example.expected_answer,
-                "strict_match": matched,
-                "score_reason": reason,
-                "citation_doc_hit": citation_hit,
-                "abstention_correct": abstention_correct,
+                **scores,
                 "wall_latency_ms": round((perf_counter() - started) * 1000, 3),
                 "gateway": {
                     "calls": usage.calls,
@@ -378,16 +538,23 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         f"Cells: **{len(manifests)}** across **{model_count} model(s)**",
         f"Total measured API spend: **${total_cost:.6f}** (local models are unpriced, not free)",
         "",
-        "| Model | Variant | N | Strict match | Citation hit | Abstention accuracy | "
-        "Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| Model | Variant | N | Strict match | Numeric exact match | Citation hit | "
+        "Abstention accuracy | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
         metric = manifest.metrics
+        # Manifests written before this metric existed are shown as "—" rather
+        # than back-filled with a zero that would read as a measured failure.
+        numeric_n = int(metric.get("numeric_exact_match_examples", 0.0))
+        numeric = (
+            f"{metric['numeric_exact_match_rate']:.1%} (n={numeric_n})" if numeric_n else "—"
+        )
         lines.append(
             "| "
             f"`{manifest.model}` | `{manifest.variant}` | {int(metric['matrix_examples'])} | "
             f"{metric['strict_answer_match_rate']:.1%} | "
+            f"{numeric} | "
             f"{metric['citation_doc_hit_rate']:.1%} | "
             f"{metric['abstention_accuracy']:.1%} | "
             f"{metric['median_gateway_latency_ms']:.0f} ms | "
@@ -395,10 +562,72 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             f"{int(metric['input_tokens'])} / {int(metric['output_tokens'])} | "
             f"${manifest.total_cost_usd:.6f} | `{manifest.run_id}` |"
         )
+    categories = sorted(
+        {
+            key.split("__", 1)[1]
+            for manifest in manifests
+            for key in manifest.metrics
+            if key.startswith("matrix_examples__")
+        }
+    )
+    if categories:
+        lines.extend(
+            [
+                "",
+                "## By category",
+                "",
+                "Phase 14's acceptance criterion is stated per category, so the aggregate row "
+                "above cannot verify it. `Numeric` is scored only over rows whose reference "
+                "carries a numeric quantity; its `n` differs from the category `n` for that "
+                "reason, and a blank cell means no row in that category is in scope.",
+                "",
+                "| Model | Variant | Category | N | Strict match | Numeric exact match | "
+                "Citation hit | Abstention accuracy |",
+                "|---|---|---|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
+            metric = manifest.metrics
+            for category in categories:
+                count = metric.get(f"matrix_examples__{category}")
+                if count is None:
+                    continue
+                numeric_n = int(metric.get(f"numeric_exact_match_examples__{category}", 0.0))
+                numeric = (
+                    f"{metric[f'numeric_exact_match_rate__{category}']:.1%} (n={numeric_n})"
+                    if numeric_n
+                    else "—"
+                )
+                lines.append(
+                    "| "
+                    f"`{manifest.model}` | `{manifest.variant}` | `{category}` | "
+                    f"{int(count)} | "
+                    f"{metric[f'strict_answer_match_rate__{category}']:.1%} | "
+                    f"{numeric} | "
+                    f"{metric[f'citation_doc_hit_rate__{category}']:.1%} | "
+                    f"{metric[f'abstention_accuracy__{category}']:.1%} |"
+                )
     lines.extend(
         [
             "",
             "## Reading the result",
+            "",
+            "`Numeric exact match` parses every quantity out of the reference answer and "
+            "requires each one to appear in the candidate as a number equal within "
+            "`thresholds.numeric_epsilon`. It is the metric SPEC's numeric-exact-match "
+            "acceptance criteria name, and it is deliberately *not* `strict match`: the "
+            "latter compares normalized strings and scores `$1,234.50` against `1234.5` as a "
+            "miss. Neither is a correctness verdict, and their biases run in opposite "
+            "directions — `strict match` under-credits valid paraphrases, while numeric "
+            "exact match is a presence test that cannot tell whether a figure was *used* "
+            "correctly and can be satisfied by a verbose answer reciting many numbers. Read "
+            "them together, and treat neither as an LLM-judge result. Rows whose reference "
+            "holds no quantity, including every `unanswerable` row, are out of scope rather "
+            "than scored as failures.",
+            "",
+            "Every rate divides by the number of golden examples in its population, so a row "
+            "that failed to produce an answer counts as a miss rather than shrinking the "
+            "denominator.",
             "",
             "`Strict match` is a deterministic lower-bound scorer: answerable rows must repeat "
             "the reference's literal amounts, dates, and identifiers; other rows require a "
@@ -414,6 +643,129 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         ]
     )
     output_path.write_text("\n".join(lines))
+
+
+def rescore_receipt(
+    answers_path: Path,
+    examples: list[QAExample],
+    *,
+    numeric_epsilon: float,
+) -> tuple[dict[str, float], list[dict]]:
+    """Recompute scores for a committed `_answers.json` without re-running inference.
+
+    Receipts store the full `Answer`, so every score in `score_answer` is
+    recoverable offline.  That is what makes a metric added after a run —
+    per-category rates, numeric exact-match — applicable to the baseline it has to
+    be compared against, instead of forcing a re-run or a hand-computed number.
+
+    Rows are rescored rather than read: a receipt written before a metric existed
+    has no field for it, and trusting the stored value would silently mix scorer
+    versions across the comparison.
+    """
+    rows = json.loads(answers_path.read_text())
+    by_id = {example.id: example for example in examples}
+    unknown = sorted({str(row["example_id"]) for row in rows} - by_id.keys())
+    if unknown:
+        raise ValueError(
+            f"{answers_path.name} scores examples absent from this golden set: "
+            + ", ".join(unknown[:5])
+        )
+    rescored: list[dict] = []
+    for row in rows:
+        example = by_id[str(row["example_id"])]
+        if row.get("error"):
+            rescored.append({**row, "category": example.category})
+            continue
+        answer = Answer.model_validate(row["answer"])
+        rescored.append(
+            {**row, **score_answer(example, answer, numeric_epsilon=numeric_epsilon)}
+        )
+    return category_metrics(examples, rescored), rescored
+
+
+def write_rescore_report(
+    scored: dict[str, dict[str, float]],
+    categories: list[str],
+    output_path: Path,
+    *,
+    golden_set_hash: str,
+    epsilon: float,
+) -> None:
+    lines = [
+        "# Per-category baseline (recomputed, no inference re-run)",
+        "",
+        "Generated by `python -m vaultledger.evals rescore`. **Not a run manifest.** Every "
+        "number here is recomputed offline from the committed `_answers.json` receipts named "
+        "below, using `vaultledger.evals.matrix.score_answer` — the same scorer the live "
+        "matrix calls, so a future variant-D cell is comparable to this table by construction.",
+        "",
+        "The source receipts were written before these metrics existed and have deliberately "
+        "**not** been rewritten: a manifest must keep reporting what its own run computed.",
+        "",
+        f"Golden set hash: `{golden_set_hash}` · numeric epsilon: `{epsilon}`",
+        "",
+        "| Receipt | Category | N | Strict match | Numeric exact match |",
+        "|---|---|---:|---:|---:|",
+    ]
+    for name, metrics in scored.items():
+        for category in categories:
+            count = metrics.get(f"matrix_examples__{category}")
+            if count is None:
+                continue
+            numeric_n = int(metrics.get(f"numeric_exact_match_examples__{category}", 0.0))
+            rate = metrics.get(f"numeric_exact_match_rate__{category}")
+            numeric = f"{rate:.1%} (n={numeric_n})" if rate is not None else "— (none in scope)"
+            lines.append(
+                f"| `{name}` | `{category}` | {int(count)} | "
+                f"{metrics[f'strict_answer_match_rate__{category}']:.1%} | {numeric} |"
+            )
+    lines.extend(
+        [
+            "",
+            "Rows that failed to produce an answer are counted as misses in their category, "
+            "never removed from the denominator. Numeric exact-match has its own denominator: "
+            "references carrying no quantity are out of scope rather than scored as failures, "
+            "and a category with nothing in scope shows an em dash rather than 0%.",
+            "",
+        ]
+    )
+    output_path.write_text("\n".join(lines))
+
+
+def run_rescore(args: Namespace) -> int:
+    cfg = load_config()
+    golden = load_golden_set(args.golden)
+    epsilon = cfg.thresholds.numeric_epsilon
+    report: dict[str, dict[str, float]] = {}
+    for raw in args.answers:
+        path = Path(raw)
+        metrics, _ = rescore_receipt(path, golden.examples, numeric_epsilon=epsilon)
+        report[path.name] = metrics
+    if getattr(args, "report", ""):
+        report_path = Path(args.report)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        write_rescore_report(
+            report,
+            sorted({example.category for example in golden.examples}),
+            report_path,
+            golden_set_hash=golden_hash(args.golden),
+            epsilon=epsilon,
+        )
+    print(
+        json.dumps(
+            {
+                "golden_set_hash": golden_hash(args.golden),
+                "numeric_epsilon": epsilon,
+                "scorer": "vaultledger.evals.matrix.score_answer",
+                "note": (
+                    "recomputed offline from committed receipts; no inference was re-run"
+                ),
+                "receipts": report,
+            },
+            indent=2,
+        )
+    )
+    return 0
 
 
 def run_matrix(args: Namespace) -> int:
@@ -489,4 +841,15 @@ def run_matrix(args: Namespace) -> int:
     return 0
 
 
-__all__ = ["run_matrix", "strict_answer_match", "write_matrix_report"]
+__all__ = [
+    "category_metrics",
+    "numeric_exact_match",
+    "numeric_reference_quantities",
+    "rescore_receipt",
+    "run_matrix",
+    "run_rescore",
+    "score_answer",
+    "strict_answer_match",
+    "write_matrix_report",
+    "write_rescore_report",
+]

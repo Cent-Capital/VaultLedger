@@ -387,6 +387,12 @@ def run_model_matrix(args: argparse.Namespace) -> int:
     return run_matrix(args)
 
 
+def run_matrix_rescore(args: argparse.Namespace) -> int:
+    from vaultledger.evals.matrix import run_rescore
+
+    return run_rescore(args)
+
+
 def run_policy_router_eval(args: argparse.Namespace) -> int:
     from vaultledger.evals.router import run_router_eval
 
@@ -533,6 +539,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     matrix.add_argument("--report", default="reports/model_matrix.md")
     matrix.set_defaults(func=run_model_matrix)
+
+    rescore = sub.add_parser(
+        "rescore",
+        help="Recompute per-category metrics from committed matrix receipts (no inference)",
+    )
+    rescore.add_argument("--answers", nargs="+", required=True)
+    rescore.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
+    rescore.add_argument("--report", default="", help="Optional markdown output path")
+    rescore.set_defaults(func=run_matrix_rescore)
 
     router = sub.add_parser(
         "router-eval", help="Evaluate Phase 12 routing accuracy and latency-quality policies"

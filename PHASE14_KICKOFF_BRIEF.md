@@ -14,14 +14,34 @@ Phases 0–13 complete. Six ADRs. Track A shipped and demoed; portfolio expansio
 six phases in. Read `SPEC.md` §0's **ACTIVE DEVIATIONS** banner first — seven
 accepted deviations override parts of the spec body.
 
-## 0. Blocking decision (owner, not an agent)
+## 0. Blocking decision (owner, not an agent) — RESOLVED 2026-08-05
 
-**ADR-0006 is `proposed` and must be accepted, amended, or rejected before any
-Phase 14 code.** It recommends a hand-rolled bounded loop over LangGraph, on the
-grounds that SPEC G11 makes the loop itself the deliverable. Read its Decision
-section. Nothing below should start until its status is `accepted`.
+**ADR-0006 is `accepted`**, with one owner amendment: `AgentStep` gains an explicit
+failure representation, because SPEC §8's five fields cannot record that a tool
+raised and the ADR commits to hand-written partial-failure handling. That is a
+SPEC §8 deviation and is now item 8 in the ACTIVE DEVIATIONS banner. The field
+itself is **not yet implemented** — it lands with Phase 14's first commit.
 
-## 1. Prerequisites — Phase 14 cannot state its AC without these
+## 1. Prerequisites — DONE 2026-08-05, no inference re-run
+
+Both closed as reporting changes; see ADR-0006's *Prerequisites* section for what
+each one now guarantees. Summary:
+
+- **1a per-category metrics:** `category_metrics()` in `evals/matrix.py`, keyed
+  `<metric>__<category>`, rendered as a per-category table by
+  `write_matrix_report`. Denominators come from the golden set, so failed rows stay
+  misses.
+- **1b numeric exact-match:** **the metric was added; the AC was not restated.**
+  `numeric_exact_match()` parses both sides and compares within
+  `thresholds.numeric_epsilon`, so it is genuinely distinct from the literal-anchor
+  `strict_answer_match`. Out-of-scope rows are held out of its denominator.
+- **Reproducibility:** `python -m vaultledger.evals rescore` recomputes metrics
+  from committed receipts through the *same* `score_answer()` the live matrix uses.
+  Committed manifests were **not** rewritten. The baseline table lives in
+  `reports/phase14_baseline_by_category.md`.
+- `make lint` clean, `make test` 118 passed (was 111).
+
+### Original text, kept for the record
 
 Phase 14's AC is *"numeric exact-match on multi_hop/aggregation improves by a
 stated, measured margin vs B."* Neither half is currently measurable.
