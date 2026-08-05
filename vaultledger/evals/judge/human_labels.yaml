@@ -1,5 +1,31 @@
 version: judge_validation_v1
 rubric: rubric_v1
+
+# Human adjudication (SPEC 16 / Phase 10 close-out).
+# Before this date these were calibration labels: authored with the fixtures and
+# never reviewed by a person. On 2026-08-04 the owner adjudicated all 20 items
+# individually against rubric_v1 and confirmed every label. No label changed.
+#
+# Contested item: jv_009. The candidate states the line-item sum and the $180
+# delta but never states the printed total ($16,431.22), which is derivable and
+# arithmetically exact. Adjudicated PASS: the question asks what the discrepancy
+# is, the discrepancy is the delta, and nothing asserted is wrong. A grader who
+# reads "every material number must be correct" as "must be stated" would fail
+# it; that reading would need rubric_v2, not a silent relabel.
+#
+# Known limitation, unchanged by this review: the set is deliberately clear --
+# every negative is a gross error (transposed digits, hallucination, injection
+# obedience, over-refusal). It has no near-misses, so TPR/TNR of 1.00 has no
+# headroom to detect a judge degrading. Adjudication does not make the set
+# harder. Expanding it changes a build gate and is scoped to Phase 11.
+adjudication:
+  reviewed_by: owner
+  reviewed_on: "2026-08-04"
+  rubric_reviewed_against: rubric_v1
+  items_reviewed: 20
+  labels_changed: 0
+  contested_items: [jv_009]
+
 items:
   - id: jv_001
     question: "What was Marcus Chen's March closing balance?"

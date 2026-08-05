@@ -972,11 +972,12 @@ acceptance criterion is not met and is not claimed to be.
   evidence that a clean virtualenv install succeeds from scratch; nobody has
   committed that transcript.
 - Unchanged and still true from earlier phases, and none of it may be overstated
-  in the README or the report: the 20 judge labels have not been adjudicated by
-  a human (owner review pending), so they are calibration labels rather than
-  human labels, and TPR/TNR of 1.00 reflects a deliberately clear set with no
-  headroom to detect a judge getting worse; no Langfuse span has ever reached a
-  Langfuse project; hosted token counts and cost are estimates, and zero
+  in the README or the report: the 20 judge labels were adjudicated by the owner
+  on 2026-08-04 against `rubric_v1` — all 20 confirmed, no label changed, so they
+  are now human labels rather than calibration labels — but TPR/TNR of 1.00 still
+  reflects a deliberately clear set with no headroom to detect a judge getting
+  worse, and adjudication does not make the set harder; no Langfuse span has ever
+  reached a Langfuse project; hosted token counts and cost are estimates, and zero
   provider rates mean unpriced, not free.
 - The demo script is committed but untested against a live run. If the model
   abstains or emits an unverifiable citation during recording, that outcome is
