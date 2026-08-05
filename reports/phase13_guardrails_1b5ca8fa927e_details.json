@@ -119,7 +119,7 @@
     }
   ],
   "phase7_source_run": "phase7_ccf079652bba",
-  "cross_persona_model_receipt": "phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76_answers.json",
+  "cross_persona_model_receipt": "phase11_ollama_qwen3_8b_b_hybrid_eea876388398_answers.json",
   "named_guard_controls": {
     "file_validation": [
       {

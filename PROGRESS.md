@@ -1372,10 +1372,11 @@ Carried forward, none of it resolved by closing this phase:
 
 ## Phase 13 — Named guardrail pipeline  (2026-08-05)
 
-Phase 13 is **open** with implementation and the first current-code acceptance
-measurement complete. ADR-0005 chooses custom pure guards over Guardrails-AI or
-NeMo and keeps the egress mechanism as an offline captured-payload contract,
-because ADR-0003 retired every real cloud caller.
+Implementation, acceptance measurement, and the review fixes complete; closed
+after the guardrail artifact was regenerated from a clean SHA. ADR-0005 chooses
+custom pure guards over Guardrails-AI or NeMo and keeps the egress mechanism as
+an offline captured-payload contract, because ADR-0003 retired every real cloud
+caller.
 
 **Built**
 - A canonical `guardrails:` config block toggles file validation, PII tagging,
@@ -1452,8 +1453,14 @@ and regression test preserve the finding.
   confirms wrapping the pre-existing guards changed nothing, which is what
   ADR-0005 asked for, and does **not** show the new guards preserve injection
   resistance. Downgraded on review.
-- Phase remains **open** until these changes are committed and the deterministic
-  guardrail artifact is regenerated from the clean SHA.
+- *Phase closed 2026-08-05.* Implementation and the review fixes landed in
+  `a3689f8`; the guardrail artifact was regenerated from that clean SHA as
+  `phase13_guardrails_1b5ca8fa927e` (`git_sha a3689f8`), replacing
+  `phase13_guardrails_76c8d43a9a96`, whose run_id identified no commit. Metrics
+  are **bit-identical** across the two runs, which is the expected result: the
+  guardrail eval is fully deterministic — it runs fixtures and cached receipts,
+  never live generation, which is why it completes in 4 seconds. The stale pair
+  was removed; git history retains it.
 
 **Review pass (2026-08-05): eval/product divergence, fixed**
 
@@ -1536,6 +1543,20 @@ guard and keeps the numerator visible. The egress failure is why this matters:
 “zero leaked names” looked green, but exact round-trip checking caught that the
 safe-looking placeholders would have mangled the answer shown to the user.
 
-**Next:** commit Phase 13, regenerate `make guardrails-eval` from the clean SHA,
-then begin Phase 14's bounded agentic-RAG variant. The separate ~60-case benign
-probe remains a measurement debt, not a silently passing AC.
+**Next:** Phase 14 — bounded agentic RAG (variant D): tools, the L4 loop, step
+tracing, and multi_hop golden items live.
+
+Measurement debt carried forward, none of it resolved by closing this phase:
+- The ~60-case benign probe set (ADR-0005). Until it exists, over-refusal stays
+  **0 of 6, not meaningfully tested** — never "≤5% achieved".
+- The injection AC verifies the wrapping of pre-existing guards only; the five
+  new guards were inactive in that run.
+- **Latency cannot rank models in this harness.** ~50% p50 movement on identical
+  outputs. Before Phase 17 treats the latency–quality frontier as a headline
+  artifact it needs repeated cells, a reported spread, and controlled machine
+  conditions — or a different x-axis. ADR-0003 should be revisited on this point.
+- Which matrix arm is canonical (`--guardrails off` vs `on`) is an open Phase 17
+  decision. The default stays `off` so no pre-Phase-13 manifest changes meaning.
+- Routing accuracy remains **met in form only** (Phase 12).
+- The internship report draft (`~/Desktop/PM-OS`) and the demo re-record
+  (`demo/README.md`) remain outstanding Track-A documentation work.
