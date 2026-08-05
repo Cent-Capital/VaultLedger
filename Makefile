@@ -54,8 +54,12 @@ router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontie
 guardrails-eval:  ## Phase 13 deterministic named-guard acceptance report
 	$(PYTHON) -m vaultledger.evals guardrails-eval
 
-replay:  ## Re-execute a past query from its trace (Phase 8+)
-	@echo "replay: not implemented until Phase 8. Usage: make replay TRACE=<trace_id>"
+replay:  ## Not built: Phase 8 declined raw-input replay on privacy grounds
+	@echo "replay: deliberately NOT built. Phase 8 declined it because persisting raw"
+	@echo "financial questions and retrieved context would broaden local data retention,"
+	@echo "which contradicts the product thesis. Trace metadata is retained; raw-input"
+	@echo "replay is not claimed. See PROGRESS.md Phase 8 and SPEC deviation 6."
+	@exit 1
 
 run:  ## Launch the Streamlit app without telemetry or first-run prompts
 	$(PYTHON) -m streamlit run app/streamlit_app.py --server.headless=true --browser.gatherUsageStats=false

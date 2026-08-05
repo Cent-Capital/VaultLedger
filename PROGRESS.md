@@ -1560,3 +1560,85 @@ Measurement debt carried forward, none of it resolved by closing this phase:
 - Routing accuracy remains **met in form only** (Phase 12).
 - The internship report draft (`~/Desktop/PM-OS`) and the demo re-record
   (`demo/README.md`) remain outstanding Track-A documentation work.
+
+---
+
+## Comprehensive review before Phase 14  (2026-08-05)
+
+A full sweep of Phases 0–13 rather than a review of the last diff. Findings are
+ordered by consequence. Two of them change how existing results should be read.
+
+**1. The router's category→tier map is backwards on 44 of 80 rows.**
+ADR-0004 set the map on intuition — simple lookups to T0, complex to T1 — and no
+per-category measurement existed to check it, because the matrix emits aggregate
+metrics only. Computed offline from the exact guards-off receipts the router eval
+consumed: 8B beats 4B on `single_doc` (66.7% vs 33.3%) while 4B beats 8B on
+`aggregation` (28.6% vs 14.3%) and `multi_hop` (16.7% vs 0.0%). All three are
+routed to the weaker model. The aggregate scores (4B 40.0%, 8B 42.5%) hide this
+entirely, which is precisely why aggregate-only metrics were the enabling
+condition. Recorded as an amendment to ADR-0004; deliberately **not** corrected,
+because flipping the map against the same 80 rows that scored it is the same
+circularity the ADR already carries on its labels. Phase 12's `routing_accuracy`
+now has a second reason to be *met in form only*: the labels encode a mapping the
+data contradicts.
+
+**2. SPEC contradicted itself in at least nine places.** `CLAUDE.md` instructs
+every session to read SPEC as the source of truth, and SPEC still asserted the
+retired paid tiers (§2 G7, §7.1, §10, §12), a Cloud-Boosted UI that no longer
+exists (§2 G3, §4 UC5, §5 FR8, §6 Screen B), and a per-query replay command that
+was never built (§5 FR18, §18). The corrections existed only in ADRs and in this
+log — a reader, human or agent, hit nine stale assertions before reaching any of
+them. Fixed: a dated **ACTIVE DEVIATIONS** banner at the top of §0 listing all
+seven live deviations with their owning ADR, plus inline `[SUPERSEDED]` markers on
+G3 and strikethrough on both tier tables. New deviations are added to that banner
+when their ADR is accepted.
+
+**3. `make replay` advertised a lie.** It printed "not implemented until Phase 8"
+— but Phase 8 came, went, and *deliberately declined* to build raw-input replay,
+because persisting raw financial questions and retrieved context would broaden
+local data retention against the product thesis. That reasoning was honest and
+recorded in the Phase 8 entry; the Makefile message inverted it into a promise.
+Now prints the real reason, points at the deviation, and exits non-zero.
+
+**4. Phase 14 cannot state its AC yet.** Its AC is "numeric exact-match on
+multi_hop/aggregation improves by a stated, measured margin vs B", and neither
+half exists: no manifest carries a category-scoped metric, and there is no
+numeric-exact-match metric — `strict_answer_match_rate` is a literal-anchor lower
+bound. The per-row receipts *do* carry `category` and per-row verdicts, so the
+baseline was recoverable offline without re-running inference. Recorded in
+ADR-0006 with the numbers Phase 14 must beat: `aggregation` 28.6%/14.3% and
+`multi_hop` 16.7%/**0.0%** (4B/8B). 8B answers zero of twelve multi-hop questions
+to strict match; if variant D cannot beat that floor, the null result is worth
+publishing.
+
+**5. `OpenAICompatibleGenerator` is dead code with no test.** Nothing imports it —
+not the app, not `privacy.py`, not any test; only the package `__init__` that
+exports it. ADR-0003's amendment justified keeping the retired cloud seam because
+`privacy.py` is still exercised by `test_phase6.py`; that justification does not
+extend to this class. It is neither used nor tested. Recommended for deletion, not
+deleted here — removing exported API during a review pass is the owner's call.
+
+**6. Phase 1's byte-identical corpus regeneration still holds.** Re-verified for
+the first time since July: `make data` reproduced the committed ground truth with
+zero diff, despite `pyproject.toml` gaining the `gateway` extra since. The
+determinism claim the whole harness rests on is intact.
+
+**7. `torchvision` is absent while `transformers` expects it.** A live app run
+raised `ModuleNotFoundError: No module named 'torchvision'` from a lazy
+`transformers` import path. Nothing is broken — the reranker loads and the suite is
+green — but it is an inconsistent dependency state in the same native stack as the
+unexplained signal-11 in the Phase 10 findings. Still not a diagnosis, and the
+segfault entry stays "cause unknown".
+
+**Clean.** No secrets, keys, or `.env` files are tracked. Every `config.yaml` key
+is read by code. Every report referenced in the docs exists except
+`reports/variant_matrix.md`, which is a Phase 16 deliverable. Every test asserts
+something. The Phase 6 socket-blocking test is intact and real.
+
+**Verification of this review:** `make verify-track-a` exit 0, ruff clean,
+111 passed, regression green — run at the commit that carries these fixes.
+
+**Next:** Phase 14 — bounded agentic RAG (variant D) under ADR-0006, which is
+`proposed` and needs owner acceptance first. Its two prerequisites (per-category
+metrics, a defined numeric-exact-match metric or a restated AC) come before the
+loop.

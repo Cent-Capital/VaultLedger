@@ -216,6 +216,46 @@ in a decision record would be cargo-culting the process.
   it as the current demo. Noted in `demo/README.md`; re-record at the next demo
   revision rather than pretending the artifact is current.
 
+## Amendment 2 — 2026-08-05 (the latency axis is not currently measurable)
+
+This ADR replaced the cost axis with **latency**, on the reasoning that with every
+model free, dollars stop discriminating while a scarce resource still varies. The
+Phase 13 guardrail ablation showed that reasoning is not yet supported by the
+measurement it depends on.
+
+Two matrix arms were run over the same 80 rows, guards off and guards on. They
+produced **identical answers** — same metrics, same failure sets — yet:
+
+| | off arm | on arm | change |
+|---|---:|---:|---|
+| `qwen3:4b` p50 | 8579 ms | 3714 ms | **−57%** |
+| `qwen3:4b` p95 | 17900 ms | 9592 ms | −46% |
+| `qwen3:8b` p50 | 6602 ms | 6908 ms | +5% |
+
+Guards add work; they cannot make a model 57% faster. The off-arm 4B run also
+carried a generation timeout that did not recur. Both indicate machine load, not
+model behaviour.
+
+**Consequence.** Latency at these magnitudes is environment-dominated. Phase 11
+measured ~10% p95 movement and called it noise; this is ~50% p50 movement on
+byte-identical outputs. Single-run latency **cannot rank two models 2 GB apart**,
+which is precisely what the frontier chart is supposed to do. Two prior
+conclusions are therefore withdrawn: Phase 11's "4B is materially faster" and the
+Phase 12 entry's correction of it ("8B dominates"). Each rested on one run, and
+the runs disagree by more than the effect they claimed to measure.
+
+**Not resolved here.** Fixing it means one of: repeat each cell N times and report
+a spread rather than a point; pin machine conditions (no concurrent load, fixed
+`keep_alive`, warm model) and record them in the manifest; or replace the x-axis
+with something reproducible — resident model size and token counts are both
+already captured and are environment-independent. Choosing among these is Phase 17
+work and needs measurement, not preference.
+
+**Until then:** the latency–quality frontier must not be presented as a headline
+artifact, and no model ranking may be stated on latency grounds. Quality metrics
+are unaffected — those reproduced bit-identically across arms and across the
+Phase 12 re-run.
+
 ## Evidence
 
 - Local models present on the dev machine, measured 2026-08-04/05 via the Ollama

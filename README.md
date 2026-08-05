@@ -181,6 +181,8 @@ re-recording script.
 | `make matrix` | Run the configured local Phase-11 model matrix and regenerate its report |
 | `make router-eval` | Regenerate the Phase-12 four-policy frontier from full cached matrix receipts |
 | `make guardrails-eval` | Regenerate the Phase-13 named-guard acceptance report |
+| `make replay` | **Deliberately not built.** Phase 8 declined raw-input replay: storing raw questions and retrieved context would broaden local data retention against the product thesis. Exits non-zero and says so |
+| `make clean` | Remove caches and build artifacts |
 | `make run` | Launch Streamlit headlessly with usage telemetry disabled |
 
 ## Troubleshooting

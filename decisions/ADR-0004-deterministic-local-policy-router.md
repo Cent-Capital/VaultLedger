@@ -90,3 +90,52 @@ cloud seam, but the Phase-12 product policy never selects it.
 labelled routing set exists, or a hosted budget returns. At that point compare a
 held-out learned router (RouteLLM-style or embedding similarity) against this
 deterministic baseline.
+
+## Amendment — 2026-08-05: the category→tier map is contradicted by its own source data
+
+Found during the pre-Phase-14 review. This ADR set the initial-routing policy on
+intuition — "simple lookups on T0, complex and safety-sensitive on T1" — and no
+per-category measurement existed to check it against, because the matrix only
+emitted aggregate metrics. Computing per-category strict match offline from the
+committed answer receipts (`61802221d874`, `33c0a0d50c76` — the exact guards-off
+cells the router eval consumed) shows the mapping is backwards on the majority of
+the golden set:
+
+| category | n | T0 `qwen3:4b` | T1 `qwen3:8b` | this ADR routes to | better model |
+|---|---:|---:|---:|---|---|
+| `single_doc` | 18 | 33.3% | **66.7%** | T0 (4B) | 8B — **mismatch** |
+| `aggregation` | 14 | **28.6%** | 14.3% | T1 (8B) | 4B — **mismatch** |
+| `multi_hop` | 12 | **16.7%** | 0.0% | T1 (8B) | 4B — **mismatch** |
+| `guardrail_benign` | 6 | **100.0%** | 50.0% | T0 (4B) | 4B — correct |
+| `adversarial` | 8 | 12.5% | **25.0%** | T1 (8B) | 8B — correct |
+| `cross_persona` | 6 | 50.0% | **83.3%** | T1 (8B) | 8B — correct |
+| `global_summary` | 6 | 0.0% | 0.0% | T1 (8B) | tie |
+| `unanswerable` | 10 | 100.0% | 100.0% | T1 (8B) | tie |
+
+**44 of 80 rows are routed to the weaker model for their category.** The premise —
+that a bigger model is better on harder categories — does not hold here: 8B is
+markedly better at single-document lookup, while 4B is better at aggregation and
+multi-hop. The aggregate scores (4B 40.0%, 8B 42.5%) hide this completely, which
+is exactly why aggregate-only metrics were the enabling condition for the error.
+
+This also explains the router's modest headline: `policy_router` reached 47.5%
+strict match against `all_t1`'s 42.5%. Some of that five-point gain is escalation
+recovering from initial choices this table says were wrong to begin with.
+
+**Not corrected here, deliberately.** Flipping the map would be fitting the policy
+to the same 80 rows that scored it, which is the circularity this ADR already
+carries on the labels. A corrected map has to be justified on a held-out set, or
+stated openly as fitted and its accuracy claim withdrawn.
+
+**Consequences recorded now:**
+- Phase 12's `routing_accuracy` remains **met in form only**, and this amendment
+  adds a second reason: the labels encode a mapping the data contradicts, so 100%
+  agreement measures conformance to a policy that is likely wrong, not routing
+  quality.
+- The `category_static` and `policy_router` numbers stand as measured; their
+  *interpretation* changes. The router is not near a ceiling — it is leaving
+  points on the table.
+- **Phase 17 owes a per-category re-derivation of the map** across the full local
+  lineup, with the fitted-versus-held-out distinction made explicit.
+- The matrix must emit per-category metrics so this class of error is visible
+  without an offline script. Tracked as pre-Phase-14 work.

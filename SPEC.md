@@ -8,6 +8,47 @@
 
 This is the single source of truth for building VaultLedger. It is written to be consumed by an AI coding agent as well as by you.
 
+> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-05)
+>
+> This document is **v2.0 as originally written**. Several accepted ADRs have since
+> overridden parts of it. The body below has *not* been rewritten, so where it
+> conflicts with this list, **this list wins**. Each item names the ADR that owns it.
+>
+> 1. **The paid model tiers T2 (`kimi-k2.6`, `glm-5.2`) and T3 (Claude Sonnet-class)
+>    are retired** — no paid LLM APIs, ever (**ADR-0003**). Every mention of a hosted
+>    or frontier tier below is historical. Affects §2 G7, §7.1, §10, §12, Phase 11.
+>    G7's "≥ 6 models" is met locally; its "spanning three tiers" clause is **not met**
+>    and is recorded as a scope reduction, never reinterpreted as met.
+> 2. **There is no Cloud-Boosted mode.** The privacy toggle, session-consent
+>    checkbox, and egress UI were removed in Phase 11 (**ADR-0003 amendment**).
+>    Affects §2 G3, §4 UC5, §5 FR8, §6 Screen B. The routing code in
+>    `vaultledger/route/privacy.py` survives and is still tested, but has no product
+>    caller. **SPEC's Phase 6 AC "badge + `model_used` flip correctly" is no longer
+>    demonstrable in the product** — it holds at unit level only.
+> 3. **The cost–quality frontier is a latency–quality frontier** (**ADR-0003**), since
+>    every local model is unpriced. Cost fields remain in the manifest schema
+>    reporting `0.0` — "unpriced, not free". **Caveat measured in Phase 13: latency
+>    varies ~50% p50 between runs producing byte-identical answers, so this harness
+>    cannot currently rank models by latency.** See the Phase 13 entry in
+>    `PROGRESS.md`; ADR-0003 is being revisited on this point.
+> 4. **The egress guard has no live caller** (**ADR-0005**). Its AC is restated as
+>    "zero tagged PII tokens in the payload the guard emits, plus byte-exact
+>    rehydration" — verified offline, never against a real provider's wire format.
+> 5. **"Over-refusal ≤ 5% on `guardrail_benign`" is unsatisfiable as a rate**
+>    (**ADR-0005**): the category has 6 rows, so one failure is 16.7%. Reported as a
+>    count ("0 of 6"), recorded as *not meaningfully tested*, and never as
+>    "≤5% achieved". A separate ~60-row probe set is the fix and does not exist yet.
+> 6. **§16's per-query replay (FR18, §18 "Replayable") was deliberately not built.**
+>    Phase 8 deferred it because persisting raw financial questions and context
+>    broadens local data retention, which contradicts the product thesis. Trace
+>    *metadata* is retained; raw-input replay is not claimed and
+>    `python -m vaultledger.replay` does not exist. Revisit only with an explicit
+>    retention design.
+> 7. **Phase 17 (multi-model bake-off) was added after Phase 16** (**ADR-0003**).
+>
+> Deviations are added here at the moment their ADR is accepted. If you are an agent
+> reading this file, treat any section below that contradicts this list as stale.
+
 **What changed from v1:** the core product (Track A) is unchanged in spirit — local-first financial-document Q&A, privacy switch, evals as the centerpiece. v2 adds three experiment tracks that turn the finished product into a **measured AI-engineering lab**: a multi-model benchmark including open-weight frontier models (Kimi, GLM), a real LLM router with a cost–quality policy, a formal guardrails layer, an agentic-RAG variant, a GraphRAG variant, and explicit loop/harness engineering. Every addition is gated on the same rule as v1: nothing counts unless the harness measures it.
 
 **Two-track structure (this is what makes it honestly a multi-month project):**
@@ -57,7 +98,7 @@ This is the single source of truth for building VaultLedger. It is written to be
 **Goals — Track A (V1, unchanged):**
 - G1. Ingest synthetic financial PDFs (statements, 1099s, invoices, pay stubs) and build a local, queryable index.
 - G2. Answer natural-language questions grounded in those documents, always with citations (doc + page + span).
-- G3. Privacy Switch (Local vs Cloud-Boosted) with an explicit per-query "data left your machine: YES/NO" indicator and graceful degraded-mode fallback.
+- G3. Privacy Switch (Local vs Cloud-Boosted) with an explicit per-query "data left your machine: YES/NO" indicator and graceful degraded-mode fallback. **[SUPERSEDED — ADR-0003 amendment: the toggle and consent flow were removed in Phase 11; there is no Cloud-Boosted mode. The egress badge remains and is still derived from `answer.data_left_machine`, but it can no longer flip in the product.]**
 - G4. Rigorous evals harness: golden set, retrieval metrics, faithfulness metrics, adversarial suite, regression runner, validated LLM-as-judge.
 - G5. Full-pipeline observability (traces, spans, tokens, latency) and per-feature cost attribution.
 - G6. Defend against prompt injection embedded in documents; abstain honestly when the answer isn't in the documents.
@@ -188,7 +229,7 @@ Tracks B/C/D (new in v2):
 | UI | Streamlit | fastest low-code path to a demoable app |
 | Local LLM runtime | Ollama | |
 | **Local gen models (tier T0/T1)** | ≤ 24 GB RAM: `qwen3:8b` (T1 primary), `qwen3:4b` (T0 fast), `gpt-oss:20b` if ~13 GB free. ≥ 36 GB RAM: `qwen3:30b-a3b` (T1 primary — MoE, fast on Apple silicon), `gemma3:12b` (compare), `qwen3:4b` (T0) | pin exact tags in `config.yaml`; record RAM + tokens/sec in PROGRESS.md. Replaces v1's qwen2.5/gemma2 lineup (stale). |
-| **Open-weight hosted (tier T2)** | `kimi-k2.6` via Moonshot API or OpenRouter; `glm-5.2` via Z.ai API or OpenRouter | These are 744B–1T-param MoE models — **not locally runnable on a laptop**; they live in the benchmark and router as the open-weight hosted tier. Both are open-weight/MIT-ish licensed, which is the point: "open-weight" ≠ "runs on my machine," and knowing the difference is an AI-PM competency. Verify current model IDs + pricing at build time. |
+| **Open-weight hosted (tier T2)** — **RETIRED, ADR-0003** | ~~`kimi-k2.6` via Moonshot API or OpenRouter; `glm-5.2` via Z.ai API or OpenRouter~~ | These are 744B–1T-param MoE models — **not locally runnable on a laptop**; they live in the benchmark and router as the open-weight hosted tier. Both are open-weight/MIT-ish licensed, which is the point: "open-weight" ≠ "runs on my machine," and knowing the difference is an AI-PM competency. Verify current model IDs + pricing at build time. |
 | **Frontier closed (tier T3)** | Claude Sonnet-class via Anthropic API | opt-in, budget-capped |
 | **Model gateway** | LiteLLM (library or proxy) | one OpenAI-compatible interface over Ollama + Moonshot + Z.ai/OpenRouter + Anthropic; built-in cost tracking + fallbacks. ADR-worthy: LiteLLM vs hand-rolled clients. |
 | Embeddings | `nomic-embed-text` via Ollama (default, fully local); alternatives: `bge-m3`, Qwen3-embedding | keep local; changing embeddings invalidates the index — version it |
@@ -388,7 +429,7 @@ Routing v1 (the privacy switch) shipped in Track A and remains the **hard outer 
 |---|---|---|---|---|
 | T0 | local small | `qwen3:4b` | $0 | classification, query rewrite, cheap drafts |
 | T1 | local primary | `qwen3:8b` / `qwen3:30b-a3b` | $0 | default generator in Local mode |
-| T2 | open-weight hosted | `kimi-k2.6`, `glm-5.2` | ~$1–4.4/M out | hard aggregation/multi-hop when cloud allowed |
+| ~~T2~~ **RETIRED (ADR-0003)** | ~~open-weight hosted~~ | ~~`kimi-k2.6`, `glm-5.2`~~ | — | Phase 12 escalates across local model sizes instead |
 | T3 | frontier closed | Claude Sonnet-class | highest | escalation of last resort; LLM-judge |
 
 ### 10.2 Policy (deterministic, explainable — build this before any learned router)
