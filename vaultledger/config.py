@@ -64,6 +64,13 @@ class Matrix(BaseModel):
     smoke_limit: int = Field(default=12, ge=0)
 
 
+class Router(BaseModel):
+    """Phase 12 deterministic local-size routing policy."""
+
+    t0_categories: list[str] = ["single_doc", "guardrail_benign"]
+    projected_cost_usd: dict[str, float] = {"T0": 0.0, "T1": 0.0}
+
+
 class Reranker(BaseModel):
     enabled: bool = True
     model: str = "BAAI/bge-reranker-base"
@@ -117,6 +124,7 @@ class Config(BaseSettings):
     thresholds: Thresholds
     models: ModelRegistry
     matrix: Matrix = Matrix()
+    router: Router = Router()
     variant_default: str = "B_hybrid"
     reranker: Reranker = Reranker()
     retrieval: Retrieval = Retrieval()
@@ -169,6 +177,7 @@ __all__ = [
     "ModelRef",
     "ModelRegistry",
     "Matrix",
+    "Router",
     "Reranker",
     "Retrieval",
     "Generation",

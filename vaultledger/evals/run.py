@@ -387,6 +387,12 @@ def run_model_matrix(args: argparse.Namespace) -> int:
     return run_matrix(args)
 
 
+def run_policy_router_eval(args: argparse.Namespace) -> int:
+    from vaultledger.evals.router import run_router_eval
+
+    return run_router_eval(args)
+
+
 def _write_comparison(
     baseline_path: Path,
     current: RunManifest,
@@ -511,6 +517,22 @@ def build_parser() -> argparse.ArgumentParser:
     matrix.add_argument("--out-dir", default="reports")
     matrix.add_argument("--report", default="reports/model_matrix.md")
     matrix.set_defaults(func=run_model_matrix)
+
+    router = sub.add_parser(
+        "router-eval", help="Evaluate Phase 12 routing accuracy and latency-quality policies"
+    )
+    router.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
+    router.add_argument("--t0-answers", default="")
+    router.add_argument("--t1-answers", default="")
+    router.add_argument("--out-dir", default="reports")
+    router.add_argument("--report", default="reports/routing_frontier.md")
+    router.add_argument("--chart", default="reports/paretos/routing_frontier.svg")
+    router.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="Development only: evaluate the intersection instead of requiring all 80 rows",
+    )
+    router.set_defaults(func=run_policy_router_eval)
     return parser
 
 

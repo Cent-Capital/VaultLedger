@@ -36,14 +36,20 @@ closed, with the real browser walkthrough committed as the
 The design source of truth is [SPEC.md](SPEC.md). The build receipt, including
 deviations and measured boundaries, is [PROGRESS.md](PROGRESS.md).
 
-## Phase 11 kickoff
+## Tracks B status
 
-The local LiteLLM gateway and model-matrix runner are implemented. The generated
-[kickoff matrix](reports/model_matrix.md) compares `qwen3:4b` and `qwen3:8b` on
-the first 12 single-document golden examples, with one RunManifest and complete
-answer receipt per model × variant cell. This is a machinery proof, not the
-six-model bake-off: the full two-family × three-size comparison remains Phase
-17, after all retrieval variants exist.
+The local LiteLLM gateway, matrix runner, and deterministic Phase-12 policy
+router are implemented. The current [model matrix](reports/model_matrix.md)
+contains full 80-case `qwen3:4b` and `qwen3:8b` Variant-B runs. The generated
+[routing frontier](reports/routing_frontier.md) compares four policies over
+those same cached answers, including bounded T0→T1 escalation. This is still a
+two-model experiment; the two-family × three-size bake-off remains Phase 17.
+
+The router matched its 80 initial-route labels on 100% of cases by construction.
+Its useful result is the measured policy comparison: strict match was 47.5%
+versus 42.5% for always-T1, at 11.0s versus 9.7s average gateway latency in one
+noisy run. Both source cells covered 79/80 generations; the same case timed out
+in each and is retained as a scored miss.
 
 ## Fresh-machine quickstart
 
@@ -132,8 +138,9 @@ acceptance.
   model/tier/variant, guard events, latency, estimated tokens, cost, and trace.
 - **Evals** shows dense-to-hybrid retrieval evidence, safety and judge results,
   regression deltas, and local trace rollups.
-- **Experiment Lab** surfaces the limited Phase-11 kickoff matrix and keeps the
-  six-model Phase-17 bake-off boundary explicit.
+- **Experiment Lab** surfaces the current two-model matrix and Phase-12 router
+  frontier while keeping the six-model Phase-17 bake-off boundary explicit.
+  Regenerate the routing report and chart with `make router-eval`.
 
 The [Track-A demo plan](demo/README.md) contains the exact recording and
 re-recording script.
@@ -164,6 +171,7 @@ re-recording script.
 | `make eval-full` | Run the full Track-A LLM evaluation sequence |
 | `make verify-track-a` | Run lint, tests, and the full Track-A eval gate |
 | `make matrix` | Run the configured local Phase-11 model matrix and regenerate its report |
+| `make router-eval` | Regenerate the Phase-12 four-policy frontier from full cached matrix receipts |
 | `make run` | Launch Streamlit headlessly with usage telemetry disabled |
 
 ## Troubleshooting

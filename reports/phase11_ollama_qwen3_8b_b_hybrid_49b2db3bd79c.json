@@ -1,0 +1,267 @@
+{
+  "run_id": "phase11_ollama_qwen3_8b_b_hybrid_49b2db3bd79c",
+  "timestamp": "2026-08-05T18:26:41.476353+00:00",
+  "git_sha": "534b5e08c884958e3d001b48183abc767a87b13e",
+  "config_hash": "8dd9710b9ab177a9ac661f6750a0ef47283181eadf6621d0c04ab7aaae06e65a",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "ollama/qwen3:8b",
+  "metrics": {
+    "matrix_examples": 80.0,
+    "generation_eval_coverage": 0.9875,
+    "strict_answer_match_rate": 0.425,
+    "citation_doc_hit_rate": 0.7375,
+    "abstention_accuracy": 0.7875,
+    "median_gateway_latency_ms": 12627.436,
+    "p95_gateway_latency_ms": 26904.81,
+    "gateway_calls": 79.0,
+    "input_tokens": 155210.0,
+    "output_tokens": 7386.0,
+    "provider_token_usage_rate": 1.0,
+    "model_unpriced": 1.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "sd_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "sd_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "sd_006",
+      "taxonomy_code": "CITE_FAIL",
+      "note": "no cited document matched the golden expected documents"
+    },
+    {
+      "example_id": "sd_007",
+      "taxonomy_code": "CITE_FAIL",
+      "note": "no cited document matched the golden expected documents"
+    },
+    {
+      "example_id": "sd_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_009",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "sd_011",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_015",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $2,593.68; judge review deferred"
+    },
+    {
+      "example_id": "ag_001",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $20,500.00, $8,500.00; judge review deferred"
+    },
+    {
+      "example_id": "ag_002",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $40,500.00; judge review deferred"
+    },
+    {
+      "example_id": "ag_003",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $48,461.52; judge review deferred"
+    },
+    {
+      "example_id": "ag_004",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $30,304.68; judge review deferred"
+    },
+    {
+      "example_id": "ag_005",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $37,745.21; judge review deferred"
+    },
+    {
+      "example_id": "ag_006",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $44,683.92; judge review deferred"
+    },
+    {
+      "example_id": "ag_007",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $55,667.64; judge review deferred"
+    },
+    {
+      "example_id": "ag_008",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "ag_009",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "ag_010",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_013",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $12,000.00, $8,500.00; judge review deferred"
+    },
+    {
+      "example_id": "ag_014",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $24,500.00; judge review deferred"
+    },
+    {
+      "example_id": "adv_002",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_003",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $16,251.22; judge review deferred"
+    },
+    {
+      "example_id": "adv_005",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_007",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_001",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_002",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $12,000.00, $2,201.79; judge review deferred"
+    },
+    {
+      "example_id": "mh_003",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_004",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $18,185.00, $17,219.47; judge review deferred"
+    },
+    {
+      "example_id": "mh_005",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $11,108.85, $36,411.77; judge review deferred"
+    },
+    {
+      "example_id": "mh_006",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $7,400.09; judge review deferred"
+    },
+    {
+      "example_id": "mh_007",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_009",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_010",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $17,219.47, $16,139.29; judge review deferred"
+    },
+    {
+      "example_id": "mh_011",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_012",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $44,683.92, $12,000.00; judge review deferred"
+    },
+    {
+      "example_id": "gs_001",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_002",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_005",
+      "taxonomy_code": "TOOL_ERR",
+      "note": "matrix cell failed to produce an Answer: LiteLLM completion failed for ollama/qwen3:8b: litellm.APIConnectionError: OllamaException - litellm.Timeout: Connection timed out after 180.0 seconds."
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "gb_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gb_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gb_006",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "cp_001",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  ]
+}

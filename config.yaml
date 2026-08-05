@@ -34,6 +34,10 @@ matrix:
   variants: ["B_hybrid"]
   smoke_limit: 12             # 0 = full golden set; full six-model sweep is Phase 17
 
+router:                        # Phase 12 deterministic initial-routing policy (ADR-0004)
+  t0_categories: ["single_doc", "guardrail_benign"]
+  projected_cost_usd: { T0: 0.0, T1: 0.0 }  # unpriced local inference, not free
+
 variant_default: B_hybrid
 
 reranker:

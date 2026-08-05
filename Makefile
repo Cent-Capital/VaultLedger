@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix replay run clean
+.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway]"
@@ -46,6 +46,9 @@ verify-track-a: lint test eval-full  ## Phase 10 acceptance gate
 
 matrix:  ## Multi-model benchmark matrix (Phase 11+)
 	$(PYTHON) -m vaultledger.evals matrix
+
+router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontier
+	$(PYTHON) -m vaultledger.evals router-eval
 
 replay:  ## Re-execute a past query from its trace (Phase 8+)
 	@echo "replay: not implemented until Phase 8. Usage: make replay TRACE=<trace_id>"

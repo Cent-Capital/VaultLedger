@@ -127,11 +127,20 @@ def _cell_metrics(
     examples: list[QAExample],
     rows: list[dict],
     totals: GatewayTotals,
-    generator: LiteLLMGenerator,
 ) -> dict[str, float]:
     completed = [row for row in rows if not row.get("error")]
     n = len(examples)
     latencies = [float(row["gateway"]["latency_ms"]) for row in completed]
+    calls = [
+        call
+        for row in completed
+        for call in row["gateway"].get("token_sources", [])
+    ]
+    pricing_statuses = [
+        status
+        for row in completed
+        for status in row["gateway"].get("pricing_statuses", [])
+    ]
     return {
         "matrix_examples": float(n),
         "generation_eval_coverage": len(completed) / n if n else 0.0,
@@ -150,15 +159,24 @@ def _cell_metrics(
         "input_tokens": float(totals.input_tokens),
         "output_tokens": float(totals.output_tokens),
         "provider_token_usage_rate": (
-            sum(call.token_source == "provider_usage" for call in generator.calls) / totals.calls
-            if totals.calls
-            else 0.0
+            sum(source == "provider_usage" for source in calls) / len(calls) if calls else 0.0
         ),
         "model_unpriced": float(
-            bool(generator.calls)
-            and all(call.pricing_status == "unpriced" for call in generator.calls)
+            bool(pricing_statuses)
+            and all(status == "unpriced" for status in pricing_statuses)
         ),
     }
+
+
+def _totals_from_rows(rows: list[dict]) -> GatewayTotals:
+    gateways = [row["gateway"] for row in rows if not row.get("error")]
+    return GatewayTotals(
+        calls=sum(int(gateway["calls"]) for gateway in gateways),
+        latency_ms=round(sum(float(gateway["latency_ms"]) for gateway in gateways), 3),
+        input_tokens=sum(int(gateway["input_tokens"]) for gateway in gateways),
+        output_tokens=sum(int(gateway["output_tokens"]) for gateway in gateways),
+        cost_usd=round(sum(float(gateway["cost_usd"]) for gateway in gateways), 10),
+    )
 
 
 def _run_cell(
@@ -175,9 +193,28 @@ def _run_cell(
     if not generator.is_available():
         raise RuntimeError(f"matrix model {model!r} is unavailable in Ollama")
 
+    slug = re.sub(r"[^a-z0-9]+", "_", model.casefold()).strip("_")
+    checkpoint_path = out_dir / f".matrix_checkpoint_{slug}_{variant.casefold()}.json"
+    checkpoint_key = {
+        "model": model,
+        "variant": variant,
+        "config_hash": _config_hash(),
+        "golden_set_hash": golden_set_hash,
+        "example_ids": [example.id for example in examples],
+    }
     rows: list[dict] = []
-    failures: list[dict] = []
+    if checkpoint_path.exists():
+        checkpoint = json.loads(checkpoint_path.read_text())
+        if all(checkpoint.get(key) == value for key, value in checkpoint_key.items()):
+            rows = list(checkpoint.get("rows", []))
+            print(
+                f"matrix resume: {model} × {variant} at {len(rows)}/{len(examples)}",
+                flush=True,
+            )
+    completed_ids = {str(row["example_id"]) for row in rows}
     for example in examples:
+        if example.id in completed_ids:
+            continue
         before = generator.snapshot()
         call_start = len(generator.calls)
         started = perf_counter()
@@ -204,19 +241,24 @@ def _run_cell(
                 reorder_context=cfg.generation.litm_reorder,
             )
         except Exception as exc:
+            failure = {
+                "example_id": example.id,
+                "taxonomy_code": "TOOL_ERR",
+                "note": f"matrix cell failed to produce an Answer: {exc}",
+            }
             rows.append(
                 {
                     "example_id": example.id,
                     "error": str(exc),
                     "wall_latency_ms": round((perf_counter() - started) * 1000, 3),
+                    "failure": failure,
                 }
             )
-            failures.append(
-                {
-                    "example_id": example.id,
-                    "taxonomy_code": "TOOL_ERR",
-                    "note": f"matrix cell failed to produce an Answer: {exc}",
-                }
+            checkpoint_path.write_text(json.dumps({**checkpoint_key, "rows": rows}, indent=2))
+            print(
+                f"matrix checkpoint: {model} × {variant} {len(rows)}/{len(examples)} "
+                f"(TOOL_ERR)",
+                flush=True,
             )
             continue
 
@@ -227,34 +269,29 @@ def _run_cell(
         cited_docs = {citation.doc_id for citation in answer.citations}
         citation_hit = not expected_docs or bool(expected_docs & cited_docs)
         abstention_correct = answer.abstained == (example.category == "unanswerable")
+        failure = None
         if not abstention_correct:
-            failures.append(
-                {
-                    "example_id": example.id,
-                    "taxonomy_code": "ABSTAIN_FP" if answer.abstained else "ABSTAIN_FN",
-                    "note": reason,
-                }
-            )
+            failure = {
+                "example_id": example.id,
+                "taxonomy_code": "ABSTAIN_FP" if answer.abstained else "ABSTAIN_FN",
+                "note": reason,
+            }
         elif not matched:
-            failures.append(
-                {
-                    "example_id": example.id,
-                    "taxonomy_code": (
-                        "NUM_MISMATCH"
-                        if _AMOUNT.search(example.expected_answer)
-                        else "GEN_HALLUC"
-                    ),
-                    "note": f"strict deterministic scorer: {reason}; judge review deferred",
-                }
-            )
+            failure = {
+                "example_id": example.id,
+                "taxonomy_code": (
+                    "NUM_MISMATCH"
+                    if _AMOUNT.search(example.expected_answer)
+                    else "GEN_HALLUC"
+                ),
+                "note": f"strict deterministic scorer: {reason}; judge review deferred",
+            }
         elif not citation_hit:
-            failures.append(
-                {
-                    "example_id": example.id,
-                    "taxonomy_code": "CITE_FAIL",
-                    "note": "no cited document matched the golden expected documents",
-                }
-            )
+            failure = {
+                "example_id": example.id,
+                "taxonomy_code": "CITE_FAIL",
+                "note": "no cited document matched the golden expected documents",
+            }
         rows.append(
             {
                 "example_id": example.id,
@@ -271,18 +308,24 @@ def _run_cell(
                     "input_tokens": usage.input_tokens,
                     "output_tokens": usage.output_tokens,
                     "cost_usd": usage.cost_usd,
-                    "token_sources": sorted({call.token_source for call in gateway_calls}),
-                    "pricing_statuses": sorted(
-                        {call.pricing_status for call in gateway_calls}
-                    ),
+                    "token_sources": [call.token_source for call in gateway_calls],
+                    "pricing_statuses": [call.pricing_status for call in gateway_calls],
                 },
                 "answer": answer.model_dump(),
+                "failure": failure,
             }
         )
+        checkpoint_path.write_text(json.dumps({**checkpoint_key, "rows": rows}, indent=2))
+        print(
+            f"matrix checkpoint: {model} × {variant} {len(rows)}/{len(examples)}",
+            flush=True,
+        )
 
-    totals = generator.snapshot()
-    metrics = _cell_metrics(examples, rows, totals, generator)
-    slug = re.sub(r"[^a-z0-9]+", "_", model.casefold()).strip("_")
+    order = {example.id: index for index, example in enumerate(examples)}
+    rows.sort(key=lambda row: order[str(row["example_id"])])
+    totals = _totals_from_rows(rows)
+    metrics = _cell_metrics(examples, rows, totals)
+    failures = [row["failure"] for row in rows if row.get("failure")]
     manifest = RunManifest(
         run_id=f"phase11_{slug}_{variant.casefold()}_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
@@ -300,6 +343,7 @@ def _run_cell(
     answers_path = out_dir / f"{manifest.run_id}_answers.json"
     manifest_path.write_text(manifest.model_dump_json(indent=2) + "\n")
     answers_path.write_text(json.dumps(rows, indent=2) + "\n")
+    checkpoint_path.unlink(missing_ok=True)
     return manifest_path, answers_path
 
 
@@ -317,8 +361,8 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         "",
         "Phase 11 gateway/matrix machinery proof. The full six-model bake-off is Phase 17.",
         "",
-        f"Golden set hash: `{manifests[0].golden_set_hash}`  ",
-        f"Cells: **{len(manifests)}** across **{model_count} model(s)**  ",
+        f"Golden set hash: `{manifests[0].golden_set_hash}`",
+        f"Cells: **{len(manifests)}** across **{model_count} model(s)**",
         f"Total measured API spend: **${total_cost:.6f}** (local models are unpriced, not free)",
         "",
         "| Model | Variant | N | Strict match | Citation hit | Abstention accuracy | "

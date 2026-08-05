@@ -1169,3 +1169,142 @@ Recorded here rather than discovered when the chart is drawn.
 than hosting tiers (ADR-0003). Still outstanding and unchanged: the internship
 report draft in `~/Desktop/PM-OS`, and the demo re-record noted in
 `demo/README.md`.
+
+---
+
+## Phase 12 — Deterministic local-size policy router v2  (2026-08-05)
+
+Phase 12 is **open** with its implementation and first full measurement complete.
+ADR-0004 resolves the heuristic-versus-learned choice: the first router is an
+inspectable category policy over the two local models, not a classifier trained
+and evaluated on the same 80 authored examples. A learned router stays deferred
+until an independently labelled routing set exists.
+
+**Built**
+- `PolicyRouter` selects T0 (`qwen3:4b`) for `single_doc` and
+  `guardrail_benign`, selects T1 (`qwen3:8b`) for every other known or unknown
+  category, and promotes a T0 choice when retrieval confidence is below the
+  configured threshold. The golden labels now describe this *initial* decision:
+  24 T0 and 56 T1.
+- The budget guard filters unaffordable tiers both before generation and before
+  escalation. Configured local projected costs remain `$0.0`; tests inject
+  non-zero costs to prove the cap and refusal paths rather than declaring a
+  zero-cost branch tested by inspection.
+- `answer_with_policy` implements an explicit bounded T0→T1 loop. Answerable
+  abstention, structured-output failure, output-guard downgrade, or low answer
+  confidence can trigger the single higher-tier retry. The final answer keeps
+  the safest viable attempt, a human-readable `RoutingDecision`, and a guardrail
+  event when escalation occurred.
+- `make router-eval` evaluates `all_t0`, `all_t1`, `category_static`, and
+  `policy_router` over the exact same cached answer receipts. It writes a
+  RunManifest, per-query decision receipt, generated Markdown report, and SVG
+  latency–quality chart. Failed model calls remain misses and retain their wall
+  timeout latency.
+- The matrix runner now checkpoints each completed golden row and resumes the
+  same deterministic cell. This was added after the first 160-call attempt was
+  interrupted near completion and would otherwise have discarded all partial
+  work. Successful completion removes the checkpoint.
+
+**Full-golden measurement** (Variant B, 80 rows per model)
+- T0 source: strict match `40.0%`, citation-document hit `56.2%`, abstention
+  accuracy `57.5%`, generation coverage `79/80`.
+- T1 source: strict match `42.5%`, citation-document hit `73.8%`, abstention
+  accuracy `78.8%`, generation coverage `79/80`.
+- Both cells timed out on `gs_005`; the receipts preserve the `TOOL_ERR` rather
+  than silently shrinking N. Local API spend is `$0.000000` (unpriced, not
+  free).
+- Routing accuracy is `100.0%` on all 80 labels. This is a consistency check,
+  not a generalisation claim, because ADR-0004's explicit policy defines both
+  the labels and the implementation.
+- The dynamic policy reached `47.5%` strict match, `75.0%` citation hit, and
+  `78.8%` abstention accuracy. It escalated `10/80` queries (`12.5%`), and 7/10
+  escalations improved strict correctness (`70.0%` efficacy).
+- In this one measured run, the dynamic policy averaged `11.0s` of gateway time
+  versus `9.7s` for always-T1, a roughly 13% latency premium for a 5-point strict
+  match gain. `category_static` is dominated. Phase 11 already measured about
+  10% p95 latency movement between repeat runs, so close x-axis differences are
+  not treated as stable rankings.
+
+**Acceptance status**
+- *Routing accuracy ≥90%:* **met in form only** at `100.0%` over 80 labels.
+  Recorded this way deliberately, on review. ADR-0004 migrated `expected_tier`
+  *to* the policy it evaluates, so the labels are the router serialised and the
+  metric cannot fail by construction — 100% here is arithmetic, not evidence. The
+  same wording was used for the Phase 9 judge labels before they were
+  adjudicated, for the same reason. This AC becomes real only against a routing
+  set labelled independently of the policy; until then it must not be reported as
+  a passing AC in the DoD or the report.
+- *Frontier over ≥4 policies generated:* **met.** The harness-generated source
+  is `phase12_router_a105114011f7`; the adjacent details receipt names both
+  source manifests and all per-query decisions.
+- *Escalation ladder, budget guard, and `RoutingDecision` logging:* **met** in
+  implementation and deterministic tests.
+- *Phase-6 privacy regression remains green:* **met.** The full suite passes and
+  still covers local socket blocking, no cloud-generator calls, badges, and the
+  historical degraded path.
+- The phase remains **open** until the implementation is committed and the
+  deterministic router artifact is regenerated from that clean SHA. The two
+  expensive source matrix receipts were intentionally preserved from this
+  implementation run; their manifests identify the pre-phase base SHA and the
+  report discloses the exact source IDs.
+
+**Correction to the Phase 11 entry (found on review, 2026-08-05)**
+Phase 11 concluded "8B is materially more reliable and 4B is materially faster"
+and treated that as the latency–quality tradeoff ADR-0003 predicted. **The
+full-80 run refutes the second half.** Same metric, same units, equal call counts
+(79 each):
+
+| | 4B p50 | 8B p50 | faster |
+|---|---:|---:|---|
+| easy 12-row slice (Phase 11) | 3383 ms | 5604 ms | **4B, by 1.7×** |
+| full 80 rows (Phase 12) | 8579 ms | 6602 ms | **8B, by 1.3×** |
+
+The direction reverses. On the full set 8B is both more accurate (42.5% vs
+40.0% strict) **and** faster, so 4B is dominated — there is no tradeoff to trade.
+Phase 11's claim was an artifact of a 12-row slice of easy `single_doc`
+questions, exactly the over-generalisation that entry warned against, made by
+that entry. This does not change any committed number; it changes what they mean.
+
+Consequence for ADR-0003, which replaced the cost axis with latency: a
+latency–quality frontier assumes small models buy speed. On this corpus, at these
+two sizes, they do not. Phase 17 must establish that the frontier has a real
+tradeoff to plot before treating the chart as the headline artifact — a frontier
+where one point dominates is a finding, not a chart.
+
+**Verification so far**
+- Ruff: clean.
+- Deterministic suite: `98 passed` on the review environment (the implementation
+  pass reported `97 passed, 1 skipped`; the optional extra is installed here).
+- `pip check`: no dependency conflicts.
+
+**Known breakage, not fixed here — the regression gate is green on stale
+artifacts.** `golden_hash` is a sha256 over the raw golden-set file, and
+`compare_manifest` raises on any mismatch. Changing `expected_tier` changed that
+hash from `ece0ea370052e5fe` to `b59ee2659a17714c`. The new Phase 11/12 manifests
+carry the new hash; `regression_baseline.json`, `phase3_baseline_latest.json`,
+and `phase4_de57151e3ae3.json` still carry the old one. `make regression` passes
+only because it compares two artifacts that are both stale. **The next
+regenerated retrieval manifest will raise "baseline and current manifest use
+different golden sets" and the gate will fail.** Retrieval metrics are unaffected
+in substance — only `expected_tier` changed, and no retrieval metric reads it —
+so the fix is to re-run the retrieval baseline on the current golden set and
+re-pin `regression_baseline.json`, confirming the metrics did not move. That
+re-pin is a deliberate act on a frozen reference and is left for an explicit
+decision rather than done silently inside a router phase.
+- The final SVG was rendered in its report context and inspected: title,
+  zero-based axes, direct labels, non-colour marker shapes, and edge labels are
+  legible with no clipping. The chart uses honest full scales, so the clustered
+  points are not visually exaggerated.
+
+**Plain-English explanation of the tricky piece.** A router is not better just
+because it sends some questions to a smaller model. If that model fails and the
+router retries with the larger one, the answer may improve, but the user paid
+both latencies. The frontier therefore replays four policies over the same model
+outputs, counts both calls on an escalation, and never rerolls generation. That
+isolates the routing decision from model randomness and exposes the real result:
+this router buys five strict-match points, but it does not buy speed in the
+current run.
+
+**Next:** commit Phase 12, regenerate the router manifest from the clean SHA,
+then begin Phase 13's named guardrail pipeline. The internship report draft and
+demo re-record remain outstanding Track-A documentation work.

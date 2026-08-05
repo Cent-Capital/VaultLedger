@@ -354,21 +354,34 @@ with evals:
 
 with lab:
     st.header("Experiment Lab")
-    st.info("Phase 11 kickoff · local gateway and limited matrix machinery proof")
+    st.info("Tracks B measurement · full 80-case local matrix + Phase 12 router frontier")
     matrix_path = cfg.repo_path("reports/model_matrix.md")
     if matrix_path.exists():
         st.markdown(matrix_path.read_text())
     else:
         st.warning("No model matrix receipt yet. Run `make matrix`.")
+
+    router_report_path = cfg.repo_path("reports/routing_frontier.md")
+    router_chart_path = cfg.repo_path("reports/paretos/routing_frontier.svg")
+    if router_report_path.exists():
+        st.divider()
+        router_report = router_report_path.read_text().replace(
+            "![Latency–quality frontier](paretos/routing_frontier.svg)", ""
+        )
+        st.markdown(router_report)
+        if router_chart_path.exists():
+            st.image(str(router_chart_path))
+    else:
+        st.warning("No router frontier receipt yet. Run `make router-eval`.")
     st.markdown(
         """
         **Next measured questions**
 
         - How do two local model families across three measured sizes compare on the full set?
-        - Can a deterministic policy router preserve quality while lowering latency?
+        - Does the router's latency premium persist across repeated, idle-machine runs?
         - Where do GraphRAG and agentic RAG win, lose, and cost more than Variant B?
 
-        The table above covers two Qwen models, one variant, and a 12-example slice only.
+        The artifacts above cover two Qwen models, one variant, and all 80 golden rows.
         The six-model, all-variant bake-off and judged reasons remain Phase 17.
         """
     )

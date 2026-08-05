@@ -1,0 +1,1582 @@
+{
+  "decisions": [
+    {
+      "example_id": "sd_001",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_d06d0afab6ef",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_002",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_e4e7eb1677fd",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_003",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_ecf5aacb42bd",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_004",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_bef2ff1efe2b",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_005",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_159261434d8d",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_006",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_278fbaad6f88",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_007",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_3f32c85194d2",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_008",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_d56d1af80097",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_009",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_a6e4f2bd89e2",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_010",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_eb9dd0d751a3",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_011",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_d8748cd7a6e2",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_012",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_97ebf4d2ee36",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_013",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_ac89f7cace53",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_014",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_10dc6f7a188b",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_015",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_b34f0fc961b0",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_016",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_21f2a6411152",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_017",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_0f2527fdbdbf",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "sd_018",
+      "category": "single_doc",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_49fc360c6022",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=single_doc -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_001",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_e481e982ad72",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_002",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_510bf105a4eb",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_003",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_2eddcabd1188",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_004",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_1c3bbdb37f15",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_005",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_25545a8638d1",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_006",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_f578e657d88b",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_007",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_df21f7147cdd",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_008",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_6944c083d621",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_009",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_3fb146ab3c4e",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_010",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_8253316aff23",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_011",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_f6c8f7098954",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_012",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_abd623c49f9c",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_013",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_a7a82bae880d",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ag_014",
+      "category": "aggregation",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_1c0abdc35609",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=aggregation -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_001",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_0b989f7a2d2e",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_002",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_20fb90471249",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_003",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_f73c4a4747c6",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_004",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_9d01cf7a0aa2",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_005",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_5838ce7885db",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_006",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_b862371290f7",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_007",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_a56c12c30913",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_008",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_9700877417d4",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_009",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_7846f7490291",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "ua_010",
+      "category": "unanswerable",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_4df38c02cfc8",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=unanswerable -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_001",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_6a479ec7906f",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_002",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_56bae98c8534",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_003",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_603fe84d1767",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_004",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_b1b9e4c1709c",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_005",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_fce3d27c3fe5",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_006",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_9a70e1c21b0b",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_007",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_6092ef7451ef",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "adv_008",
+      "category": "adversarial",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_7851365e7f3a",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=adversarial -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_001",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_7708951e2da5",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_002",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_c368e7cefd53",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_003",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_35d5275fab7f",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_004",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_9ca826352c30",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_005",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_696130cd4093",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_006",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_485903a2c463",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_007",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_078ff35b976a",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_008",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_c456d5dc3f45",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_009",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_b1620afb0646",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_010",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_7f28feed7c09",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_011",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_6cb4eb67e5a0",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "mh_012",
+      "category": "multi_hop",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_5fc1ea3b20b0",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=multi_hop -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gs_001",
+      "category": "global_summary",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_9c1abea07fe4",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=global_summary -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gs_002",
+      "category": "global_summary",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_b4d1e0b02368",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=global_summary -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gs_003",
+      "category": "global_summary",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_4a672879ea13",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=global_summary -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gs_004",
+      "category": "global_summary",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_272047f5d2f2",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=global_summary -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gs_005",
+      "category": "global_summary",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_8ac1785a5588",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=global_summary -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gs_006",
+      "category": "global_summary",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_6b662d77915d",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=global_summary -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gb_001",
+      "category": "guardrail_benign",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_88f689379636",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=guardrail_benign -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gb_002",
+      "category": "guardrail_benign",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_dda4d5a1320b",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=guardrail_benign -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gb_003",
+      "category": "guardrail_benign",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_60edc048e72d",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=guardrail_benign -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gb_004",
+      "category": "guardrail_benign",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_e2c9faa580cc",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=guardrail_benign -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gb_005",
+      "category": "guardrail_benign",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_0f269bab8d7f",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=guardrail_benign -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "gb_006",
+      "category": "guardrail_benign",
+      "expected_tier": "T0",
+      "correct": true,
+      "decision": {
+        "query_id": "q_023f6e31bd6e",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T0",
+        "chosen_model": "ollama/qwen3:4b",
+        "reason": "category=guardrail_benign -> T0",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "cp_001",
+      "category": "cross_persona",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_d596e4ca49fa",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=cross_persona -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "cp_002",
+      "category": "cross_persona",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_c6d8d0eca0d0",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=cross_persona -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "cp_003",
+      "category": "cross_persona",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_9a9a70faf54a",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=cross_persona -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "cp_004",
+      "category": "cross_persona",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_e6d08c248de8",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=cross_persona -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "cp_005",
+      "category": "cross_persona",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_c0f24bf43964",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=cross_persona -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    },
+    {
+      "example_id": "cp_006",
+      "category": "cross_persona",
+      "expected_tier": "T1",
+      "correct": true,
+      "decision": {
+        "query_id": "q_c5aa56e398fd",
+        "allowed_tiers": [
+          "T0",
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "category=cross_persona -> T1",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      }
+    }
+  ],
+  "policies": [
+    {
+      "policy": "all_t0",
+      "strict_match_rate": 0.4,
+      "citation_doc_hit_rate": 0.5625,
+      "abstention_accuracy": 0.575,
+      "avg_gateway_latency_ms": 12218.2029375,
+      "p50_gateway_latency_ms": 8613.1,
+      "escalation_rate": 0.0,
+      "escalation_efficacy": 0.0
+    },
+    {
+      "policy": "all_t1",
+      "strict_match_rate": 0.425,
+      "citation_doc_hit_rate": 0.7375,
+      "abstention_accuracy": 0.7875,
+      "avg_gateway_latency_ms": 9748.512637499998,
+      "p50_gateway_latency_ms": 6714.3265,
+      "escalation_rate": 0.0,
+      "escalation_efficacy": 0.0
+    },
+    {
+      "policy": "category_static",
+      "strict_match_rate": 0.3875,
+      "citation_doc_hit_rate": 0.675,
+      "abstention_accuracy": 0.6875,
+      "avg_gateway_latency_ms": 10218.74225,
+      "p50_gateway_latency_ms": 7287.934499999999,
+      "escalation_rate": 0.0,
+      "escalation_efficacy": 0.0
+    },
+    {
+      "policy": "policy_router",
+      "strict_match_rate": 0.475,
+      "citation_doc_hit_rate": 0.75,
+      "abstention_accuracy": 0.7875,
+      "avg_gateway_latency_ms": 11021.115675,
+      "p50_gateway_latency_ms": 8082.0965,
+      "escalation_rate": 0.125,
+      "escalation_efficacy": 0.7
+    }
+  ],
+  "source_manifests": {
+    "T0": "phase11_ollama_qwen3_4b_b_hybrid_61802221d874",
+    "T1": "phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76"
+  },
+  "source_paths": {
+    "T0": "reports/phase11_ollama_qwen3_4b_b_hybrid_61802221d874.json",
+    "T1": "reports/phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76.json"
+  },
+  "source_tool_errors": {
+    "T0": [
+      "gs_005"
+    ],
+    "T1": [
+      "gs_005"
+    ]
+  }
+}

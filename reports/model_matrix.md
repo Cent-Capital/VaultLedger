@@ -2,14 +2,14 @@
 
 Phase 11 gateway/matrix machinery proof. The full six-model bake-off is Phase 17.
 
-Golden set hash: `ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b`  
-Cells: **2** across **2 model(s)**  
+Golden set hash: `b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c`
+Cells: **2** across **2 model(s)**
 Total measured API spend: **$0.000000** (local models are unpriced, not free)
 
 | Model | Variant | N | Strict match | Citation hit | Abstention accuracy | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| `ollama/qwen3:4b` | `B_hybrid` | 12 | 16.7% | 33.3% | 33.3% | 3383 ms | 5785 ms | 22235 / 741 | $0.000000 | `phase11_ollama_qwen3_4b_b_hybrid_28dd82352c14` |
-| `ollama/qwen3:8b` | `B_hybrid` | 12 | 58.3% | 58.3% | 83.3% | 5604 ms | 9453 ms | 22307 / 788 | $0.000000 | `phase11_ollama_qwen3_8b_b_hybrid_f9640c192353` |
+| `ollama/qwen3:4b` | `B_hybrid` | 80 | 40.0% | 56.2% | 57.5% | 8579 ms | 17900 ms | 154736 / 8723 | $0.000000 | `phase11_ollama_qwen3_4b_b_hybrid_61802221d874` |
+| `ollama/qwen3:8b` | `B_hybrid` | 80 | 42.5% | 73.8% | 78.8% | 6602 ms | 13464 ms | 155210 / 7386 | $0.000000 | `phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76` |
 
 ## Reading the result
 
