@@ -1,0 +1,22 @@
+{
+  "run_id": "phase9_judge_97e4cdf16ece",
+  "timestamp": "2026-08-05T03:50:59.675425+00:00",
+  "git_sha": "402415deb1ca64de7536dec261924136484eb349",
+  "config_hash": "78b556984b6cb72525b6520c8644a51d5233d4812622ddeb3dbc95c15412d9b2",
+  "golden_set_hash": "bc4c4eb2433cd9a4713907d7062450b63d89c07ac8a434f16c6117d52f3371bd",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "ollama/qwen3:8b",
+  "metrics": {
+    "judge_tpr": 1.0,
+    "judge_tnr": 1.0,
+    "judge_accuracy": 1.0,
+    "judge_tp": 10.0,
+    "judge_tn": 10.0,
+    "judge_fp": 0.0,
+    "judge_fn": 0.0,
+    "judge_validation_n": 20.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": []
+}

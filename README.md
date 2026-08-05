@@ -16,8 +16,10 @@ account data, and provides document extraction and Q&A, never financial advice.
 ## Track-A status
 
 Phase 10 is the Track-A release candidate (`v0.1.0`). The fresh-checkout
-workflow and `make verify-track-a` passed on July 30, 2026. The phase remains
-open until the real browser walkthrough is recorded. Measured receipts:
+workflow remains partially verified because no clean-virtualenv transcript is
+committed; `make verify-track-a` passed again on August 4, 2026. Phase 10 is
+closed, with the real browser walkthrough committed as the
+[Track-A demo](demo/vaultledger_track_a_v1.gif). Measured receipts:
 
 - Hybrid retrieval raised recall@20 from `0.9587` to `0.9786` and MRR from
   `0.4974` to `0.7856` on the 70 answerable examples in the 80-item golden set.

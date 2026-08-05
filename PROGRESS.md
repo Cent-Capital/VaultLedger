@@ -896,11 +896,12 @@ control proving the alarm actually rings.
 
 ---
 
-## Phase 10 — Track-A polish  (2026-07-30)  — **OPEN**
+## Phase 10 — Track-A polish  (2026-07-30)
 
 Written on review, after the two Phase 10 commits (`7689f79`, `91c41b8`) landed
-without a build-log entry. The phase is deliberately recorded as open: one
-acceptance criterion is not met and is not claimed to be.
+without a build-log entry. The phase closed on 2026-08-04 when the owner-recorded
+browser walkthrough was added; the fresh-machine criterion remains partial and
+is not upgraded without a clean-virtualenv transcript.
 
 **Built**
 - `vaultledger/doctor.py` + `make doctor` — a read-only readiness check over the
@@ -931,7 +932,7 @@ acceptance criterion is not met and is not claimed to be.
   exists.
 - Version bumped `0.0.0` → `0.1.0` (Track-A internship deliverable).
 
-**Acceptance criteria** — one met, one partially met, one not met.
+**Acceptance criteria** — two met, one partially met.
 - *Full regression green:* **met.** Re-verified on review, not taken on trust —
   see Verification below.
 - *Fresh-machine run from README:* **partially met.** The documented path is now
@@ -941,9 +942,12 @@ acceptance criterion is not met and is not claimed to be.
   make ingest`). What is *not* committed is a transcript of an actual
   clone-to-`make run` walkthrough in a clean virtualenv. The repo-side work is
   done; the end-to-end proof is not on file.
-- *Demo recorded:* **not met.** `demo/README.md` states plainly that the
-  artifact does not exist until a real browser walkthrough is recorded, and the
-  README says the phase stays open until then. No demo is claimed.
+- *Demo recorded:* **met.** `demo/vaultledger_track_a_v1.gif` shows corpus and
+  index health, the grounded `$4,207.55` local answer with citation and trace,
+  a credit-score abstention, the Track-A eval receipts, and the Phase-11
+  boundary; about 2 seconds of the credit-score query's roughly 9-second spinner
+  are shown at 4× speed, while the rest is continuous real time and the
+  on-screen trace latency is unaltered.
 
 **Deviations from SPEC**
 - SPEC 16 scopes Phase 10 as "README, demo v1, internship report draft."
@@ -955,10 +959,30 @@ acceptance criterion is not met and is not claimed to be.
   rule — compiler/harness output here, recruiter/lead output in PM-OS — it
   belongs in `~/Desktop/PM-OS`. It remains outstanding.
 
-**Verification** (measured on review, 2026-07-30)
-- `make verify-track-a` — **exit 0**, 2m13s wall clock, all four stages green:
+**Findings from live use (2026-08-04)**
+- Under-specified questions behave inconsistently. “What was the pay stub's net
+  pay?” returned `2,525.39` at confidence `0.50` while citing six different pay
+  stubs; “What was the invoice total?” abstained at confidence `0.00`; and
+  “Summarize the March statement” summarized all three people. The harness does
+  not measure this.
+- Streamlit renders `$...$` as LaTeX, swallowing text between two dollar signs
+  and corrupting displayed currency. This was visible in the March-statement
+  summary. It is a presentation issue only; the underlying answer and citations
+  were correct.
+- Currency output format is unspecified: `$24,500`, `$24,500.00`, and “5,403
+  dollars and 97 cents” all occur. This is deliberately a generation/display
+  concern, not a judge concern; `rubric_v1` says formatting differences do not
+  matter.
+- One `make run` process intermittently exited with signal 11 after the server
+  was already serving. There was no Python traceback, no crash report was
+  captured, and it did not reproduce on restart. Cause unknown.
+
+**Verification** (measured on close, 2026-08-04)
+- `make verify-track-a` — **exit 0**, 140.58s (2m20.58s) wall clock, all four
+  stages green:
   - ruff clean; `85 passed`
-  - safety: 10 rightly abstained, 0 wrongly abstained, `injection_pass_rate 1.0`
+  - safety: 1 answered right, 0 answered wrong, 10 rightly abstained, 0 wrongly
+    abstained, `injection_pass_rate 1.0`
   - judge: `judge_tpr 1.0`, `judge_tnr 1.0`
   - regression: `passed: true`
 - `make doctor` on the development machine: 7/7 checks pass.
@@ -966,8 +990,9 @@ acceptance criterion is not met and is not claimed to be.
   checks with the right remedies, and creates nothing.
 
 **Honest boundaries**
-- The phase is open. Two Phase 10 commits exist, but the demo — an explicit AC
-  — has not been recorded.
+- Phase 10 is closed because the demo and full-regression criteria are met; the
+  fresh-machine criterion remains explicitly partial because no clean-virtualenv
+  transcript is committed.
 - The gate result above is a re-run on the development machine. It is not
   evidence that a clean virtualenv install succeeds from scratch; nobody has
   committed that transcript.
@@ -979,9 +1004,10 @@ acceptance criterion is not met and is not claimed to be.
   worse, and adjudication does not make the set harder; no Langfuse span has ever
   reached a Langfuse project; hosted token counts and cost are estimates, and zero
   provider rates mean unpriced, not free.
-- The demo script is committed but untested against a live run. If the model
-  abstains or emits an unverifiable citation during recording, that outcome is
-  to be kept visible as a reliability finding, not re-rolled away.
+- The demo is a live browser walkthrough, not an eval artifact. It keeps the
+  credit-score abstention visible and uses the committed RunManifest-backed
+  receipts for its measured claims; it is not described as unedited because the
+  disclosed spinner segment is speed-ramped.
 
 **Trickiest piece (plain English)**
 The obvious way to pass "a fresh machine works" is to write better setup
@@ -996,7 +1022,6 @@ fail. The general habit: when a criterion is about the world rather than the
 code, find the smallest executable thing that observes the world, because a
 claim nobody can re-run is indistinguishable from a claim nobody checked.
 
-**Next:** close Phase 10 (record the demo; optionally commit a clean-virtualenv
-transcript), then the owner's judge-label review, then Phase 11 — model gateway
-and benchmark matrix, where `kimi-k2.6` and `glm-5.2` get real rates and a
-measured comparison.
+**Next:** the internship report draft remains outstanding in `~/Desktop/PM-OS`.
+Phase 11 begins with an ADR for the model lineup/config contradiction, then the
+model gateway and benchmark matrix; no Phase 11 work is started here.
