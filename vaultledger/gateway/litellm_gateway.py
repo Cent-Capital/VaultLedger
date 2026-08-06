@@ -117,12 +117,17 @@ class LiteLLMGenerator:
         )
 
     def generate_json(
-        self, prompt: str, schema: dict, *, temperature: float = 0.0
+        self,
+        prompt: str,
+        schema: dict,
+        *,
+        temperature: float = 0.0,
+        max_tokens: int | None = None,
     ) -> str:
         completion_fn, cost_fn = self._functions()
         started = perf_counter()
         try:
-            response = completion_fn(
+            request = dict(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 api_base=self.base_url,
@@ -142,6 +147,9 @@ class LiteLLMGenerator:
                     },
                 },
             )
+            if max_tokens is not None:
+                request["max_tokens"] = max_tokens
+            response = completion_fn(**request)
         except Exception as exc:
             # LiteLLM exposes provider-specific exception classes.  The gateway
             # deliberately translates all of them into the product's stable

@@ -154,7 +154,17 @@ with library:
 
 with ask:
     st.header("Ask your documents")
-    st.caption("Variant B · dense + BM25 → reciprocal-rank fusion → local reranker")
+    answer_variant = st.segmented_control(
+        "Retrieval mode",
+        options=["B_hybrid", "D_agentic"],
+        default="B_hybrid",
+        help="Variant D adds bounded SQL/calculator/retrieval planning for multi-hop math.",
+    )
+    st.caption(
+        "Variant B · hybrid retrieval + rerank"
+        if answer_variant == "B_hybrid"
+        else "Variant D · bounded agent loop + read-only SQL + verified citations"
+    )
     st.success("Privacy mode: Local · paid hosted tiers retired by ADR-0003")
     sample = st.selectbox(
         "Measured examples",
@@ -189,7 +199,7 @@ with ask:
         from vaultledger.guardrails import GuardrailToggles
         from vaultledger.index.embed import OllamaEmbedder
         from vaultledger.observability import TraceStore
-        from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever
+        from vaultledger.retrieve import AgenticRetriever, CrossEncoderReranker, HybridRetriever
         from vaultledger.route import answer_with_privacy
 
         try:
@@ -205,12 +215,17 @@ with ask:
                     if cfg.reranker.enabled
                     else None
                 )
-                retriever = HybridRetriever(
+                hybrid = HybridRetriever(
                     index_dir,
                     embedder,
                     candidate_k=cfg.retrieval.candidate_k,
                     rank_constant=cfg.retrieval.rrf_constant,
                     reranker=reranker,
+                )
+                retriever = (
+                    AgenticRetriever(hybrid, db_path)
+                    if answer_variant == "D_agentic"
+                    else hybrid
                 )
                 generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
                 if not generator.is_available():
@@ -230,6 +245,9 @@ with ask:
                             guardrail_toggles=GuardrailToggles.from_config(cfg.guardrails),
                             records_db=db_path,
                             numeric_epsilon=cfg.thresholds.numeric_epsilon,
+                            agent_steps_max=cfg.loops.agent_steps_max,
+                            agent_tokens_max=cfg.loops.agent_tokens_max,
+                            agent_output_tokens_max=cfg.loops.agent_output_tokens_max,
                         )
                     answer = routed.answer
                     if routed.notice:
@@ -258,6 +276,16 @@ with ask:
                         with st.expander(f"Reliability events ({len(answer.guardrail_events)})"):
                             for ev in answer.guardrail_events:
                                 st.caption(f"[{ev.guard}/{ev.action}] {ev.details}")
+                    if answer.agent_steps:
+                        with st.expander(f"Agent trace ({len(answer.agent_steps)} steps)"):
+                            for step in answer.agent_steps:
+                                status = f"failed: {step.failure}" if step.failure else "ok"
+                                st.markdown(
+                                    f"**{step.step}. `{step.tool}` · {status} · "
+                                    f"{step.tokens_used} traced tokens**"
+                                )
+                                st.code(step.input or "(no input)")
+                                st.caption(step.output_summary)
                     st.caption(
                         f"model={answer.model_used} · tier={answer.tier} · "
                         f"variant={answer.variant} · confidence={answer.confidence:.2f}"

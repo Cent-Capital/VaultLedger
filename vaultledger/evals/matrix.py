@@ -17,10 +17,15 @@ from uuid import uuid4
 from vaultledger.config import CONFIG_PATH, Config, load_config
 from vaultledger.evals.golden import golden_hash, load_golden_set
 from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
-from vaultledger.generate import answer_question_reliable
+from vaultledger.generate import answer_question_agentic, answer_question_reliable
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
-from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever, NaiveDenseRetriever
+from vaultledger.retrieve import (
+    AgenticRetriever,
+    CrossEncoderReranker,
+    HybridRetriever,
+    NaiveDenseRetriever,
+)
 from vaultledger.schemas import Answer, QAExample, RoutingDecision, RunManifest
 
 _AMOUNT = re.compile(r"\$\s*\d[\d,]*(?:\.\d{2})?")
@@ -178,7 +183,7 @@ def _percentile(values: list[float], percentile: float) -> float:
 def _required_inputs(cfg: Config, variants: list[str]) -> None:
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     required = [index_dir / "chunks.jsonl", index_dir / "chroma", index_dir / "records.db"]
-    if "B_hybrid" in variants:
+    if {"B_hybrid", "D_agentic"} & set(variants):
         required.append(index_dir / "bm25.json")
     missing = [str(path) for path in required if not path.exists()]
     if missing:
@@ -189,10 +194,11 @@ def _required_inputs(cfg: Config, variants: list[str]) -> None:
 
 
 def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
-    unsupported = sorted(set(variants) - {"A_naive", "B_hybrid"})
+    unsupported = sorted(set(variants) - {"A_naive", "B_hybrid", "D_agentic"})
     if unsupported:
         raise ValueError(
-            f"variants not built yet: {', '.join(unsupported)}; Phase 11 supports A_naive/B_hybrid"
+            f"variants not built yet: {', '.join(unsupported)}; "
+            "built variants are A_naive/B_hybrid/D_agentic"
         )
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
@@ -204,19 +210,26 @@ def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
     built: dict[str, object] = {}
     if "A_naive" in variants:
         built["A_naive"] = NaiveDenseRetriever(index_dir, embedder)
-    if "B_hybrid" in variants:
+    if {"B_hybrid", "D_agentic"} & set(variants):
         reranker = (
             CrossEncoderReranker(cfg.reranker.model, cfg.reranker.batch_size)
             if cfg.reranker.enabled
             else None
         )
-        built["B_hybrid"] = HybridRetriever(
+        hybrid = HybridRetriever(
             index_dir,
             embedder,
             candidate_k=cfg.retrieval.candidate_k,
             rank_constant=cfg.retrieval.rrf_constant,
             reranker=reranker,
         )
+        if "B_hybrid" in variants:
+            built["B_hybrid"] = hybrid
+        if "D_agentic" in variants:
+            built["D_agentic"] = AgenticRetriever(
+                hybrid,
+                index_dir / "records.db",
+            )
     return built
 
 
@@ -298,7 +311,7 @@ def _cell_metrics(
         for row in completed
         for status in row["gateway"].get("pricing_statuses", [])
     ]
-    return {
+    metrics = {
         "matrix_examples": float(n),
         "generation_eval_coverage": len(completed) / n if n else 0.0,
         **{key: _rate(completed, field, n) for key, field in _RATES},
@@ -328,6 +341,35 @@ def _cell_metrics(
             and all(status == "unpriced" for status in pricing_statuses)
         ),
     }
+    agent_rows = [
+        row
+        for row in completed
+        if row.get("answer", {}).get("variant") == "D_agentic"
+    ]
+    if agent_rows:
+        step_counts = [len(row["answer"]["agent_steps"]) for row in agent_rows]
+        token_counts = [
+            sum(int(step["tokens_used"]) for step in row["answer"]["agent_steps"])
+            for row in agent_rows
+        ]
+        metrics.update(
+            {
+                "agent_trace_coverage_rate": _rate(
+                    agent_rows, "agent_trace_complete", n
+                ),
+                "agent_step_budget_compliance_rate": _rate(
+                    agent_rows, "agent_steps_within_budget", n
+                ),
+                "agent_token_budget_compliance_rate": _rate(
+                    agent_rows, "agent_tokens_within_budget", n
+                ),
+                "agent_exhaustion_rate": _rate(agent_rows, "agent_exhausted", n),
+                "agent_average_steps": sum(step_counts) / len(step_counts),
+                "agent_max_steps": float(max(step_counts, default=0)),
+                "agent_average_trace_tokens": sum(token_counts) / len(token_counts),
+            }
+        )
+    return metrics
 
 
 def _totals_from_rows(rows: list[dict]) -> GatewayTotals:
@@ -397,20 +439,37 @@ def _run_cell(
             actual_cost_usd=0.0,
         )
         try:
-            answer = answer_question_reliable(
-                example.question,
-                retriever,  # type: ignore[arg-type]
-                generator,
-                model_id=model,
-                k=cfg.retrieval.answer_top_n,
-                max_retries=cfg.loops.repair_max,
-                min_snippet_chars=cfg.generation.min_snippet_chars,
-                routing=routing,
-                reorder_context=cfg.generation.litm_reorder,
-                guardrail_toggles=guardrail_toggles,
-                records_db=records_db,
-                numeric_epsilon=cfg.thresholds.numeric_epsilon,
-            )
+            if variant == "D_agentic":
+                answer = answer_question_agentic(
+                    example.question,
+                    retriever,  # type: ignore[arg-type]
+                    generator,
+                    model_id=model,
+                    max_steps=cfg.loops.agent_steps_max,
+                    token_budget=cfg.loops.agent_tokens_max,
+                    output_tokens_max=cfg.loops.agent_output_tokens_max,
+                    k=cfg.retrieval.answer_top_n,
+                    min_snippet_chars=cfg.generation.min_snippet_chars,
+                    routing=routing,
+                    guardrail_toggles=guardrail_toggles,
+                    records_db=records_db,
+                    numeric_epsilon=cfg.thresholds.numeric_epsilon,
+                )
+            else:
+                answer = answer_question_reliable(
+                    example.question,
+                    retriever,  # type: ignore[arg-type]
+                    generator,
+                    model_id=model,
+                    k=cfg.retrieval.answer_top_n,
+                    max_retries=cfg.loops.repair_max,
+                    min_snippet_chars=cfg.generation.min_snippet_chars,
+                    routing=routing,
+                    reorder_context=cfg.generation.litm_reorder,
+                    guardrail_toggles=guardrail_toggles,
+                    records_db=records_db,
+                    numeric_epsilon=cfg.thresholds.numeric_epsilon,
+                )
         except Exception as exc:
             failure = {
                 "example_id": example.id,
@@ -444,7 +503,16 @@ def _run_cell(
         citation_hit = scores["citation_doc_hit"]
         abstention_correct = scores["abstention_correct"]
         failure = None
-        if not abstention_correct:
+        agent_budget_exhausted = any(
+            event.guard == "agent_budget" for event in answer.guardrail_events
+        )
+        if agent_budget_exhausted:
+            failure = {
+                "example_id": example.id,
+                "taxonomy_code": "TOOL_ERR",
+                "note": "agent exhausted a configured budget and safely abstained",
+            }
+        elif not abstention_correct:
             failure = {
                 "example_id": example.id,
                 "taxonomy_code": "ABSTAIN_FP" if answer.abstained else "ABSTAIN_FN",
@@ -466,6 +534,20 @@ def _run_cell(
                 "taxonomy_code": "CITE_FAIL",
                 "note": "no cited document matched the golden expected documents",
             }
+        agent_metrics: dict[str, bool] = {}
+        if answer.variant == "D_agentic":
+            steps = answer.agent_steps
+            agent_metrics = {
+                "agent_trace_complete": (
+                    [step.step for step in steps] == list(range(1, len(steps) + 1))
+                    and all(step.output_summary.strip() for step in steps)
+                ),
+                "agent_steps_within_budget": len(steps) <= cfg.loops.agent_steps_max,
+                "agent_tokens_within_budget": (
+                    sum(step.tokens_used for step in steps) <= cfg.loops.agent_tokens_max
+                ),
+                "agent_exhausted": agent_budget_exhausted,
+            }
         rows.append(
             {
                 "example_id": example.id,
@@ -482,6 +564,7 @@ def _run_cell(
                     "pricing_statuses": [call.pricing_status for call in gateway_calls],
                 },
                 "answer": answer.model_dump(),
+                **agent_metrics,
                 "failure": failure,
             }
         )
@@ -607,6 +690,35 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                     f"{metric[f'citation_doc_hit_rate__{category}']:.1%} | "
                     f"{metric[f'abstention_accuracy__{category}']:.1%} |"
                 )
+    agent_manifests = [
+        manifest
+        for manifest in manifests
+        if "agent_trace_coverage_rate" in manifest.metrics
+    ]
+    if agent_manifests:
+        lines.extend(
+            [
+                "",
+                "## Agent-loop controls",
+                "",
+                "Compliance is computed from the complete `AgentStep` arrays stored in each "
+                "answer receipt. Failed matrix rows remain misses in every rate denominator.",
+                "",
+                "| Model | Trace coverage | Step budget | Token budget | Exhausted | "
+                "Average / max steps | Average traced tokens |",
+                "|---|---:|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for manifest in sorted(agent_manifests, key=lambda item: item.model):
+            metric = manifest.metrics
+            lines.append(
+                f"| `{manifest.model}` | {metric['agent_trace_coverage_rate']:.1%} | "
+                f"{metric['agent_step_budget_compliance_rate']:.1%} | "
+                f"{metric['agent_token_budget_compliance_rate']:.1%} | "
+                f"{metric['agent_exhaustion_rate']:.1%} | "
+                f"{metric['agent_average_steps']:.2f} / {metric['agent_max_steps']:.0f} | "
+                f"{metric['agent_average_trace_tokens']:.0f} |"
+            )
     lines.extend(
         [
             "",
@@ -779,7 +891,15 @@ def run_matrix(args: Namespace) -> int:
         raise ValueError("matrix variants must be unique")
     _required_inputs(cfg, variants)
     golden = load_golden_set(args.golden)
-    examples = golden.examples[:limit] if limit else golden.examples
+    categories = set(getattr(args, "categories", None) or [])
+    population = [
+        example
+        for example in golden.examples
+        if not categories or example.category in categories
+    ]
+    examples = population[:limit] if limit else population
+    if not examples:
+        raise ValueError("matrix selection contains no golden examples")
     retrievers = _retrievers(cfg, variants)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)

@@ -32,7 +32,12 @@ class OllamaGenerator:
         return self._generate(prompt, temperature=temperature)
 
     def generate_json(
-        self, prompt: str, schema: dict, *, temperature: float = 0.0
+        self,
+        prompt: str,
+        schema: dict,
+        *,
+        temperature: float = 0.0,
+        max_tokens: int | None = None,
     ) -> str:
         """Generate with Ollama's constrained JSON decoding (``format`` = schema).
 
@@ -41,10 +46,17 @@ class OllamaGenerator:
         The output is still validated and repaired upstream — constrained
         decoding narrows failures, it does not eliminate them.
         """
-        return self._generate(prompt, temperature=temperature, fmt=schema)
+        return self._generate(
+            prompt, temperature=temperature, fmt=schema, max_tokens=max_tokens
+        )
 
     def _generate(
-        self, prompt: str, *, temperature: float = 0.0, fmt: dict | None = None
+        self,
+        prompt: str,
+        *,
+        temperature: float = 0.0,
+        fmt: dict | None = None,
+        max_tokens: int | None = None,
     ) -> str:
         payload: dict = {
             "model": self.model,
@@ -54,6 +66,8 @@ class OllamaGenerator:
         }
         if fmt is not None:
             payload["format"] = fmt
+        if max_tokens is not None:
+            payload["options"]["num_predict"] = max_tokens
         try:
             resp = requests.post(
                 f"{self.base_url}/api/generate", json=payload, timeout=180

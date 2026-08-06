@@ -33,10 +33,20 @@ from vaultledger.evals.regression import (
     load_baseline,
     write_report,
 )
-from vaultledger.generate import OllamaGenerator, answer_question_reliable
+from vaultledger.generate import (
+    OllamaGenerator,
+    answer_question_agentic,
+    answer_question_reliable,
+)
+from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import load_chunks
-from vaultledger.retrieve import CrossEncoderReranker, HybridRetriever, NaiveDenseRetriever
+from vaultledger.retrieve import (
+    AgenticRetriever,
+    CrossEncoderReranker,
+    HybridRetriever,
+    NaiveDenseRetriever,
+)
 from vaultledger.schemas import RunManifest
 
 
@@ -59,7 +69,7 @@ def _chunks_by_doc(index_dir: Path) -> dict[str, str]:
 def _ensure_inputs(cfg: Config, variant: str = "A_naive") -> None:
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     required = [index_dir / "chunks.jsonl", index_dir / "chroma", index_dir / "records.db"]
-    if variant == "B_hybrid":
+    if variant in {"B_hybrid", "D_agentic"}:
         required.append(index_dir / "bm25.json")
     missing = [str(p) for p in required if not p.exists()]
     if missing:
@@ -217,7 +227,11 @@ def run_eval(args: argparse.Namespace) -> int:
 def run_safety_eval(args: argparse.Namespace) -> int:
     """Run the Phase 7 live local-model gate and write a traceable manifest."""
     cfg = load_config()
-    _ensure_inputs(cfg, "B_hybrid")
+    variant = getattr(args, "variant", "B_hybrid")
+    guards_on = getattr(args, "guardrails", "off") == "on"
+    if variant == "D_agentic" and not guards_on:
+        raise ValueError("Phase 14 safety evidence requires --guardrails on")
+    _ensure_inputs(cfg, variant)
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     golden = load_golden_set(args.golden)
     selected = [
@@ -235,28 +249,53 @@ def run_safety_eval(args: argparse.Namespace) -> int:
         if cfg.reranker.enabled
         else None
     )
-    retriever = HybridRetriever(
+    hybrid = HybridRetriever(
         index_dir,
         embedder,
         candidate_k=cfg.retrieval.candidate_k,
         rank_constant=cfg.retrieval.rrf_constant,
         reranker=reranker,
     )
+    retriever = (
+        AgenticRetriever(hybrid, index_dir / "records.db")
+        if variant == "D_agentic"
+        else hybrid
+    )
+    toggles = GuardrailToggles.from_config(cfg.guardrails) if guards_on else None
 
     outcomes: dict[str, tuple[bool, bool]] = {}
     answer_rows: list[dict] = []
     injection_passes = 0
     for ex in selected:
-        answer = answer_question_reliable(
-            ex.question,
-            retriever,
-            generator,
-            model_id=cfg.models.T1.id,
-            k=cfg.retrieval.answer_top_n,
-            max_retries=cfg.loops.repair_max,
-            min_snippet_chars=cfg.generation.min_snippet_chars,
-            reorder_context=cfg.generation.litm_reorder,
-        )
+        if variant == "D_agentic":
+            answer = answer_question_agentic(
+                ex.question,
+                retriever,  # type: ignore[arg-type]
+                generator,
+                model_id=cfg.models.T1.id,
+                max_steps=cfg.loops.agent_steps_max,
+                token_budget=cfg.loops.agent_tokens_max,
+                output_tokens_max=cfg.loops.agent_output_tokens_max,
+                k=cfg.retrieval.answer_top_n,
+                min_snippet_chars=cfg.generation.min_snippet_chars,
+                guardrail_toggles=toggles,
+                records_db=index_dir / "records.db",
+                numeric_epsilon=cfg.thresholds.numeric_epsilon,
+            )
+        else:
+            answer = answer_question_reliable(
+                ex.question,
+                retriever,
+                generator,
+                model_id=cfg.models.T1.id,
+                k=cfg.retrieval.answer_top_n,
+                max_retries=cfg.loops.repair_max,
+                min_snippet_chars=cfg.generation.min_snippet_chars,
+                reorder_context=cfg.generation.litm_reorder,
+                guardrail_toggles=toggles,
+                records_db=index_dir / "records.db" if guards_on else None,
+                numeric_epsilon=cfg.thresholds.numeric_epsilon,
+            )
         if ex.category == "unanswerable":
             correct = answer.abstained
         else:
@@ -280,14 +319,40 @@ def run_safety_eval(args: argparse.Namespace) -> int:
 
     metrics, failures = abstention_confusion(selected, outcomes)
     metrics["injection_pass_rate"] = float(injection_passes)
+    metrics["guardrails_enabled"] = float(guards_on)
+    if variant == "D_agentic":
+        answers = [row["answer"] for row in answer_rows]
+        metrics.update(
+            {
+                "agent_trace_coverage_rate": sum(
+                    [step["step"] for step in answer["agent_steps"]]
+                    == list(range(1, len(answer["agent_steps"]) + 1))
+                    and all(step["output_summary"] for step in answer["agent_steps"])
+                    for answer in answers
+                )
+                / len(answers),
+                "agent_step_budget_compliance_rate": sum(
+                    len(answer["agent_steps"]) <= cfg.loops.agent_steps_max
+                    for answer in answers
+                )
+                / len(answers),
+                "agent_token_budget_compliance_rate": sum(
+                    sum(step["tokens_used"] for step in answer["agent_steps"])
+                    <= cfg.loops.agent_tokens_max
+                    for answer in answers
+                )
+                / len(answers),
+            }
+        )
+    run_prefix = "phase14_safety" if variant == "D_agentic" else "phase7"
     manifest = RunManifest(
-        run_id=f"phase7_{uuid4().hex[:12]}",
+        run_id=f"{run_prefix}_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
         git_sha=_git_sha(),
         config_hash=_config_hash(),
         golden_set_hash=golden_hash(args.golden),
         seed=cfg.seed,
-        variant="B_hybrid",
+        variant=variant,
         model=cfg.models.T1.id,
         metrics=metrics,
         total_cost_usd=0.0,
@@ -297,7 +362,7 @@ def run_safety_eval(args: argparse.Namespace) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = out_dir / f"{manifest.run_id}.json"
     answers_path = out_dir / f"{manifest.run_id}_answers.json"
-    latest_path = out_dir / "phase7_latest.json"
+    latest_path = out_dir / f"{run_prefix}_latest.json"
     manifest_json = manifest.model_dump_json(indent=2) + "\n"
     manifest_path.write_text(manifest_json)
     latest_path.write_text(manifest_json)
@@ -492,6 +557,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     safety.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
     safety.add_argument("--out-dir", default="reports")
+    safety.add_argument(
+        "--variant", choices=["B_hybrid", "D_agentic"], default="B_hybrid"
+    )
+    safety.add_argument(
+        "--guardrails", choices=["off", "on"], default="off"
+    )
     safety.set_defaults(func=run_safety_eval)
 
     judge = sub.add_parser(
@@ -518,7 +589,26 @@ def build_parser() -> argparse.ArgumentParser:
     matrix.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
     matrix.add_argument("--models", nargs="+", default=None)
     matrix.add_argument(
-        "--variants", nargs="+", choices=["A_naive", "B_hybrid"], default=None
+        "--variants",
+        nargs="+",
+        choices=["A_naive", "B_hybrid", "D_agentic"],
+        default=None,
+    )
+    matrix.add_argument(
+        "--categories",
+        nargs="+",
+        choices=[
+            "single_doc",
+            "aggregation",
+            "unanswerable",
+            "adversarial",
+            "multi_hop",
+            "global_summary",
+            "guardrail_benign",
+            "cross_persona",
+        ],
+        default=None,
+        help="Restrict the cell to named golden categories before applying --limit",
     )
     matrix.add_argument(
         "--limit",

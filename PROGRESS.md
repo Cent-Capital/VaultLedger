@@ -1642,3 +1642,58 @@ something. The Phase 6 socket-blocking test is intact and real.
 `proposed` and needs owner acceptance first. Its two prerequisites (per-category
 metrics, a defined numeric-exact-match metric or a restated AC) come before the
 loop.
+
+---
+
+## Phase 14 opened — bounded Variant D vertical slice  (2026-08-06)
+
+Phase 14 is **in progress, not closed**. ADR-0006 was accepted and both measurement
+prerequisites were complete before this code started. This opening change builds
+the first end-to-end Variant-D slice:
+
+- `AgentStep.failure` implements the accepted contract amendment before any
+  Phase-14 artifact is committed. Tool failure is now queryable data rather than
+  prose hidden in `output_summary`.
+- The hand-written L4 loop is a `for` over `loops.agent_steps_max`, with a separate
+  traced-token budget and per-call output cap in `config.yaml`. Every selected tool
+  is appended before dispatch. Tool and planner failures consume a step, retain a
+  partial trace, and may recover; either budget exhausting returns the fixed honest
+  abstention rather than a guess.
+- The four tools are live: Variant-B retrieval, Decimal-backed arithmetic over a
+  restricted AST, read-only SQLite, and finish. SQLite accepts one `SELECT`, opens
+  `records.db` in read-only mode, applies table and function allowlists through the
+  SQLite authorizer, supports bound parameters, caps result rows, and carries
+  `doc_id` provenance into source chunks so SQL-derived figures can still receive
+  verbatim verified citations.
+- Variant D is selectable in the model matrix and the product Ask screen. Matrix
+  receipts now measure trace coverage, step-budget compliance, token-budget
+  compliance, exhaustion rate, and step/token counts. `--categories` permits the
+  Phase-14 target population to be selected before `--limit`. The Ask screen shows
+  the complete step trace, including structural failures.
+- The Phase-7 safety runner now accepts `--variant D_agentic --guardrails on` and
+  refuses to run D with the guards silently off. This closes the vacuous-eval path
+  found in the Phase-13 review, but the live 11-item rerun has **not happened yet**.
+
+**Development smoke evidence — not acceptance evidence.** Two guards-on, one-row
+`qwen3:8b` matrix runs were written only under `/tmp` from this dirty working tree.
+After the first run exposed stale conceptual SQL column names and a too-strict
+finish parser, the corrected aggregation smoke (`ag_001`) passed strict match,
+numeric exact-match, citation hit, and abstention correctness in 2/6 steps. The
+corrected multi-hop smoke (`mh_001`) passed the same four checks in 3/6 steps after
+recording and recovering from an ambiguous-column SQL failure. Both stayed within
+the traced-token budget. These two rows prove plumbing, not the claimed margin:
+the target population is 26 rows and the comparison must use committed manifests
+from a clean SHA.
+
+**Deterministic verification:** Ruff clean; `130 passed, 1 skipped`. The new tests
+cover calculator code-execution attempts, SQL writes/stacking/comments/system-table
+reads/extension loading, parameter binding, provenance, recoverable planner and
+tool failures, both budgets, honest exhaustion, citation verification, the CLI
+surface, and the amended schema.
+
+**Still required before Phase 14 can close:** run the complete aggregation and
+multi-hop population for Variant D against the same model's Variant-B numeric
+baseline; state the measured margins (including a null result if that is what the
+run shows); run the 11-item Phase-7 safety suite with D and all Phase-13 guards
+active; regenerate durable reports/manifests from a clean commit; and delete the
+kickoff brief only after every acceptance criterion passes.

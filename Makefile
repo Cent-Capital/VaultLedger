@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval replay run clean
+.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway]"
@@ -53,6 +53,12 @@ router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontie
 
 guardrails-eval:  ## Phase 13 deterministic named-guard acceptance report
 	$(PYTHON) -m vaultledger.evals guardrails-eval
+
+agentic-eval:  ## Phase 14 full target-category matrix, guards on
+	$(PYTHON) -m vaultledger.evals matrix --variants D_agentic --categories aggregation multi_hop --limit 0 --guardrails on
+
+agentic-safety:  ## Phase 14 live Phase-7 suite rerun, Variant D + guards on
+	$(PYTHON) -m vaultledger.evals safety --variant D_agentic --guardrails on
 
 replay:  ## Not built: Phase 8 declined raw-input replay on privacy grounds
 	@echo "replay: deliberately NOT built. Phase 8 declined it because persisting raw"

@@ -33,7 +33,9 @@ class Loops(BaseModel):
     repair_max: int
     retrieval_retry_max: int
     escalations_max: int
-    agent_steps_max: int
+    agent_steps_max: int = Field(ge=1)
+    agent_tokens_max: int = Field(ge=1)
+    agent_output_tokens_max: int = Field(ge=1)
 
 
 class Thresholds(BaseModel):

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
+from vaultledger.generate.agentic import answer_question_agentic
 from vaultledger.generate.ollama import GenerationError
 from vaultledger.generate.reliable import StructuredGenerator, answer_question_reliable
 from vaultledger.guardrails import GuardrailToggles
@@ -16,7 +17,7 @@ from vaultledger.observability import (
     TraceStore,
     export_to_langfuse,
 )
-from vaultledger.retrieve import Retriever
+from vaultledger.retrieve import AgenticRetriever, Retriever
 from vaultledger.schemas import Answer, GuardrailEvent, RoutingDecision
 
 PrivacyMode = Literal["local", "cloud"]
@@ -88,6 +89,9 @@ def answer_with_privacy(
     guardrail_toggles: GuardrailToggles | None = None,
     records_db: str | Path | None = None,
     numeric_epsilon: float = 0.01,
+    agent_steps_max: int = 6,
+    agent_tokens_max: int = 8192,
+    agent_output_tokens_max: int = 768,
 ) -> RoutedAnswer:
     """Route one query without touching the cloud on the local branch."""
     recorder = TraceRecorder(
@@ -115,21 +119,51 @@ def answer_with_privacy(
             export_to_langfuse(trace)
         return RoutedAnswer(answer, degraded=degraded, notice=notice, trace=trace)
 
-    common = {
-        "k": k,
-        "max_retries": max_retries,
-        "min_snippet_chars": min_snippet_chars,
-        "trace_recorder": recorder,
-        "guardrail_toggles": guardrail_toggles,
-        "records_db": records_db,
-        "numeric_epsilon": numeric_epsilon,
-    }
-    if mode == "local":
-        answer = answer_question_reliable(
-            question, retriever, local_generator, model_id=local_model,
-            routing=_decision(local_model, "local"), **common,
+    def answer(
+        generator: StructuredGenerator,
+        *,
+        model: str,
+        routing: RoutingDecision,
+        answer_mode: PrivacyMode = "local",
+        left_machine: bool = False,
+    ) -> Answer:
+        shared = {
+            "model_id": model,
+            "k": k,
+            "min_snippet_chars": min_snippet_chars,
+            "routing": routing,
+            "privacy_mode": answer_mode,
+            "data_left_machine": left_machine,
+            "trace_recorder": recorder,
+            "guardrail_toggles": guardrail_toggles,
+            "records_db": records_db,
+            "numeric_epsilon": numeric_epsilon,
+        }
+        if isinstance(retriever, AgenticRetriever):
+            return answer_question_agentic(
+                question,
+                retriever,
+                generator,  # type: ignore[arg-type]
+                max_steps=agent_steps_max,
+                token_budget=agent_tokens_max,
+                output_tokens_max=agent_output_tokens_max,
+                **shared,
+            )
+        return answer_question_reliable(
+            question,
+            retriever,
+            generator,
+            max_retries=max_retries,
+            **shared,
         )
-        return _result(answer)
+
+    if mode == "local":
+        local_answer = answer(
+            local_generator,
+            model=local_model,
+            routing=_decision(local_model, "local"),
+        )
+        return _result(local_answer)
 
     if not cloud_consent:
         raise CloudConsentRequired("Confirm cloud use for this session before asking.")
@@ -137,11 +171,12 @@ def answer_with_privacy(
     if cloud_generator is None or not cloud_model:
         recorder.trace.error = "cloud unavailable before egress"
         decision = _decision(local_model, "local", degraded=True)
-        answer = answer_question_reliable(
-            question, retriever, local_generator, model_id=local_model,
-            routing=decision, **common,
+        local_answer = answer(
+            local_generator,
+            model=local_model,
+            routing=decision,
         )
-        answer.guardrail_events.insert(
+        local_answer.guardrail_events.insert(
             0,
             GuardrailEvent(
                 stage="egress",
@@ -151,18 +186,20 @@ def answer_with_privacy(
             ),
         )
         return _result(
-            answer,
+            local_answer,
             degraded=True,
             notice="Cloud unavailable — answered locally",
         )
 
     try:
-        answer = answer_question_reliable(
-            question, retriever, cloud_generator, model_id=cloud_model,
+        cloud_answer = answer(
+            cloud_generator,
+            model=cloud_model,
             routing=_decision(cloud_model, "cloud"),
-            privacy_mode="cloud", data_left_machine=True, **common,
+            answer_mode="cloud",
+            left_machine=True,
         )
-        return _result(answer)
+        return _result(cloud_answer)
     except GenerationError as exc:
         # The cloud generator was invoked with the assembled prompt. Be
         # conservative: a timeout, HTTP error, or malformed response can occur
@@ -172,14 +209,14 @@ def answer_with_privacy(
         decision = _decision(
             local_model, "local", degraded=True, cloud_attempted=True
         )
-        answer = answer_question_reliable(
-            question, retriever, local_generator, model_id=local_model,
+        local_answer = answer(
+            local_generator,
+            model=local_model,
             routing=decision,
-            privacy_mode="cloud",
-            data_left_machine=True,
-            **common,
+            answer_mode="cloud",
+            left_machine=True,
         )
-        answer.guardrail_events.insert(
+        local_answer.guardrail_events.insert(
             0,
             GuardrailEvent(
                 stage="egress",
@@ -189,7 +226,7 @@ def answer_with_privacy(
             ),
         )
         return _result(
-            answer,
+            local_answer,
             degraded=True,
             notice="Cloud request failed — answered locally; data may have left your machine",
         )

@@ -124,6 +124,8 @@ def test_config_loads_expected_values():
     assert cfg.seed == 42
     assert cfg.budgets.project_usd == 40.00
     assert cfg.loops.agent_steps_max == 6
+    assert cfg.loops.agent_tokens_max == 8192
+    assert cfg.loops.agent_output_tokens_max == 768
     assert cfg.thresholds.over_refusal_max == 0.05
     assert cfg.models.T1.id.startswith("ollama/")
     assert [model.id for model in cfg.models.matrix] == [

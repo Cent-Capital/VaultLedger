@@ -17,6 +17,8 @@ loops:
   retrieval_retry_max: 1
   escalations_max: 2
   agent_steps_max: 6
+  agent_tokens_max: 8192
+  agent_output_tokens_max: 768
 
 thresholds:
   rerank_tau: 0.35

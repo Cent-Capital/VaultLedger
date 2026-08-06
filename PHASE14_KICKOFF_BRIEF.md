@@ -20,7 +20,8 @@ accepted deviations override parts of the spec body.
 failure representation, because SPEC §8's five fields cannot record that a tool
 raised and the ADR commits to hand-written partial-failure handling. That is a
 SPEC §8 deviation and is now item 8 in the ACTIVE DEVIATIONS banner. The field
-itself is **not yet implemented** — it lands with Phase 14's first commit.
+itself was implemented in Phase 14's opening change on 2026-08-06, before any
+Phase 14 artifact was committed.
 
 ## 1. Prerequisites — DONE 2026-08-05, no inference re-run
 

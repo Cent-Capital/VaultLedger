@@ -98,9 +98,8 @@ against a 60-document local corpus.
   receipt against the contract, so no committed receipt needs migrating. This is a
   **deviation from SPEC §8** and is recorded in SPEC §0's ACTIVE DEVIATIONS banner.
 
-  *Not yet implemented.* The field lands with Phase 14's first commit; the owner's
-  instruction was that no Phase 14 code start before the baseline is reviewed, and
-  deferring costs nothing because "before any receipts exist" still holds.
+  *Implemented 2026-08-06 in Phase 14's opening change.* The field landed before
+  any Phase 14 artifact was committed, so no historical receipt required migration.
 
 ## Prerequisites — Phase 14 cannot state its AC without these
 

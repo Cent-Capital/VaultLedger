@@ -77,6 +77,10 @@ class AgentStep(BaseModel):
     input: str
     output_summary: str
     tokens_used: int
+    # ADR-0006 amendment: failures are data, not prose hidden in output_summary.
+    # None means the tool completed normally; otherwise this carries the stable,
+    # queryable failure reason while the partial trace remains valid.
+    failure: str | None = None
 
 
 # --- The answer contract --------------------------------------------------

@@ -8,7 +8,7 @@
 
 This is the single source of truth for building VaultLedger. It is written to be consumed by an AI coding agent as well as by you.
 
-> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-05)
+> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-06)
 >
 > This document is **v2.0 as originally written**. Several accepted ADRs have since
 > overridden parts of it. The body below has *not* been rewritten, so where it
@@ -50,8 +50,8 @@ This is the single source of truth for building VaultLedger. It is written to be
 >    output_summary / tokens_used`, none of which can record that a tool *raised*.
 >    Since ADR-0006 hand-rolls partial-failure handling, the alternative was prose
 >    stuffed into `output_summary`. Affects §8 and §14.4. Added before Phase 14
->    writes any receipt, so no committed artifact is migrated. Not yet implemented
->    as of 2026-08-05 — it lands with Phase 14's first commit.
+>    writes any committed receipt, so no existing artifact is migrated. Implemented
+>    in Phase 14's opening change on 2026-08-06.
 >
 > Deviations are added here at the moment their ADR is accepted. If you are an agent
 > reading this file, treat any section below that contradicts this list as stale.

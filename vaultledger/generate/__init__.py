@@ -5,6 +5,7 @@
   output + bounded repair (L1) + citation verification + safe fallback.
 """
 
+from .agentic import answer_question_agentic
 from .ollama import GenerationError, OllamaGenerator, ollama_model_name
 from .rag import answer_question, build_prompt
 from .reliable import answer_question_reliable, repair_loop, verify_citations
@@ -17,6 +18,7 @@ __all__ = [
     "answer_question",
     "build_prompt",
     "answer_question_reliable",
+    "answer_question_agentic",
     "repair_loop",
     "verify_citations",
     "AnswerDraft",
