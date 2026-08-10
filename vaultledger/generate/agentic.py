@@ -53,6 +53,7 @@ def answer_question_agentic(
     max_steps: int,
     token_budget: int,
     output_tokens_max: int,
+    seconds_budget: float | None = None,
     k: int = 6,
     min_snippet_chars: int = MIN_SNIPPET_CHARS,
     routing: RoutingDecision | None = None,
@@ -114,6 +115,7 @@ def answer_question_agentic(
                 token_budget=token_budget,
                 output_tokens_max=output_tokens_max,
                 retrieve_k=k,
+                seconds_budget=seconds_budget,
             )
         trace_recorder.add_estimated_tokens(
             input_chars=sum(step.tokens_used for step in loop.steps) * 4,
@@ -128,6 +130,7 @@ def answer_question_agentic(
             token_budget=token_budget,
             output_tokens_max=output_tokens_max,
             retrieve_k=k,
+            seconds_budget=seconds_budget,
         )
 
     if loop.injection_removed:
@@ -147,13 +150,29 @@ def answer_question_agentic(
         return answer
 
     if loop.action is None or loop.exhausted:
-        reason = "token budget" if loop.token_exhausted else "step budget"
+        if loop.token_exhausted:
+            reason = "token budget"
+        elif loop.time_exhausted:
+            reason = "wall-clock budget"
+        else:
+            reason = "step budget"
+        # An abstention caused by an unreachable generator must not read as the
+        # model failing to answer — that is how Phase 14's outage was first
+        # mistaken for model incompetence (ADR-0007).
+        transport = (
+            f"; {loop.transport_errors} transport failure(s), not model output"
+            if loop.transport_errors
+            else ""
+        )
         events.append(
             GuardrailEvent(
                 stage="output",
                 guard="agent_budget",
                 action="downgrade_to_abstain",
-                details=f"agent exhausted its {reason}; returned partial trace [TOOL_ERR]",
+                details=(
+                    f"agent exhausted its {reason}{transport}; "
+                    "returned partial trace [TOOL_ERR]"
+                ),
             )
         )
         return finish_trace(abstain(steps=loop.steps))

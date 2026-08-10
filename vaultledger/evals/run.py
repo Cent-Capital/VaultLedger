@@ -300,6 +300,7 @@ def run_safety_eval(args: argparse.Namespace) -> int:
                 max_steps=cfg.loops.agent_steps_max,
                 token_budget=cfg.loops.agent_tokens_max,
                 output_tokens_max=cfg.loops.agent_output_tokens_max,
+                seconds_budget=cfg.loops.agent_seconds_max,
                 k=cfg.retrieval.answer_top_n,
                 min_snippet_chars=cfg.generation.min_snippet_chars,
                 guardrail_toggles=toggles,

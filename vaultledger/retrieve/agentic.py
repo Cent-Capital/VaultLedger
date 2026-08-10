@@ -17,6 +17,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal, DivisionByZero, InvalidOperation
 from pathlib import Path
+from time import perf_counter
 from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -306,6 +307,11 @@ class AgentLoopResult:
     steps: list[AgentStep] = field(default_factory=list)
     exhausted: bool = False
     token_exhausted: bool = False
+    time_exhausted: bool = False
+    #: Transport failures are counted apart from planner failures. An unreachable
+    #: generator is an infrastructure fact; recording it as "the model produced a
+    #: bad action" would attribute an outage to model quality (ADR-0007).
+    transport_errors: int = 0
     injection_removed: bool = False
 
 
@@ -381,13 +387,28 @@ def run_agent_loop(
     token_budget: int,
     output_tokens_max: int,
     retrieve_k: int,
+    seconds_budget: float | None = None,
 ) -> AgentLoopResult:
-    """Run L4 within both budgets; every dispatched action has one trace row."""
+    """Run L4 within all three budgets; every dispatched action has one trace row.
+
+    The wall-clock budget is not redundant with the step and token budgets
+    (ADR-0007). A stalled generator returns nothing, so neither counter advances
+    while the query runs on: Phase 14 measured a single question consuming six
+    steps of blocked HTTP reads. Time is the only budget that bounds that.
+    """
     result = AgentLoopResult(action=None)
     total_tokens = 0
     seen_chunks: set[str] = set()
+    started = perf_counter()
+
+    def out_of_time() -> bool:
+        return seconds_budget is not None and perf_counter() - started >= seconds_budget
 
     for step_number in range(1, max_steps + 1):
+        if out_of_time():
+            result.exhausted = True
+            result.time_exhausted = True
+            break
         prompt = _planner_prompt(question, result.steps)
         input_tokens = _estimate_tokens(prompt)
         remaining = token_budget - total_tokens - input_tokens
@@ -414,6 +435,15 @@ def run_agent_loop(
         except (ValidationError, ValueError, TypeError, RuntimeError) as exc:
             if not charged:
                 total_tokens += used
+            # Transport failures are labelled apart from planner failures. Both
+            # leave the loop with no tool to dispatch, but only one of them is a
+            # statement about the model: an unreachable generator inflated
+            # Phase 14's planner-error and exhaustion counts with what was
+            # actually an outage (ADR-0007).
+            from vaultledger.generate.ollama import GenerationError
+
+            transport = isinstance(exc, GenerationError)
+            result.transport_errors += int(transport)
             # There is no valid selected tool to dispatch. Record a failed finish
             # action so the trace still explains why the loop safely stopped.
             result.steps.append(
@@ -422,16 +452,22 @@ def run_agent_loop(
                     tool="finish",
                     input="",
                     output_summary=(
-                        "planner did not produce a valid action"
+                        "generator unreachable"
+                        if transport
+                        else "planner did not produce a valid action"
                         + (f": {visible_raw[:1000]}" if visible_raw else "")
                     ),
                     tokens_used=used,
-                    failure=f"planner_error: {exc}",
+                    failure=f"{'transport_error' if transport else 'planner_error'}: {exc}",
                 )
             )
             if total_tokens >= token_budget:
                 result.exhausted = True
                 result.token_exhausted = True
+                return result
+            if out_of_time():
+                result.exhausted = True
+                result.time_exhausted = True
                 return result
             continue
 
@@ -492,6 +528,10 @@ def run_agent_loop(
         if total_tokens >= token_budget:
             result.exhausted = True
             result.token_exhausted = True
+            return result
+        if out_of_time():
+            result.exhausted = True
+            result.time_exhausted = True
             return result
 
     result.exhausted = True

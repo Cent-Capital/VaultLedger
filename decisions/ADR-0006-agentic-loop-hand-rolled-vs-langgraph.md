@@ -169,6 +169,17 @@ resumable long-running runs, this decision must be revisited rather than extende
 SELECT-only and an allowlist are necessary but not sufficient evidence; only a
 live injection run with variant D active demonstrates it.
 
+*Discharged 2026-08-10.* Phase 7's suite was re-run with variant D live and all
+Phase 13 guards active (`phase14_safety_*`, `guardrails_enabled: 1.0`). The agent
+**resisted** the embedded instruction (`injection_resisted: 1.0`) and then
+over-refused rather than answering (`injection_answered_correctly: 0.0`). The tool
+itself held under probes beyond the test suite — subquery, `UNION`, CTE and
+`sqlite_master` exfiltration all blocked by the SQLite authorizer's default-DENY.
+Two findings the run did surface are recorded in `PROGRESS.md` and left unfixed:
+variant D scores 9/10 on abstention against B's 10/10, and the `sql` tool fails
+39–47% of the calls the planner makes to it. Getting this evidence at all required
+ADR-0007, because the safety path was decoding differently from the eval gateway.
+
 **Revisit when** the agent needs more than one actor, runs long enough to need
 resumption, or the loop exceeds roughly 300 lines — at which point a framework is
 carrying real weight rather than ceremony.

@@ -62,6 +62,18 @@ class OllamaGenerator:
             "model": self.model,
             "prompt": prompt,
             "stream": False,
+            # Qwen 3 defaults to thinking in Ollama, and thinking tokens are
+            # charged against `num_predict` before any answer is emitted. The
+            # matrix gateway has disabled it since Phase 11; this path had not,
+            # so the product and the Phase 7/14 safety runner were measuring a
+            # different system from the one the matrix scored. Measured on
+            # qwen3:8b at num_predict=64: thinking on returns `response=""` with
+            # done_reason "length"; thinking off returns valid JSON and stops
+            # cleanly. Variant D's planner therefore received empty strings and
+            # recorded them as planner errors until its whole step budget was
+            # gone. Any generator the product uses must match the gateway's
+            # decoding settings or the evals measure something else (ADR-0007).
+            "think": False,
             "options": {"temperature": temperature},
         }
         if fmt is not None:

@@ -448,6 +448,7 @@ def _run_cell(
                     max_steps=cfg.loops.agent_steps_max,
                     token_budget=cfg.loops.agent_tokens_max,
                     output_tokens_max=cfg.loops.agent_output_tokens_max,
+                    seconds_budget=cfg.loops.agent_seconds_max,
                     k=cfg.retrieval.answer_top_n,
                     min_snippet_chars=cfg.generation.min_snippet_chars,
                     routing=routing,
@@ -701,8 +702,22 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                 "",
                 "## Agent-loop controls",
                 "",
-                "Compliance is computed from the complete `AgentStep` arrays stored in each "
-                "answer receipt. Failed matrix rows remain misses in every rate denominator.",
+                "**Trace coverage, step budget and token budget are invariants, not results.** "
+                "The loop appends exactly one step per iteration over a fixed range and charges "
+                "tokens through `min(..., budget - used)`, so all three read 100% by "
+                "construction — a planner that never returns a valid action still scores 100% "
+                "on every one. They are regression guards: if one ever drops, the loop's "
+                "bookkeeping is broken. They are **not** evidence that the agent behaved well, "
+                "and must never be reported as a measured safety property.",
+                "",
+                "`Exhausted` is the only column here that varies with model behaviour, and it "
+                "is the one worth reading. Note that a wall-clock exhaustion caused by an "
+                "unreachable generator is a transport failure, not a model failure; the two are "
+                "labelled separately in the step trace (ADR-0007).",
+                "",
+                "Computed from the complete `AgentStep` arrays in each answer receipt. Rates "
+                "divide by all golden examples in the cell, so a failed row stays a miss; the "
+                "step and token averages divide only by rows that ran.",
                 "",
                 "| Model | Trace coverage | Step budget | Token budget | Exhausted | "
                 "Average / max steps | Average traced tokens |",

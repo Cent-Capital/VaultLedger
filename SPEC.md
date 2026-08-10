@@ -8,7 +8,7 @@
 
 This is the single source of truth for building VaultLedger. It is written to be consumed by an AI coding agent as well as by you.
 
-> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-06)
+> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-10)
 >
 > This document is **v2.0 as originally written**. Several accepted ADRs have since
 > overridden parts of it. The body below has *not* been rewritten, so where it
@@ -52,6 +52,14 @@ This is the single source of truth for building VaultLedger. It is written to be
 >    stuffed into `output_summary`. Affects §8 and §14.4. Added before Phase 14
 >    writes any committed receipt, so no existing artifact is migrated. Implemented
 >    in Phase 14's opening change on 2026-08-06.
+> 9. **The agent loop carries a third budget, `loops.agent_seconds_max`**
+>    (**ADR-0007**, accepted 2026-08-10). §14.4 and §15 specify a step cap plus a
+>    per-query token budget; neither bounds elapsed time, so a stalled generator
+>    ran one question for `steps × timeout` with both counters frozen. Affects
+>    §14.4 and §15's loop inventory. Also records the rule that **every generator
+>    the product uses must match the eval gateway's decoding settings** — Qwen 3
+>    thinking was disabled in the matrix path since Phase 11 but never in the
+>    product path, so the app and the safety runner measured a different system.
 >
 > Deviations are added here at the moment their ADR is accepted. If you are an agent
 > reading this file, treat any section below that contradicts this list as stale.

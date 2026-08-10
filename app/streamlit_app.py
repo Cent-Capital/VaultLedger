@@ -248,6 +248,7 @@ with ask:
                             agent_steps_max=cfg.loops.agent_steps_max,
                             agent_tokens_max=cfg.loops.agent_tokens_max,
                             agent_output_tokens_max=cfg.loops.agent_output_tokens_max,
+                            agent_seconds_max=cfg.loops.agent_seconds_max,
                         )
                     answer = routed.answer
                     if routed.notice:

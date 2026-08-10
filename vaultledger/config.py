@@ -36,6 +36,7 @@ class Loops(BaseModel):
     agent_steps_max: int = Field(ge=1)
     agent_tokens_max: int = Field(ge=1)
     agent_output_tokens_max: int = Field(ge=1)
+    agent_seconds_max: float = Field(gt=0)
 
 
 class Thresholds(BaseModel):

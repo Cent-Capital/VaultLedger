@@ -92,6 +92,7 @@ def answer_with_privacy(
     agent_steps_max: int = 6,
     agent_tokens_max: int = 8192,
     agent_output_tokens_max: int = 768,
+    agent_seconds_max: float | None = None,
 ) -> RoutedAnswer:
     """Route one query without touching the cloud on the local branch."""
     recorder = TraceRecorder(
@@ -147,6 +148,7 @@ def answer_with_privacy(
                 max_steps=agent_steps_max,
                 token_budget=agent_tokens_max,
                 output_tokens_max=agent_output_tokens_max,
+                seconds_budget=agent_seconds_max,
                 **shared,
             )
         return answer_question_reliable(

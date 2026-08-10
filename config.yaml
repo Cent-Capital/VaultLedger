@@ -19,6 +19,11 @@ loops:
   agent_steps_max: 6
   agent_tokens_max: 8192
   agent_output_tokens_max: 768
+  # Wall-clock bound (ADR-0007). Step and token budgets do not bound elapsed
+  # time: a stalled generator returns nothing, so neither counter advances while
+  # the query runs indefinitely. Sized above the observed worst case (6 steps of
+  # a slow local model) so it fires on a stall, not on legitimate slowness.
+  agent_seconds_max: 300
 
 thresholds:
   rerank_tau: 0.35
