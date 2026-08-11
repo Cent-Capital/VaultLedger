@@ -277,6 +277,10 @@ def test_matrix_report_is_generated_only_from_manifest_receipts(tmp_path: Path):
     assert "Context k" in report
     assert "retrieval-side embedding" in report
     assert "not necessarily independent signals" in report
+    # Latency excludes failed rows while rates do not; an undisclosed asymmetry
+    # produced a wrong tail explanation in the Phase-15 write-up.
+    assert "computed over completed rows" in report
+    assert "understates its observed worst case" in report
 
 
 def test_matrix_report_recovers_legacy_context_only_from_matching_config(tmp_path: Path):

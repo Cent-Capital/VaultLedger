@@ -860,6 +860,14 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "above, except the explicitly described config-hash recovery for historical context "
             "k; this file is generated, never hand-edited.",
             "",
+            "Unlike the rates above, median and p95 latency are computed over completed rows "
+            "only: a row that failed to produce an answer is excluded from those statistics "
+            "entirely rather than counted as slow. Latency denominators can therefore differ "
+            "between arms in the same table, and an arm that timed out reports a tail that "
+            "understates its observed worst case. Read the latency columns against each arm's "
+            "coverage, and at small N treat p95 as the slowest completed row rather than a "
+            "distribution.",
+            "",
         ]
     )
     output_path.write_text("\n".join(lines))

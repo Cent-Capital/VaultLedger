@@ -2033,7 +2033,10 @@ versus C 2/6—a two-row difference. This is underpowered: `n=6`, Fisher exact
 two-tailed `p=0.567`, and one row moves either rate by 16.7 percentage points.
 Neither arm passed the literal strict-match lower bound, so that metric cannot
 choose between them. C's median end-to-end latency was 7.46s slower. Its lower wall
-p95 is not a graph latency win: B's timeout inflates that tail. Gateway
+p95 is not a graph latency win, but the reason first recorded here was wrong and is
+corrected below: B's timeout does not inflate that tail, because wall-latency
+statistics are computed over completed rows only and the 181.0s row is excluded
+entirely. Gateway
 token/latency totals exclude LightRAG's retrieval-side keyword and embedding calls;
 wall latency includes them. Local API spend is `$0`, with compute again unpriced
 rather than free. B therefore remains the **provisional operational default**, not
@@ -2072,6 +2075,34 @@ stayed 2/6, but the two metrics are no longer collinear in the sensitivity arm:
 `gs_005` answered without an expected-document citation, so abstention behavior
 was correct while citation hit failed. This is why both columns remain in the
 report and why the original collinearity is described as population-specific.
+
+**Correction: latency statistics exclude failed rows, and the earlier tail
+explanation was wrong.** The close entry above originally said C@12's lower wall
+`p95` was explained by B's timeout inflating B's tail. That is not what the harness
+computes. `_cell_metrics` builds `wall_latencies` from **completed rows only**, so
+B's 181.0s timeout row is absent from its latency figures altogether. B's reported
+53.08s `p95` is `gs_001`, a row that completed normally. The consequence runs the
+opposite way from the original claim: B's reported tail *understates* B's real
+latency behaviour, because its slowest observed row is the one thrown out. This also
+makes the two arms' latency denominators unequal — five completed rows for B against
+six for each C arm — which the generated report now discloses.
+
+**No `p95` in this table is a distribution.** At `n≈6` the 95th percentile is simply
+the slowest completed row, so none of the three `p95` figures may be compared against
+another. B's 53.08s is `gs_001`, C@12's 41.97s is `gs_003`, and C@6's 112.59s is
+`gs_005`, whose next-slowest peer is 61.2s. The caveat that C@12's lower `p95` is not
+a graph latency win applies identically to C@6's higher one; it is a property of the
+six-row population, not of any arm.
+
+**The sensitivity arm's output-token jump is one row, not a general verbosity
+change.** C@6 emitted 4,060 output tokens against C@12's 1,380 on half the context.
+`gs_005` alone accounts for roughly 80% of that gap: 2,206 output tokens versus 72
+for the same question at `k=12`. It is the same row that set the `p95` and broke the
+collinearity — at `k=6` it answered at length instead of abstaining. Excluding it,
+the arms are 1,854 against 1,308 output tokens, so a smaller context did coincide
+with somewhat longer answers, but the headline 3x figure is one example and must not
+be read as a context-length effect on its own.
+
 The sensitivity run does not upgrade B into a demonstrated winner; it leaves B
 as the provisional operational default on simpler architecture and the existing
 evidence. The three-arm generated view is
