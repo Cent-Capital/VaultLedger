@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -71,6 +71,9 @@ graph-vault-extracted:  ## Phase 15 extracted LightRAG graph projection
 
 graph-index:  ## Phase 15 full LightRAG index + local-compute receipt
 	$(PYTHON) -m vaultledger.graph build
+
+graph-eval:  ## Phase 15 same-model B-vs-C comparison on all global-summary rows
+	$(PYTHON) -m vaultledger.evals matrix --models ollama/qwen3:8b --variants B_hybrid C_graph --categories global_summary --limit 0 --guardrails on --out-dir reports --report reports/phase15_global_summary_matrix.md
 
 replay:  ## Not built: Phase 8 declined raw-input replay on privacy grounds
 	@echo "replay: deliberately NOT built. Phase 8 declined it because persisting raw"

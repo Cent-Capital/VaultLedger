@@ -1979,3 +1979,82 @@ four real accounts exist somewhere in the graph. **What it does not change:** th
 original gate miss, the poor 18.5% selected precision, fabricated account nodes,
 the uninterpretable predicate-vocabulary mismatch, or the three remaining phase
 items (`C_graph`, B-vs-C `global_summary`, extracted-graph Obsidian export).
+
+---
+
+## Phase 15 closed — GraphRAG (variant C) built, measured, and not promoted  (2026-08-11)
+
+Phase 15 is **closed as an implementation and evaluation milestone, with the
+quality AC explicitly not all green**. Variant C is real and reproducible; the
+pre-registered entity-recall gate still missed, and C lost the same-model
+global-summary comparison. Closing records those results rather than redefining
+the gates or extending the phase until the preferred outcome appears.
+
+**Built.** `LightRAGRetriever` exposes both LightRAG `local` and `global` query
+modes behind the selectable `C_graph` variant; `global` is the configured default
+for the global-summary population. Graph results are mapped through LightRAG's
+stored document paths to the exact Phase-2 `Chunk` objects, so the existing
+citation verifier—not a graph-only surrogate—remains authoritative. The matrix
+runner and Streamlit Ask path both instantiate C. C receives its declared
+12-chunk context budget versus B's 6; this favors graph fan-out on recall and is
+also why token and latency comparisons must be read alongside quality.
+
+**Extraction and indexing result, unchanged.** The clean-SHA full build processed
+60/60 documents into 82 nodes and 206 edges. The versioned receipt
+`phase15_graph_index_2e50d5948f99` records 45.8 minutes, 142 completion calls,
+228 embedding calls, 378,092 input and 53,572 output tokens, and `$0.00` API cost
+labelled **unpriced local inference**, not free. Strict entity recall remains
+11/15 = **73.3%**, below the ≥80% AC, with precision 11/81 = **13.6%**. The
+post-hoc schema-derived account alias diagnostic is 15/15 = **100%** recall and
+15/81 = **18.5%** selected precision. Typed-relation exact recall remains 0/15,
+the declared lower bound across incompatible predicate vocabularies.
+
+**Same-model B-vs-C result.** All six `global_summary` rows ran with
+`ollama/qwen3:8b`, the same committed golden-set hash, guardrails on, and the same
+clean code SHA (`8d4cb3b`). The full population stays `n=6` even when generation
+fails. Receipts and complete answers are linked by
+`reports/phase15_global_summary_matrix.md`.
+
+| variant | generation coverage | strict match | citation hit | abstention accuracy | wall p50 / p95 | gateway p50 / p95 | input / output tokens |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| B_hybrid | 5/6 | 0/6 | 4/6 = **66.7%** | 4/6 = **66.7%** | 13.05s / 53.08s | 9.48s / 24.35s | 9,301 / 906 |
+| C_graph | 6/6 | 0/6 | 2/6 = **33.3%** | 2/6 = **33.3%** | 20.51s / 41.97s | 12.72s / 36.48s | 16,360 / 1,380 |
+
+C's measured margin is **−33.4 percentage points** on both citation hit and
+abstention accuracy. It abstained on four answerable rows; B answered four, then
+abstained once and timed out once. Neither arm passed the literal strict-match
+lower bound, so that metric cannot choose between them. C's median end-to-end
+latency was 7.46s slower. Its lower wall p95 is not a graph latency win: B's
+180-second timeout inflates that tail. Gateway token/latency totals exclude
+LightRAG's retrieval-side keyword and embedding calls; wall latency includes
+them. Local API spend is `$0`, with compute again unpriced rather than free.
+
+**Extracted graph visualization verified in the real app.** The collision-safe
+export produced 82 entity notes and 60 document notes; all 60 document notes have
+wikilinks. It opened in the official Obsidian 1.13.6 desktop app as
+`obsidian_vault`. Graph view visibly rendered cross-document clusters and named
+hubs including Marcus Chen, David Okafor, Halcyon Retail Group, accounts,
+merchants, invoices, statements, pay stubs, and 1099s. The export remains a
+regenerable ignored artifact (`make graph-vault-extracted`), never the retrieval
+backend or committed extraction evidence.
+
+**Verification.** `make verify-track-a` exits 0 on the Phase-15 codebase: Ruff
+clean; 152 tests passed; the 80-row golden set validates; the live Phase-7 gate is
+10/10 rightly abstained plus the poisoned-document answer correct; the named
+guardrail report stays green; judge validation is 20/20; retrieval regression is
+`passed: true` with zero deltas. The Phase-15-specific deterministic run is also
+green at 151 passed, 1 environment-dependent skip inside the restricted sandbox.
+
+**Trickiest piece (plain English).** A graph engine does not automatically produce
+citations the product can verify. LightRAG returns graph context and internal file
+references, while VaultLedger's safety boundary accepts only literal source
+chunks with stable document and chunk IDs. The adapter therefore uses the graph
+to choose evidence but resolves every result back to the original ingested chunk
+before generation. That keeps the graph from becoming an unverifiable second
+source of truth. The experiment then demonstrates the harder product lesson:
+more connected context can cost more tokens, run slower, and cause more safe
+abstentions without improving answer quality. C remains available for continued
+research, but B remains the default.
+
+**Next:** Phase 16 — generate the cross-variant comparison and portfolio artifacts
+without upgrading Phase 15's failed quality gates into successes.

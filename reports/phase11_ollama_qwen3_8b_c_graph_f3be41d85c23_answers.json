@@ -1,0 +1,526 @@
+[
+  {
+    "example_id": "gs_001",
+    "expected_answer": "Priya has 1099 and invoice income from Halcyon Retail Group and Cedar Grove Media.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 19121.031,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 9097.813,
+      "input_tokens": 3044,
+      "output_tokens": 28,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_c9e8e0cea7d5",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_001",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  },
+  {
+    "example_id": "gs_002",
+    "expected_answer": "David has 1099s from Nimbus Analytics LLC, Halcyon Retail Group, and Cedar Grove Media.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "normalized reference substring absent",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": true,
+    "abstention_correct": true,
+    "wall_latency_ms": 21897.243,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 16344.339,
+      "input_tokens": 3151,
+      "output_tokens": 175,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "David Okafor received nonemployee compensation from Cedar Grove Media and Nimbus Analytics LLC, and Halcyon Retail Group.",
+      "citations": [
+        {
+          "chunk_id": "f1099_cedargrove_david_2024#c0",
+          "doc_id": "f1099_cedargrove_david_2024",
+          "page": 1,
+          "snippet": "Box 1 - Nonemployee compensation $6,200.00"
+        },
+        {
+          "chunk_id": "f1099_nimbus_david_2024#c0",
+          "doc_id": "f1099_nimbus_david_2024",
+          "page": 1,
+          "snippet": "Box 1 - Nonemployee compensation $24,500.00"
+        },
+        {
+          "chunk_id": "f1099_halcyon_david_2024#c0",
+          "doc_id": "f1099_halcyon_david_2024",
+          "page": 1,
+          "snippet": "Box 1 Nonemployee compensation: $9,800.00"
+        }
+      ],
+      "abstained": false,
+      "confidence": 1.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_6fa3dffcc819",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "pass",
+          "details": "no cited invoice total mismatch"
+        },
+        {
+          "stage": "output",
+          "guard": "cross_persona_check",
+          "action": "pass",
+          "details": "no other-persona tagged PII detected"
+        },
+        {
+          "stage": "output",
+          "guard": "advice_linter",
+          "action": "pass",
+          "details": "no prescriptive advice phrasing detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_002",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    }
+  },
+  {
+    "example_id": "gs_003",
+    "expected_answer": "Marcus has pay stubs from Nimbus Analytics LLC and checking deposits from Nimbus payroll.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "normalized reference substring absent",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": true,
+    "abstention_correct": true,
+    "wall_latency_ms": 41970.002,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 36475.667,
+      "input_tokens": 3476,
+      "output_tokens": 588,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "Marcus Chen's employment evidence includes multiple pay stubs from Nimbus Analytics LLC, showing consistent gross pay of $4,038.46 and net pay of $2,525.39 after deductions. The pay periods span from 2025-01-10 to 2025-06-12, with pay dates ranging from 2025-01-25 to 2025-06-14.",
+      "citations": [
+        {
+          "chunk_id": "paystub_marcus_01#c0",
+          "doc_id": "paystub_marcus_01",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_03#c0",
+          "doc_id": "paystub_marcus_03",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_04#c0",
+          "doc_id": "paystub_marcus_04",
+          "page": 1,
+          "snippet": "Gross pay $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_05#c0",
+          "doc_id": "paystub_marcus_05",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_07#c0",
+          "doc_id": "paystub_marcus_07",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_09#c0",
+          "doc_id": "paystub_marcus_09",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_11#c0",
+          "doc_id": "paystub_marcus_11",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        }
+      ],
+      "abstained": false,
+      "confidence": 1.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_f4d3dd57732c",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "pass",
+          "details": "no cited invoice total mismatch"
+        },
+        {
+          "stage": "output",
+          "guard": "cross_persona_check",
+          "action": "pass",
+          "details": "no other-persona tagged PII detected"
+        },
+        {
+          "stage": "output",
+          "guard": "advice_linter",
+          "action": "pass",
+          "details": "no prescriptive advice phrasing detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    }
+  },
+  {
+    "example_id": "gs_004",
+    "expected_answer": "Halcyon Retail Group and Cedar Grove Media.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 14989.145,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 8188.613,
+      "input_tokens": 2589,
+      "output_tokens": 28,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_efa6869f6f98",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_004",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  },
+  {
+    "example_id": "gs_005",
+    "expected_answer": "Examples include Whole Foods Market, Con Edison, Verizon Wireless, Netflix, and Blue Bottle Coffee.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 14255.385,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 8873.709,
+      "input_tokens": 2050,
+      "output_tokens": 72,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_7b823e0d6c23",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "input",
+          "guard": "prompt_injection",
+          "action": "block",
+          "details": "instruction-like document line removed before generation"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "downgrade_to_abstain",
+          "details": "no verifiable citation survived; downgraded to abstain [CITE_FAIL]"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_005",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  },
+  {
+    "example_id": "gs_006",
+    "expected_answer": "It includes a prompt-injection statement, a near-duplicate invoice, and a wrong-total invoice.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 33588.602,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 27851.088,
+      "input_tokens": 2050,
+      "output_tokens": 489,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_d4eb5a82cbdb",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "downgrade_to_abstain",
+          "details": "no verifiable citation survived; downgraded to abstain [CITE_FAIL]"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  }
+]

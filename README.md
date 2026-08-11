@@ -59,6 +59,23 @@ leaks are blocked; and the current live injection gate remains at 100%. The
 benign control result is reported honestly as 0 of 6 observed over-refusals—not
 as proof that the true rate is below 5%.
 
+## GraphRAG status
+
+Phase 15 implements `C_graph` with LightRAG local/global retrieval, preserves
+Phase-2 source chunks through the graph path for citation verification, and
+exports the extracted graph as an Obsidian vault. The full local index contains
+82 nodes and 206 edges over all 60 documents; its committed build receipt records
+45.8 minutes, 142 completion calls, 228 embedding calls, and `$0` API spend with
+local inference explicitly labelled **unpriced**, not free.
+
+The quality result is mixed and does not justify promoting C over B. Strict entity
+recall missed its preregistered gate at 11/15 (73.3%); a post-hoc, schema-derived
+account alias diagnostic finds 15/15 but precision remains 15/81 (18.5%). On the
+six `global_summary` rows with the shipped `qwen3:8b`, C scored 33.3% citation hit
+and 33.3% abstention accuracy versus B's 66.7% and 66.7%. See the generated
+[Phase-15 matrix](reports/phase15_global_summary_matrix.md) and the complete
+[build record](PROGRESS.md) for denominators, latency, receipts, and caveats.
+
 ## Fresh-machine quickstart
 
 ### 1. Prerequisites
@@ -181,6 +198,9 @@ re-recording script.
 | `make matrix` | Run the configured local Phase-11 model matrix and regenerate its report |
 | `make router-eval` | Regenerate the Phase-12 four-policy frontier from full cached matrix receipts |
 | `make guardrails-eval` | Regenerate the Phase-13 named-guard acceptance report |
+| `make graph-index` | Build the Phase-15 LightRAG index and versioned local-compute receipt; refuses overwrite |
+| `make graph-eval` | Run the shipped-model B-vs-C comparison on all six global-summary rows |
+| `make graph-vault-extracted` | Rebuild the extracted graph's Obsidian projection |
 | `make replay` | **Deliberately not built.** Phase 8 declined raw-input replay: storing raw questions and retrieved context would broaden local data retention against the product thesis. Exits non-zero and says so |
 | `make clean` | Remove caches and build artifacts |
 | `make run` | Launch Streamlit headlessly with usage telemetry disabled |

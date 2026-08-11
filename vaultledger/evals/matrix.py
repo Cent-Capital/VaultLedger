@@ -639,15 +639,17 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
     lines = [
         "# Model matrix",
         "",
-        "Phase 11 gateway/matrix machinery proof. The full six-model bake-off is Phase 17.",
+        "Manifest-backed comparison over the explicitly selected model, variants, and golden-set "
+        "population. This report does not generalize beyond those cells.",
         "",
         f"Golden set hash: `{manifests[0].golden_set_hash}`",
         f"Cells: **{len(manifests)}** across **{model_count} model(s)**",
         f"Total measured API spend: **${total_cost:.6f}** (local models are unpriced, not free)",
         "",
         "| Model | Variant | N | Strict match | Numeric exact match | Citation hit | "
-        "Abstention accuracy | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "Abstention accuracy | Wall p50 | Wall p95 | Gateway p50 | Gateway p95 | "
+        "Tokens in / out | Cost | Manifest |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
         metric = manifest.metrics
@@ -657,6 +659,10 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         numeric = (
             f"{metric['numeric_exact_match_rate']:.1%} (n={numeric_n})" if numeric_n else "—"
         )
+        wall_p50 = metric.get("median_wall_latency_ms")
+        wall_p95 = metric.get("p95_wall_latency_ms")
+        wall_p50_text = f"{wall_p50:.0f} ms" if wall_p50 is not None else "—"
+        wall_p95_text = f"{wall_p95:.0f} ms" if wall_p95 is not None else "—"
         lines.append(
             "| "
             f"`{manifest.model}` | `{manifest.variant}` | {int(metric['matrix_examples'])} | "
@@ -664,6 +670,8 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             f"{numeric} | "
             f"{metric['citation_doc_hit_rate']:.1%} | "
             f"{metric['abstention_accuracy']:.1%} | "
+            f"{wall_p50_text} | "
+            f"{wall_p95_text} | "
             f"{metric['median_gateway_latency_ms']:.0f} ms | "
             f"{metric['p95_gateway_latency_ms']:.0f} ms | "
             f"{int(metric['input_tokens'])} / {int(metric['output_tokens'])} | "
@@ -683,10 +691,10 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                 "",
                 "## By category",
                 "",
-                "Phase 14's acceptance criterion is stated per category, so the aggregate row "
-                "above cannot verify it. `Numeric` is scored only over rows whose reference "
-                "carries a numeric quantity; its `n` differs from the category `n` for that "
-                "reason, and a blank cell means no row in that category is in scope.",
+                "Category-scoped acceptance criteria must be read from this table rather than "
+                "inferred from the aggregate row. `Numeric` is scored only over rows whose "
+                "reference carries a numeric quantity; its `n` differs from the category `n` "
+                "for that reason, and a blank cell means no row in that category is in scope.",
                 "",
                 "| Model | Variant | Category | N | Strict match | Numeric exact match | "
                 "Citation hit | Abstention accuracy |",
@@ -785,10 +793,11 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "LLM-judge verdict. Per-example reasons and complete answers live beside each "
             "manifest in its `_answers.json` receipt.",
             "",
-            "Gateway latency covers all completion calls, including structured-output repairs. "
-            "Retrieval and reranking time is excluded. Token counts come from provider usage when "
-            "available. Every displayed value is loaded from the RunManifests above; this file is "
-            "generated, never hand-edited.",
+            "Wall latency covers the complete row, including retrieval, reranking, generation, "
+            "repairs, and guardrails. Gateway latency covers completion calls only. Token counts "
+            "come from provider usage when available and do not include retrieval-side embedding "
+            "or keyword-extraction calls. Every displayed value is loaded from the RunManifests "
+            "above; this file is generated, never hand-edited.",
             "",
         ]
     )

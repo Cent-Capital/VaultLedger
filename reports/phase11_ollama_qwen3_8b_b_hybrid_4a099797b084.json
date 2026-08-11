@@ -1,0 +1,66 @@
+{
+  "run_id": "phase11_ollama_qwen3_8b_b_hybrid_4a099797b084",
+  "timestamp": "2026-08-11T20:36:34.593209+00:00",
+  "git_sha": "8d4cb3b579e0bd537828568efb7e80038f0258ac",
+  "config_hash": "21a33d1b887ea4b933aa1afa49b32080f744c69e6fca1655d1dab5d8d50eac23",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "ollama/qwen3:8b",
+  "metrics": {
+    "matrix_examples": 6.0,
+    "generation_eval_coverage": 0.8333333333333334,
+    "strict_answer_match_rate": 0.0,
+    "citation_doc_hit_rate": 0.6666666666666666,
+    "abstention_accuracy": 0.6666666666666666,
+    "numeric_exact_match_examples": 0.0,
+    "matrix_examples__global_summary": 6.0,
+    "strict_answer_match_rate__global_summary": 0.0,
+    "citation_doc_hit_rate__global_summary": 0.6666666666666666,
+    "abstention_accuracy__global_summary": 0.6666666666666666,
+    "numeric_exact_match_examples__global_summary": 0.0,
+    "median_gateway_latency_ms": 9483.548,
+    "p95_gateway_latency_ms": 24349.54,
+    "median_wall_latency_ms": 13046.124,
+    "p95_wall_latency_ms": 53081.558,
+    "gateway_calls": 5.0,
+    "input_tokens": 9301.0,
+    "output_tokens": 906.0,
+    "provider_token_usage_rate": 1.0,
+    "model_unpriced": 1.0,
+    "guardrails_enabled": 1.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "gs_001",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_002",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    },
+    {
+      "example_id": "gs_005",
+      "taxonomy_code": "TOOL_ERR",
+      "note": "matrix cell failed to produce an Answer: LiteLLM completion failed for ollama/qwen3:8b: litellm.APIConnectionError: OllamaException - litellm.Timeout: Connection timed out after 180.0 seconds."
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  ]
+}

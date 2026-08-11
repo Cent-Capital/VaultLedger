@@ -62,7 +62,8 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–14 are closed. Phase 14 met its Variant-D improvement AC on the shipped
+Phases 0–15 are closed. Phase 14 met its Variant-D improvement AC on the shipped
 8B model and regressed on 4B; the split result is recorded, not averaged away.
-**Phase 15 — GraphRAG is in progress.** See `PHASE15_KICKOFF.md` and the latest
-`PROGRESS.md` entry for the exact built/pending boundary.
+Phase 15 built Variant C but missed the preregistered entity-recall gate and lost
+to Variant B on the six-row global-summary comparison; see the latest
+`PROGRESS.md` entry and committed receipts for the exact boundaries.
