@@ -17,7 +17,10 @@ dependencies = [
     "pydantic>=2.6",
     "pydantic-settings>=2.2",
     "pyyaml>=6.0",
-    "streamlit>=1.33",
+    # 1.59 + PyArrow 25 can segfault while serializing a dataframe on a rerun.
+    # 1.61 restores an explicit PyArrow <25 constraint; keep both sides pinned.
+    "streamlit>=1.61,<2",
+    "pyarrow>=7,<25",
     # Phase 2 — ingestion & indexing
     "pdfplumber>=0.11",
     "chromadb>=0.5",

@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import shutil
+import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -37,6 +39,51 @@ class Check:
     passed: bool
     detail: str
     remedy: str = ""
+    required: bool = True
+
+
+def _tool_version(executable: str, *args: str) -> str:
+    """Return a bounded one-line version for a discovered local executable."""
+
+    try:
+        result = subprocess.run(
+            [executable, *args],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return "version unavailable"
+    output = result.stdout.strip() or result.stderr.strip()
+    return output.splitlines()[0] if output else "version unavailable"
+
+
+def _ocr_check() -> Check:
+    """Describe optional scan support without making text-PDF readiness fail."""
+
+    ocrmypdf = shutil.which("ocrmypdf")
+    tesseract = shutil.which("tesseract")
+    missing = [
+        name
+        for name, path in (("ocrmypdf", ocrmypdf), ("tesseract", tesseract))
+        if not path
+    ]
+    if missing:
+        return Check(
+            "Scanned-PDF support",
+            False,
+            f"optional OCR tools missing: {', '.join(missing)}; text PDFs still work",
+            "Install Homebrew, then run `brew install ocrmypdf` for scanned PDFs.",
+            required=False,
+        )
+    return Check(
+        "Scanned-PDF support",
+        True,
+        f"{_tool_version(ocrmypdf, '--version')}; "
+        f"{_tool_version(tesseract, '--version')}",
+        required=False,
+    )
 
 
 def _model_names(base_url: str) -> set[str]:
@@ -83,6 +130,7 @@ def run_checks(repo_root: Path | None = None) -> list[Check]:
             "Run `make install`.",
         )
     )
+    checks.append(_ocr_check())
 
     pdf_count = len(list(pdf_dir.glob("*.pdf"))) if pdf_dir.exists() else 0
     checks.append(
@@ -166,13 +214,18 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps([asdict(check) for check in checks], indent=2))
     else:
         for check in checks:
-            mark = "PASS" if check.passed else "FAIL"
+            mark = "PASS" if check.passed else ("FAIL" if check.required else "WARN")
             print(f"[{mark}] {check.name}: {check.detail}")
             if not check.passed and check.remedy:
                 print(f"       Next: {check.remedy}")
-        passed = sum(check.passed for check in checks)
-        print(f"\n{passed}/{len(checks)} readiness checks passed.")
-    return 0 if all(check.passed for check in checks) else 1
+        required = [check for check in checks if check.required]
+        optional = [check for check in checks if not check.required]
+        optional_ready = sum(check.passed for check in optional)
+        print(
+            f"\n{sum(check.passed for check in required)}/{len(required)} required checks passed; "
+            f"{optional_ready}/{len(optional)} optional capabilities ready."
+        )
+    return 0 if all(check.passed for check in checks if check.required) else 1
 
 
 if __name__ == "__main__":

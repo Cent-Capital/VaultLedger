@@ -92,7 +92,7 @@ replay:  ## Not built: Phase 8 declined raw-input replay on privacy grounds
 	@exit 1
 
 run:  ## Launch the Streamlit app without telemetry or first-run prompts
-	$(PYTHON) -m streamlit run app/streamlit_app.py --server.headless=true --browser.gatherUsageStats=false
+	$(PYTHON) -m streamlit run app/streamlit_app.py --server.headless=true --server.address=127.0.0.1 --server.fileWatcherType=none --browser.gatherUsageStats=false
 
 clean:  ## Remove caches and build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

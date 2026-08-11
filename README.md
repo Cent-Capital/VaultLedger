@@ -15,12 +15,59 @@ outside the public repository. User documents never enter a metric denominator.
 VaultLedger is not a production financial service and provides document extraction
 and Q&A, never financial advice.
 
+## Start here on a Mac — no Terminal commands
+
+VaultLedger runs locally. Your PDFs and question text stay on your Mac; the app does
+not send them to a hosted model. It requires macOS 14 or newer and at least 10 GB of
+free disk space.
+
+Before starting, allow **15–45 minutes for the first launch** on a typical internet
+connection. The setup shows progress throughout. It downloads the 5.2 GB
+`qwen3:8b` answer model, the roughly 0.3 GB `nomic-embed-text` search model, and a
+roughly 2 GB private app environment. The first question may also download the 1.1 GB
+reranker. Later launches reuse all of these files and are much faster.
+
+1. Download the repository with GitHub's
+   [Download ZIP](https://github.com/abhinavgupta0809/vaultledger/archive/refs/heads/main.zip)
+   link, then double-click the downloaded ZIP once to unpack it.
+2. Open the unpacked `vaultledger-main` folder and double-click
+   **`Launch VaultLedger.command`**. Do not close the small Terminal window that
+   appears; it is the app's progress and status window. You do not need to type in it.
+3. If Python is missing, the launcher opens its official download page and tells you
+   what to do. If Ollama is missing, it opens the official Ollama macOS download page;
+   install Ollama, open it once, then double-click the launcher again.
+4. Wait until the browser opens VaultLedger. Model download progress stays visible in
+   the status window, including during a long first run. Double-clicking the launcher
+   again is safe: it reopens the running app instead of starting a second copy. If
+   another app uses port 8501, VaultLedger selects the next available local port.
+5. In Finder, choose **Go → Home**, open `VaultLedger`, then `Inbox`, and copy in a
+   PDF. In VaultLedger's **Library / Ingest** tab, choose **User documents** and click
+   **Scan inbox now**. In **Ask**, choose **User documents**, write a question, and
+   click **Ask**.
+6. To stop, close the VaultLedger browser tab and its Terminal status window.
+
+Text-layer PDFs work with the required install. **Scanned PDFs are optional:** they
+work only when `ocrmypdf` and Tesseract are installed. The launcher and readiness check
+say plainly when those tools are absent, and a scan fails with a readable explanation
+instead of becoming a silent empty document. Even when OCR is present, verify digits
+and table columns against the original scan; one clean test page is not an OCR
+accuracy measurement.
+
+Setup verification is intentionally split. The code, Finder launcher, live browser
+flow, and a from-scratch Python environment are verified in the
+[Phase 17 install receipt](receipts/phase17_clean_install.md). A separate standard
+macOS-user run is still open and will be added only after it actually happens.
+**No independent non-technical reader has yet performed the five-minute cold read**,
+so the hiring manager remains the first human usability test; this is not described
+as a proven hands-off install.
+
 ## Track-A status
 
-Phase 10 is the Track-A release candidate (`v0.1.0`). The fresh-checkout
-workflow remains partially verified because no clean-virtualenv transcript is
-committed; `make verify-track-a` passed again on August 4, 2026. Phase 10 is
-closed, with the real browser walkthrough committed as the
+Phase 10 is the Track-A release candidate (`v0.1.0`). Its original fresh-machine
+criterion remains partial pending a separate standard macOS-user run; Phase 17 now
+adds a clean-virtualenv transcript and a Finder-launched live-browser check.
+`make verify-track-a` passed again on August 4, 2026. Phase 10 is closed, with its
+historical browser walkthrough committed as the
 [Track-A demo](demo/vaultledger_track_a_v1.gif). Measured receipts:
 
 - Hybrid retrieval raised recall@20 from `0.9587` to `0.9786` and MRR from
@@ -162,9 +209,11 @@ make ingest
 make doctor
 ```
 
-Expected `make doctor` result: 7/7 checks pass, including 60/60 PDFs, SQLite,
-BM25, Chroma, both Ollama models, and the committed Track-A receipts. Corpus
-generation is deterministic from seed `42`; `make data` may be repeated.
+Expected `make doctor` result: 7/7 required checks pass, including 60/60 PDFs,
+SQLite, BM25, Chroma, both Ollama models, and the committed Track-A receipts. It
+also reports scanned-PDF support as one optional capability; missing OCR tools do
+not block text-layer PDFs. Corpus generation is deterministic from seed `42`;
+`make data` may be repeated.
 
 ### 4. Verify and run
 

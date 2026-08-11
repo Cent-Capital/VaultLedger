@@ -13,6 +13,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from vaultledger import __version__, load_config  # noqa: E402
+from vaultledger.ui_state import sync_sample_question  # noqa: E402
 
 st.set_page_config(page_title="VaultLedger", page_icon="🔒", layout="wide")
 
@@ -62,8 +63,8 @@ st.caption(
 )
 
 with st.sidebar:
-    st.success("Phase 16 · live documents")
-    st.caption("External inbox · local processing")
+    st.success("Phase 17 · local handoff")
+    st.caption("One-click start · external inbox · local processing")
     st.divider()
     st.subheader("Local run config")
     st.metric("Seed", cfg.seed)
@@ -264,6 +265,12 @@ with ask:
             "Write my own question",
         )
     )
+    sample_questions = {
+        "Marcus's March closing balance": "What was Marcus Chen's March closing balance?",
+        "Priya's total 1099 income": "What was Priya Raman's total 1099 income?",
+        "An unanswerable credit-score question": "What is Marcus Chen's credit score?",
+        "Write my own question": "",
+    }
     sample = st.selectbox(
         "Measured examples",
         sample_options,
@@ -273,17 +280,20 @@ with ask:
             else "These come from the versioned golden set."
         ),
     )
-    sample_questions = {
-        "Marcus's March closing balance": "What was Marcus Chen's March closing balance?",
-        "Priya's total 1099 income": "What was Priya Raman's total 1099 income?",
-        "An unanswerable credit-score question": "What is Marcus Chen's credit score?",
-        "Write my own question": "",
-    }
+    # Streamlit can preserve the text input's frontend value when a widget in the
+    # same position is rebuilt with a different dynamic key. Keep one stable input
+    # key and reset it only when the corpus/example selection actually changes.
+    # A custom question then survives the rerun caused by clicking Ask.
+    sync_sample_question(
+        st.session_state,
+        corpus=answer_corpus,
+        sample=sample,
+        questions=sample_questions,
+    )
     question = st.text_input(
         "Question",
-        value=sample_questions[sample],
         placeholder="What was Marcus Chen's March closing balance?",
-        key=f"question_{sample}",
+        key="question_input",
     )
     ask_clicked = st.button(
         "Ask",
@@ -576,6 +586,6 @@ with lab:
         - Where do GraphRAG and agentic RAG win, lose, and cost more than Variant B?
 
         The artifacts above cover two Qwen models, one variant, and all 80 golden rows.
-        The six-model, all-variant bake-off and judged reasons remain Phase 17.
+        The six-model, all-variant bake-off and judged reasons remain Phase 18.
         """
     )

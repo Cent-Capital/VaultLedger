@@ -2314,3 +2314,75 @@ one-click launcher, Ollama first-run flow, and a setup README for a non-technica
 recipient. Note for that phase: `ocrmypdf` and Tesseract are now a **second install
 dependency** for any recipient who wants scanned-document support, which is the
 open packaging question ADR-0012 deliberately left unsettled.
+
+## Phase 17 — Browser-UI packaging and handoff (opened 2026-08-11; in progress)
+
+**What is now shipped.** `Launch VaultLedger.command` is a Finder entry point backed
+by a standard-library bootstrap. It finds Python 3.11+, creates and fingerprints a
+private `.venv`, installs the product extras and spaCy model with visible output,
+checks Ollama, visibly pulls the pinned `nomic-embed-text` and `qwen3:8b` models, and
+opens Streamlit on loopback only. A PID/health receipt makes a second double-click
+reuse the live process, a setup lock prevents duplicate first-run work, and a bounded
+port scan moves off 8501 rather than taking over an occupied listener. Missing Ollama
+opens the official macOS download page and stops with instructions. Missing OCR is a
+visible optional-capability warning: text PDFs keep working and scans still fail
+closed through the Phase-16 path.
+
+The launcher and normal `make run` path now bind to `127.0.0.1` and disable the file
+watcher. `make doctor` reports **7 required checks plus one optional OCR capability**;
+an absent OCR tool does not incorrectly fail text-PDF readiness. The non-technical
+README leads with download size, expected first-run time, Finder steps, external
+inbox location, local-processing boundary, and the scan/OCR limitation.
+
+**A crash found only by exercising the real handoff path.** The development
+environment had resolved Streamlit 1.59.1 with PyArrow 25. That pair segfaulted in
+PyArrow dataframe serialization on the second live Streamlit rerun. The clean
+environment instead resolved Streamlit 1.61.1 and PyArrow 24 and reran cleanly.
+Runtime requirements now pin `streamlit>=1.61,<2` and `pyarrow>=7,<25`; launcher
+schema `phase17-v2` invalidates an older environment, and its readiness probe enforces
+the same versions. Two consecutive clean-environment AppTest renders report zero
+exceptions.
+
+The live walkthrough also exposed a UI-state defect: choosing the measured
+credit-score example changed the selectbox but left the previous question in the
+text field. The question field now has one stable key and a pure state transition
+that resets only when corpus/example changes, preserving deliberate custom edits on
+ordinary reruns. A regression test pins both behaviours.
+
+**Recorded product evidence.** The Finder launcher was double-clicked on the
+development account and opened the real local browser app. A second double-click
+reused the same PID and sole `127.0.0.1:8501` listener. The live `qwen3:8b` /
+`B_hybrid` answer returned Marcus Chen's March balance of `$4,207.55` with verified
+statement/page/snippet evidence. The credit-score example returned `I couldn't find
+that in your documents.`, no citation, and confidence `0.00`. The user Library view
+showed its external inbox and explicit separation from synthetic metrics. The
+112.5-second H.264 artifact is committed as
+`demo/vaultledger_phase17_demo.mp4`; its SHA-256 is
+`f54d4139c682392b34fe021bce0d1270b3bcc54c9758e3bad6d457545ac9a8e4`.
+
+**Clean-environment and verification evidence.** A new Python 3.14.6 virtual
+environment outside the repository installed `.[rerank,gateway,graph]` plus
+`en_core_web_sm` from scratch. `pip check` reported no broken requirements, the
+runtime import probe passed, and its 1.9 GB size matched the README estimate. The
+command/output receipt is `receipts/phase17_clean_install.md`. On the development
+account, `make doctor` reports 7/7 required checks and 1/1 optional capabilities;
+`make lint` is clean; `make test` reports **178 passed, 1 environment-dependent
+skip**. The synthetic `data/index/chunks.jsonl` SHA-256 remains exactly
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+
+**Machine half — still required and not yet proven.** This Mac had no spare standard
+user account. Creating one changes an OS security/account setting and requires the
+owner's approval plus administrator authentication, so the development-account run
+is not relabelled as the kickoff brief's recipient-half proof. The receipt records
+this open gate. Homebrew, OCRmyPDF, and Tesseract are system-wide on this Mac; even a
+future clean-user pass will not prove the optional OCR setup from a Mac without
+Homebrew, and that gap remains explicit.
+
+**Human half — attempted as far as the available people allowed, with no finding to
+invent.** No independent non-technical reader was available for the five-minute cold
+read. The README and receipt say so plainly; the hiring manager remains the first
+human usability test.
+
+**Phase 17 remains open.** Every code, artifact, clean-virtualenv, and development-
+account browser gate is green. Closure still requires the fresh standard-macOS-user
+machine half. No waiver has been applied and no fresh-Mac claim is made.

@@ -1,4 +1,36 @@
-# Track-A demo v1
+# VaultLedger demos
+
+## Phase 17 handoff video
+
+`vaultledger_phase17_demo.mp4` is the current recruiter-facing walkthrough. It is
+recorded from the local browser app with the pinned `qwen3:8b` product model. It
+shows both sides of the product contract: an answer with a verified source trail
+and a question the system refuses because the documents do not support it. It is a
+product demonstration, not a new evaluation run; measured claims on screen still
+come from committed manifests under `reports/`.
+
+The recording stays under three minutes and follows this script:
+
+1. Start with `Launch VaultLedger.command`; the app reuses an already prepared local
+   environment and opens the browser without a typed command.
+2. In **Library / Ingest**, show the synthetic/user boundary and local index health.
+3. In **Ask**, keep **Synthetic evaluation corpus** and **B_hybrid** selected. Ask
+   `What was Marcus Chen's March closing balance?`
+4. Show the local-only badge, answer, verified March-statement citation, model,
+   variant, and trace footer. The expected `$4,207.55` is a SPEC-by-example fixture;
+   if the live model safely abstains, keep that result visible rather than editing it
+   into a success.
+5. Select **An unanswerable credit-score question**, click **Ask**, and show the
+   abstention. The corpus deliberately contains no credit score.
+6. End on **User documents** in Library: the external inbox and OCR warning remain
+   visible, while no user file appears in the synthetic eval population.
+
+The committed video is silent and real-time within each recorded scene. One cut
+removes the local-model wait between selecting the credit-score example and showing
+its completed abstention; the visible `8.76s` trace is the unaltered live result.
+Answer, citation, question, and trace text are otherwise unaltered.
+
+## Track-A demo v1 (historical)
 
 `vaultledger_track_a_v1.gif` was recorded from a live browser walkthrough and
 committed in `c376b44`. It is a visual demo, not an eval artifact; every measured
