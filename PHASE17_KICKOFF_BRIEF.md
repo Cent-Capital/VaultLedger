@@ -15,7 +15,28 @@ Mac.** Optimise for what *they* have to do, not for how the app is built.
 
 **Acceptance is behavioural:** a non-technical person, given a link and a README,
 reaches a working local install and answers a question over their own document
-without asking for help. If that requires a phone call, the phase is not done.
+without asking for help.
+
+**That criterion splits in two, and only one half is testable here.** The owner has
+no willing test subject, so do not treat the whole thing as a blocker and do not
+claim it was met.
+
+- **Machine half — required, and fully testable alone.** Prove a machine that is not
+  the build machine reaches a working install. A **fresh macOS user account** is the
+  route: no venv, no repo, no model cache, no PATH additions, no Streamlit config.
+  It does not catch a missing Homebrew, which is system-wide at `/opt/homebrew` —
+  record that gap rather than papering over it. This half must pass.
+- **Human half — required to be *attempted*, not to succeed.** The cheap proxy is a
+  cold read: give the README to any non-technical reader and ask only "what would
+  you do first, and where would you stop?" No install, five minutes. If even that is
+  unavailable, `PROGRESS.md` says plainly that no independent reader has seen the
+  instructions. The first real non-technical user will be the hiring manager at
+  handoff — which is exactly why the machine half must be airtight.
+
+Never write "installs cleanly on a fresh Mac" unless a fresh environment actually
+ran it. "The launcher works on the development machine and on a clean user account;
+no independent person has attempted the install" is true, useful, and the standard
+this repo holds everywhere else.
 
 ## Scope decisions already made — do not re-litigate
 
@@ -95,8 +116,11 @@ with the OCR tools installed) and that answers from scans carry a visible warnin
 - [ ] A clean-virtualenv install transcript is committed.
 - [ ] README is readable by a non-technical person and states download size and wait.
 - [ ] `make test` and `make lint` green; synthetic corpus hash unchanged.
-- [ ] An honest `PROGRESS.md` entry. If the behavioural acceptance criterion was not
-      actually tested on another person or a clean machine, say so — an untested
+- [ ] **Machine half proven:** the install completed from a fresh macOS user account,
+      with the transcript committed and the Homebrew gap noted.
+- [ ] **Human half attempted and reported truthfully:** either a cold-read finding
+      from a non-technical reader, or an explicit statement that none was available.
+- [ ] An honest `PROGRESS.md` entry that distinguishes the two halves. An untested
       install claim is the exact thing this phase is supposed to eliminate.
 
 ## Not in scope
