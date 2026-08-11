@@ -29,6 +29,14 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     export = subparsers.add_parser("export-ground-truth")
     export.add_argument("--output", default="exports/obsidian_vault")
+    export.add_argument("--replace", action="store_true")
+    extracted_export = subparsers.add_parser("export-extracted")
+    extracted_export.add_argument(
+        "--graphml",
+        default="data/graph/lightrag/graph_chunk_entity_relation.graphml",
+    )
+    extracted_export.add_argument("--output", default=None)
+    extracted_export.add_argument("--replace", action="store_true")
     build = subparsers.add_parser("build", help="Build a new LightRAG index and cost receipt")
     build.add_argument("--limit", type=int, default=0, help="0 indexes all documents")
     build.add_argument("--working-dir", help="Override index directory (useful for a smoke run)")
@@ -48,6 +56,17 @@ def main(argv: list[str] | None = None) -> int:
             expected,
             document_ids=_document_ids(ground_truth_dir),
             output_dir=cfg.repo_path(args.output),
+            replace=args.replace,
+        )
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return 0
+    if args.command == "export-extracted":
+        extracted = load_lightrag_graphml(cfg.repo_path(args.graphml))
+        result = export_obsidian_vault(
+            extracted,
+            document_ids=_document_ids(ground_truth_dir),
+            output_dir=cfg.repo_path(args.output or cfg.graph.obsidian_dir),
+            replace=args.replace,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0

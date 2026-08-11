@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 from collections import defaultdict
 from pathlib import Path
 
@@ -15,8 +16,21 @@ def _slug(value: str) -> str:
     return _SLUG_RE.sub("-", value.casefold()).strip("-") or "unnamed"
 
 
-def _entity_link(name: str) -> str:
-    return f"[[entities/{_slug(name)}|{name}]]"
+def _entity_note_names(snapshot: GraphSnapshot) -> dict[str, str]:
+    """Assign collision-safe stable filenames to distinct extracted names."""
+    used: dict[str, int] = {}
+    names: dict[str, str] = {}
+    for entity in sorted(snapshot.entities, key=lambda item: item.name):
+        base = _slug(entity.name)
+        used[base] = used.get(base, 0) + 1
+        suffix = "" if used[base] == 1 else f"--{used[base]}"
+        names[entity.name] = f"{base}{suffix}"
+    return names
+
+
+def _entity_link(name: str, note_names: dict[str, str]) -> str:
+    note_name = note_names.get(name, _slug(name))
+    return f"[[entities/{note_name}|{name}]]"
 
 
 def _document_link(doc_id: str) -> str:
@@ -33,13 +47,32 @@ def export_obsidian_vault(
     *,
     document_ids: list[str],
     output_dir: str | Path,
+    replace: bool = False,
 ) -> dict[str, int | str]:
     """Write one note per entity and document with relationship wikilinks."""
     output_dir = Path(output_dir)
+    generated = [
+        output_dir / "README.md",
+        output_dir / "entities",
+        output_dir / "documents",
+        output_dir / ".obsidian",
+    ]
+    existing = [path for path in generated if path.exists()]
+    if existing and not replace:
+        raise FileExistsError(
+            f"generated vault already exists at {output_dir}; pass replace=True to rebuild"
+        )
+    if replace:
+        for path in existing:
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     by_entity: dict[str, list[GraphRelation]] = defaultdict(list)
     by_document: dict[str, list[GraphRelation]] = defaultdict(list)
+    note_names = _entity_note_names(snapshot)
     for relation in snapshot.relations:
         by_entity[relation.subject].append(relation)
         by_entity[relation.object].append(relation)
@@ -74,7 +107,8 @@ def export_obsidian_vault(
             docs = ", ".join(_document_link(item) for item in relation.evidence_doc_ids)
             evidence = f" — evidence: {docs}" if docs else ""
             relation_lines.append(
-                f"- `{relation.predicate}` {direction} {_entity_link(other)}{evidence}"
+                f"- `{relation.predicate}` {direction} "
+                f"{_entity_link(other, note_names)}{evidence}"
             )
         if not relation_lines:
             relation_lines = [
@@ -82,7 +116,7 @@ def export_obsidian_vault(
             ]
         sources = sorted(set(entity.source_doc_ids))
         _write(
-            output_dir / "entities" / f"{_slug(entity.name)}.md",
+            output_dir / "entities" / f"{note_names[entity.name]}.md",
             f"# {entity.name}\n\n"
             f"Type: `{entity.kind}`\n\n"
             + (f"{entity.description}\n\n" if entity.description else "")
@@ -98,8 +132,8 @@ def export_obsidian_vault(
             by_document[doc_id], key=lambda item: (item.predicate, item.subject, item.object)
         ):
             relation_lines.append(
-                f"- {_entity_link(relation.subject)} — `{relation.predicate}` → "
-                f"{_entity_link(relation.object)}"
+                f"- {_entity_link(relation.subject, note_names)} — `{relation.predicate}` → "
+                f"{_entity_link(relation.object, note_names)}"
             )
         _write(
             output_dir / "documents" / f"{doc_id}.md",

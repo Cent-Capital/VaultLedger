@@ -24,6 +24,7 @@ from vaultledger.retrieve import (
     AgenticRetriever,
     CrossEncoderReranker,
     HybridRetriever,
+    LightRAGRetriever,
     NaiveDenseRetriever,
 )
 from vaultledger.schemas import Answer, QAExample, RoutingDecision, RunManifest
@@ -185,6 +186,16 @@ def _required_inputs(cfg: Config, variants: list[str]) -> None:
     required = [index_dir / "chunks.jsonl", index_dir / "chroma", index_dir / "records.db"]
     if {"B_hybrid", "D_agentic"} & set(variants):
         required.append(index_dir / "bm25.json")
+    if "C_graph" in variants:
+        graph_dir = cfg.repo_path(cfg.graph.working_dir)
+        required.extend(
+            [
+                graph_dir / "graph_chunk_entity_relation.graphml",
+                graph_dir / "vdb_entities.json",
+                graph_dir / "vdb_relationships.json",
+                graph_dir / "vdb_chunks.json",
+            ]
+        )
     missing = [str(path) for path in required if not path.exists()]
     if missing:
         raise FileNotFoundError(
@@ -194,11 +205,11 @@ def _required_inputs(cfg: Config, variants: list[str]) -> None:
 
 
 def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
-    unsupported = sorted(set(variants) - {"A_naive", "B_hybrid", "D_agentic"})
+    unsupported = sorted(set(variants) - {"A_naive", "B_hybrid", "C_graph", "D_agentic"})
     if unsupported:
         raise ValueError(
             f"variants not built yet: {', '.join(unsupported)}; "
-            "built variants are A_naive/B_hybrid/D_agentic"
+            "built variants are A_naive/B_hybrid/C_graph/D_agentic"
         )
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
@@ -210,6 +221,8 @@ def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
     built: dict[str, object] = {}
     if "A_naive" in variants:
         built["A_naive"] = NaiveDenseRetriever(index_dir, embedder)
+    if "C_graph" in variants:
+        built["C_graph"] = LightRAGRetriever.from_config(cfg)
     if {"B_hybrid", "D_agentic"} & set(variants):
         reranker = (
             CrossEncoderReranker(cfg.reranker.model, cfg.reranker.batch_size)
@@ -301,6 +314,7 @@ def _cell_metrics(
         example.id for example in examples if numeric_reference_quantities(example)
     }
     latencies = [float(row["gateway"]["latency_ms"]) for row in completed]
+    wall_latencies = [float(row["wall_latency_ms"]) for row in completed]
     calls = [
         call
         for row in completed
@@ -330,6 +344,10 @@ def _cell_metrics(
         **category_metrics(examples, rows),
         "median_gateway_latency_ms": round(float(median(latencies)), 3) if latencies else 0.0,
         "p95_gateway_latency_ms": round(_percentile(latencies, 0.95), 3),
+        "median_wall_latency_ms": (
+            round(float(median(wall_latencies)), 3) if wall_latencies else 0.0
+        ),
+        "p95_wall_latency_ms": round(_percentile(wall_latencies, 0.95), 3),
         "gateway_calls": float(totals.calls),
         "input_tokens": float(totals.input_tokens),
         "output_tokens": float(totals.output_tokens),
@@ -457,12 +475,17 @@ def _run_cell(
                     numeric_epsilon=cfg.thresholds.numeric_epsilon,
                 )
             else:
+                answer_k = (
+                    cfg.graph.answer_top_n
+                    if variant == "C_graph"
+                    else cfg.retrieval.answer_top_n
+                )
                 answer = answer_question_reliable(
                     example.question,
                     retriever,  # type: ignore[arg-type]
                     generator,
                     model_id=model,
-                    k=cfg.retrieval.answer_top_n,
+                    k=answer_k,
                     max_retries=cfg.loops.repair_max,
                     min_snippet_chars=cfg.generation.min_snippet_chars,
                     routing=routing,

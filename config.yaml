@@ -82,6 +82,8 @@ graph:                             # Phase 15, ADR-0008
   engine: "lightrag"
   extraction_model: "ollama/qwen3:8b" # largest installed local model by measured params (8.2B)
   embedding_dim: 768              # measured from `ollama show nomic-embed-text`
+  query_mode_default: "global"    # Variant C's global-summary acceptance population
+  answer_top_n: 12                # graph fan-out needs broader evidence than B's top 6
   working_dir: "data/graph/lightrag"
   obsidian_dir: "exports/obsidian_vault"
   entity_recall_min: 0.80

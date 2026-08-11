@@ -623,7 +623,7 @@ def build_parser() -> argparse.ArgumentParser:
     matrix.add_argument(
         "--variants",
         nargs="+",
-        choices=["A_naive", "B_hybrid", "D_agentic"],
+        choices=["A_naive", "B_hybrid", "C_graph", "D_agentic"],
         default=None,
     )
     matrix.add_argument(

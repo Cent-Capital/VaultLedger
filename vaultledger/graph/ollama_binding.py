@@ -15,8 +15,6 @@ from typing import Any
 import aiohttp
 import numpy as np
 
-from vaultledger.generate.ollama import ollama_model_name
-
 
 @dataclass(frozen=True)
 class LocalUsage:
@@ -44,7 +42,7 @@ def _chat_payload(
     messages.extend(history_messages)
     messages.append({"role": "user", "content": prompt})
     payload: dict[str, Any] = {
-        "model": ollama_model_name(model),
+        "model": model.removeprefix("ollama/"),
         "messages": messages,
         "stream": False,
         "think": False,

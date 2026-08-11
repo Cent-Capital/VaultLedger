@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import networkx as nx
+import pytest
 
 from vaultledger.config import REPO_ROOT, load_config
+from vaultledger.evals.run import build_parser as build_eval_parser
 from vaultledger.graph.ground_truth import load_ground_truth
 from vaultledger.graph.index import _display_path, documents_from_chunks
 from vaultledger.graph.lightrag_io import load_lightrag_graphml
@@ -18,6 +20,8 @@ from vaultledger.graph.quality import (
     score_graph,
     score_graph_with_account_aliases,
 )
+from vaultledger.retrieve.graph import LightRAGRetriever
+from vaultledger.schemas import Chunk
 
 
 def _ground_truth() -> GraphSnapshot:
@@ -34,6 +38,8 @@ def test_graph_config_pins_local_extractor_and_acceptance_threshold():
     assert cfg.graph.engine == "lightrag"
     assert cfg.graph.extraction_model == "ollama/qwen3:8b"
     assert cfg.graph.embedding_dim == 768
+    assert cfg.graph.query_mode_default == "global"
+    assert cfg.graph.answer_top_n == 12
     assert cfg.graph.entity_recall_min == 0.80
 
 
@@ -160,6 +166,114 @@ def test_account_alias_rule_does_not_loosen_non_account_matching():
     assert quality.alias_credited_nodes == 0
 
 
+def test_graph_retriever_maps_ranked_file_paths_to_original_citation_chunks(tmp_path):
+    chunks = {
+        "doc_a#c0": Chunk(
+            chunk_id="doc_a#c0",
+            doc_id="doc_a",
+            text="Exact source text A",
+            page=1,
+            char_start=0,
+            char_end=19,
+        ),
+        "doc_b#c0": Chunk(
+            chunk_id="doc_b#c0",
+            doc_id="doc_b",
+            text="Exact source text B",
+            page=1,
+            char_start=0,
+            char_end=19,
+        ),
+    }
+    calls = []
+
+    def query_data(query, mode, k):
+        calls.append((query, mode, k))
+        return {
+            "status": "success",
+            "data": {
+                "chunks": [{"file_path": "doc_b", "content": "provider copy"}],
+                "relationships": [{"file_path": "doc_a<SEP>unknown_doc"}],
+                "entities": [],
+                "references": [],
+            },
+        }
+
+    retriever = LightRAGRetriever(
+        index_dir=tmp_path,
+        working_dir=tmp_path,
+        model="ollama/qwen3:8b",
+        embedding_model="nomic-embed-text",
+        embedding_dim=768,
+        base_url="http://localhost:11434",
+        query_mode="global",
+        query_data_fn=query_data,
+        chunks=chunks,
+    )
+    hits = retriever.retrieve("summarize", k=2)
+    assert calls == [("summarize", "global", 2)]
+    assert [hit.chunk.chunk_id for hit in hits] == ["doc_b#c0", "doc_a#c0"]
+    assert [hit.chunk.text for hit in hits] == ["Exact source text B", "Exact source text A"]
+    assert [hit.source for hit in hits] == ["lightrag_global", "lightrag_global"]
+    assert [hit.score for hit in hits] == [1.0, 0.5]
+
+
+def test_graph_retriever_exposes_local_mode_and_rejects_failed_query(tmp_path):
+    chunk = Chunk(
+        chunk_id="doc_a#c0",
+        doc_id="doc_a",
+        text="Evidence",
+        page=1,
+        char_start=0,
+        char_end=8,
+    )
+    modes = []
+
+    def query_data(query, mode, k):
+        modes.append(mode)
+        return {"status": "success", "data": {"chunks": [{"file_path": "doc_a"}]}}
+
+    retriever = LightRAGRetriever(
+        index_dir=tmp_path,
+        working_dir=tmp_path,
+        model="ollama/qwen3:8b",
+        embedding_model="nomic-embed-text",
+        embedding_dim=768,
+        base_url="http://localhost:11434",
+        query_data_fn=query_data,
+        chunks={chunk.chunk_id: chunk},
+    )
+    assert retriever.retrieve_mode("detail", mode="local", k=1)[0].chunk == chunk
+    assert modes == ["local"]
+
+    retriever._query_data_fn = lambda query, mode, k: {
+        "status": "failure",
+        "message": "keyword extraction failed",
+    }
+    with pytest.raises(RuntimeError, match="keyword extraction failed"):
+        retriever.retrieve("broken", k=1)
+
+
+def test_matrix_cli_exposes_graph_variant_and_global_summary_population():
+    args = build_eval_parser().parse_args(
+        [
+            "matrix",
+            "--models",
+            "ollama/qwen3:8b",
+            "--variants",
+            "B_hybrid",
+            "C_graph",
+            "--categories",
+            "global_summary",
+            "--limit",
+            "0",
+        ]
+    )
+    assert args.variants == ["B_hybrid", "C_graph"]
+    assert args.categories == ["global_summary"]
+    assert args.limit == 0
+
+
 def test_graphml_adapter_preserves_nodes_edges_and_source_doc_ids(tmp_path):
     graph = nx.Graph()
     graph.add_node(
@@ -240,3 +354,38 @@ def test_obsidian_export_writes_every_entity_and_document_with_cross_links(tmp_p
     evidence_doc = (tmp_path / "documents" / "f1099_cedargrove_priya_2024.md").read_text()
     assert "[[entities/priya-raman|Priya Raman]]" in evidence_doc
     assert (tmp_path / ".obsidian" / "graph.json").exists()
+
+
+def test_obsidian_export_requires_explicit_replace_and_removes_stale_notes(tmp_path):
+    graph = GraphSnapshot(
+        source="lightrag:test",
+        entities=(GraphEntity("Current Entity"),),
+        relations=(),
+    )
+    export_obsidian_vault(graph, document_ids=["doc_a"], output_dir=tmp_path)
+    stale = tmp_path / "entities" / "stale.md"
+    stale.write_text("stale")
+    with pytest.raises(FileExistsError, match="replace=True"):
+        export_obsidian_vault(graph, document_ids=["doc_a"], output_dir=tmp_path)
+    export_obsidian_vault(
+        graph,
+        document_ids=["doc_a"],
+        output_dir=tmp_path,
+        replace=True,
+    )
+    assert not stale.exists()
+    assert (tmp_path / "entities" / "current-entity.md").exists()
+
+
+def test_obsidian_export_keeps_distinct_entities_when_slugs_collide(tmp_path):
+    graph = GraphSnapshot(
+        source="lightrag:test",
+        entities=(GraphEntity("Account"), GraphEntity("ACCOUNT")),
+        relations=(GraphRelation("Account", "distinct from", "ACCOUNT"),),
+    )
+    summary = export_obsidian_vault(graph, document_ids=[], output_dir=tmp_path)
+    assert summary["entities"] == 2
+    notes = sorted(path.name for path in (tmp_path / "entities").glob("*.md"))
+    assert notes == ["account--2.md", "account.md"]
+    first = (tmp_path / "entities" / "account.md").read_text()
+    assert "[[entities/account--2|Account]]" in first

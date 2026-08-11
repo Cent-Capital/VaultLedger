@@ -156,15 +156,19 @@ with ask:
     st.header("Ask your documents")
     answer_variant = st.segmented_control(
         "Retrieval mode",
-        options=["B_hybrid", "D_agentic"],
+        options=["B_hybrid", "C_graph", "D_agentic"],
         default="B_hybrid",
-        help="Variant D adds bounded SQL/calculator/retrieval planning for multi-hop math.",
+        help=(
+            "Variant C uses LightRAG's global graph mode; Variant D adds bounded "
+            "SQL/calculator/retrieval planning for multi-hop math."
+        ),
     )
-    st.caption(
-        "Variant B · hybrid retrieval + rerank"
-        if answer_variant == "B_hybrid"
-        else "Variant D · bounded agent loop + read-only SQL + verified citations"
-    )
+    captions = {
+        "B_hybrid": "Variant B · hybrid retrieval + rerank",
+        "C_graph": "Variant C · LightRAG global graph retrieval + verified source citations",
+        "D_agentic": "Variant D · bounded agent loop + read-only SQL + verified citations",
+    }
+    st.caption(captions[answer_variant])
     st.success("Privacy mode: Local · paid hosted tiers retired by ADR-0003")
     sample = st.selectbox(
         "Measured examples",
@@ -199,7 +203,12 @@ with ask:
         from vaultledger.guardrails import GuardrailToggles
         from vaultledger.index.embed import OllamaEmbedder
         from vaultledger.observability import TraceStore
-        from vaultledger.retrieve import AgenticRetriever, CrossEncoderReranker, HybridRetriever
+        from vaultledger.retrieve import (
+            AgenticRetriever,
+            CrossEncoderReranker,
+            HybridRetriever,
+            LightRAGRetriever,
+        )
         from vaultledger.route import answer_with_privacy
 
         try:
@@ -222,11 +231,12 @@ with ask:
                     rank_constant=cfg.retrieval.rrf_constant,
                     reranker=reranker,
                 )
-                retriever = (
-                    AgenticRetriever(hybrid, db_path)
-                    if answer_variant == "D_agentic"
-                    else hybrid
-                )
+                if answer_variant == "D_agentic":
+                    retriever = AgenticRetriever(hybrid, db_path)
+                elif answer_variant == "C_graph":
+                    retriever = LightRAGRetriever.from_config(cfg)
+                else:
+                    retriever = hybrid
                 generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
@@ -238,7 +248,11 @@ with ask:
                             generator,
                             local_model=cfg.models.T1.id,
                             mode="local",
-                            k=cfg.retrieval.answer_top_n,
+                            k=(
+                                cfg.graph.answer_top_n
+                                if answer_variant == "C_graph"
+                                else cfg.retrieval.answer_top_n
+                            ),
                             max_retries=cfg.loops.repair_max,
                             min_snippet_chars=cfg.generation.min_snippet_chars,
                             trace_store=TraceStore(cfg.repo_path(cfg.paths.traces)),

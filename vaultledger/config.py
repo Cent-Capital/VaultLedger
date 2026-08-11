@@ -9,6 +9,7 @@ config.yaml > environment > .env > secrets.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, Field
@@ -121,6 +122,8 @@ class Graph(BaseModel):
     engine: str = "lightrag"
     extraction_model: str = "ollama/qwen3:8b"
     embedding_dim: int = Field(default=768, ge=1)
+    query_mode_default: Literal["local", "global"] = "global"
+    answer_top_n: int = Field(default=12, ge=1)
     working_dir: str = "data/graph/lightrag"
     obsidian_dir: str = "exports/obsidian_vault"
     entity_recall_min: float = Field(default=0.80, ge=0, le=1)
