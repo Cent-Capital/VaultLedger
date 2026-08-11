@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -74,6 +74,9 @@ graph-index:  ## Phase 15 full LightRAG index + local-compute receipt
 
 graph-eval:  ## Phase 15 same-model B-vs-C comparison on all global-summary rows
 	$(PYTHON) -m vaultledger.evals matrix --models ollama/qwen3:8b --variants B_hybrid C_graph --categories global_summary --limit 0 --guardrails on --out-dir reports --report reports/phase15_global_summary_matrix.md
+
+graph-eval-k6:  ## Pre-registered Phase 15 C_graph context-budget sensitivity arm
+	$(PYTHON) -m vaultledger.evals matrix --models ollama/qwen3:8b --variants C_graph --categories global_summary --limit 0 --guardrails on --graph-answer-top-n 6 --out-dir reports --report reports/phase15_graph_k6_matrix.md
 
 replay:  ## Not built: Phase 8 declined raw-input replay on privacy grounds
 	@echo "replay: deliberately NOT built. Phase 8 declined it because persisting raw"

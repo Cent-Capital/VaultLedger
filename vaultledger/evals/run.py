@@ -659,6 +659,15 @@ def build_parser() -> argparse.ArgumentParser:
             "The arm is recorded in each manifest as guardrails_enabled."
         ),
     )
+    matrix.add_argument(
+        "--graph-answer-top-n",
+        type=int,
+        default=None,
+        help=(
+            "Explicit C_graph generation-context budget for a sensitivity arm. "
+            "The override is recorded in the manifest and run id; config.yaml is unchanged."
+        ),
+    )
     matrix.add_argument("--report", default="reports/model_matrix.md")
     matrix.set_defaults(func=run_model_matrix)
 

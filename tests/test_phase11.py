@@ -272,7 +272,9 @@ def test_matrix_report_is_generated_only_from_manifest_receipts(tmp_path: Path):
     assert "unpriced, not free" in report
     assert "generated, never hand-edited" in report
     assert "Wall p50" in report
+    assert "Context k" in report
     assert "retrieval-side embedding" in report
+    assert "not necessarily independent signals" in report
 
 
 def test_report_renders_categories_and_never_back_fills_a_missing_metric(tmp_path: Path):

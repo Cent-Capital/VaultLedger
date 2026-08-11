@@ -1985,19 +1985,23 @@ items (`C_graph`, B-vs-C `global_summary`, extracted-graph Obsidian export).
 ## Phase 15 closed — GraphRAG (variant C) built, measured, and not promoted  (2026-08-11)
 
 Phase 15 is **closed as an implementation and evaluation milestone, with the
-quality AC explicitly not all green**. Variant C is real and reproducible; the
-pre-registered entity-recall gate still missed, and C lost the same-model
-global-summary comparison. Closing records those results rather than redefining
-the gates or extending the phase until the preferred outcome appears.
+quality AC explicitly not all green**. Variant C is implemented and evaluated; the
+pre-registered entity-recall gate still missed, and C underperformed B on the
+initial six-row same-model global-summary comparison. Closing records those
+results rather than redefining the gates or extending the phase until the
+preferred outcome appears. **ADR-0010 grants a Phase-15-only waiver** from the
+all-ACs-green phase rule; it does not license the same exception later.
 
 **Built.** `LightRAGRetriever` exposes both LightRAG `local` and `global` query
 modes behind the selectable `C_graph` variant; `global` is the configured default
 for the global-summary population. Graph results are mapped through LightRAG's
 stored document paths to the exact Phase-2 `Chunk` objects, so the existing
 citation verifier—not a graph-only surrogate—remains authoritative. The matrix
-runner and Streamlit Ask path both instantiate C. C receives its declared
-12-chunk context budget versus B's 6; this favors graph fan-out on recall and is
-also why token and latency comparisons must be read alongside quality.
+runner and Streamlit Ask path both instantiate C. The initial run varied two
+things: C received a 12-chunk context budget versus B's 6. More graph fan-out may
+help recall, or the longer/noisier context may cause abstention. The initial run
+alone cannot attribute the difference to graph retrieval rather than context
+budget.
 
 **Extraction and indexing result, unchanged.** The clean-SHA full build processed
 60/60 documents into 82 nodes and 206 edges. The versioned receipt
@@ -2020,14 +2024,31 @@ fails. Receipts and complete answers are linked by
 | B_hybrid | 5/6 | 0/6 | 4/6 = **66.7%** | 4/6 = **66.7%** | 13.05s / 53.08s | 9.48s / 24.35s | 9,301 / 906 |
 | C_graph | 6/6 | 0/6 | 2/6 = **33.3%** | 2/6 = **33.3%** | 20.51s / 41.97s | 12.72s / 36.48s | 16,360 / 1,380 |
 
-C's measured margin is **−33.4 percentage points** on both citation hit and
-abstention accuracy. It abstained on four answerable rows; B answered four, then
-abstained once and timed out once. Neither arm passed the literal strict-match
-lower bound, so that metric cannot choose between them. C's median end-to-end
-latency was 7.46s slower. Its lower wall p95 is not a graph latency win: B's
-180-second timeout inflates that tail. Gateway token/latency totals exclude
-LightRAG's retrieval-side keyword and embedding calls; wall latency includes
-them. Local API spend is `$0`, with compute again unpriced rather than free.
+Citation hit and abstention accuracy are **collinear here, not two independent
+confirmations**: they agree on every one of the 11 scored rows because each
+abstention has no citation and every answer that did not abstain cited an expected
+document. The single underlying result is that C abstained on 4/6 answerable rows;
+B abstained on one and lost one to a 180-second connection timeout, leaving B 4/6
+versus C 2/6—a two-row difference. This is underpowered: `n=6`, Fisher exact
+two-tailed `p=0.567`, and one row moves either rate by 16.7 percentage points.
+Neither arm passed the literal strict-match lower bound, so that metric cannot
+choose between them. C's median end-to-end latency was 7.46s slower. Its lower wall
+p95 is not a graph latency win: B's timeout inflates that tail. Gateway
+token/latency totals exclude LightRAG's retrieval-side keyword and embedding calls;
+wall latency includes them. Local API spend is `$0`, with compute again unpriced
+rather than free. B therefore remains the **provisional operational default**, not
+the demonstrated winner of a powered experiment.
+
+**Context-budget sensitivity pre-registration (recorded before inference).** A
+third arm will hold model, six-row golden population, seed, guardrails, graph
+index, and code SHA fixed while changing only C's `answer_top_n` from 12 to 6.
+The primary comparison is the count of rows with correct abstention behavior; the
+citation column remains reported and its collinearity will be checked again. If
+C@6 is closer in absolute success-count distance to C@12's 2/6 than to B's 4/6,
+the context budget is not the observed cause and the descriptive graph-retrieval
+result stands. If C@6 is closer to B, the original result is confounded and cannot
+separate graph retrieval from context length. A 3/6 tie is explicitly
+inconclusive. No original receipt or metric will be changed.
 
 **Extracted graph visualization verified in the real app.** The collision-safe
 export produced 82 entity notes and 60 document notes; all 60 document notes have
@@ -2036,7 +2057,26 @@ wikilinks. It opened in the official Obsidian 1.13.6 desktop app as
 hubs including Marcus Chen, David Okafor, Halcyon Retail Group, accounts,
 merchants, invoices, statements, pay stubs, and 1099s. The export remains a
 regenerable ignored artifact (`make graph-vault-extracted`), never the retrieval
-backend or committed extraction evidence.
+backend or committed extraction evidence. Both ground-truth and extracted exports
+target `exports/obsidian_vault`; identity is determined by the last target run and
+the vault's `Source:` line, so use `make graph-vault` to restore the demo projection.
+
+**Reproducibility boundary.** GraphML is committed, but LightRAG's
+`vdb_entities.json`, `vdb_relationships.json`, and `vdb_chunks.json` remain
+gitignored. A clean clone can re-derive the extraction score immediately, but must
+run the approximately 45-minute `make graph-index` build before it can query C or
+repeat the generation evaluation. Committing model-specific vector stores was
+deliberately rejected in favor of the versioned build receipt.
+
+**Why the Phase-15 verification receipts are retained.** The regenerated
+`phase7_d0b6b7444eb3`, `phase9_judge_a40a6497095d`, and
+`phase13_guardrails_6cf2b1ba4447` metrics are unchanged from their prior latest
+runs. They are kept because Phase 15 added the `graph:` block and therefore changed
+the config hash to `21a33d1b887e…`; together they prove the older gates still hold
+under the Phase-15 configuration. Phase 14 discarded same-measurement verification
+artifacts when they carried no equivalent configuration change. Each phase's
+original close artifact remains committed and untouched; the new receipts add
+configuration-regression evidence rather than replace history.
 
 **Verification.** `make verify-track-a` exits 0 on the Phase-15 codebase: Ruff
 clean; 152 tests passed; the 80-row golden set validates; the live Phase-7 gate is
@@ -2052,9 +2092,10 @@ chunks with stable document and chunk IDs. The adapter therefore uses the graph
 to choose evidence but resolves every result back to the original ingested chunk
 before generation. That keeps the graph from becoming an unverifiable second
 source of truth. The experiment then demonstrates the harder product lesson:
-more connected context can cost more tokens, run slower, and cause more safe
-abstentions without improving answer quality. C remains available for continued
-research, but B remains the default.
+more connected context can cost more tokens, run slower, and in this six-row run
+coincided with more safe abstentions without improving either reported answer
+metric. C remains available for continued research, while B remains the
+provisional default pending a powered comparison.
 
 **Next:** Phase 16 — generate the cross-variant comparison and portfolio artifacts
 without upgrading Phase 15's failed quality gates into successes.

@@ -6,6 +6,7 @@ import networkx as nx
 import pytest
 
 from vaultledger.config import REPO_ROOT, load_config
+from vaultledger.evals.matrix import _answer_top_n
 from vaultledger.evals.run import build_parser as build_eval_parser
 from vaultledger.graph.ground_truth import load_ground_truth
 from vaultledger.graph.index import _display_path, documents_from_chunks
@@ -267,11 +268,21 @@ def test_matrix_cli_exposes_graph_variant_and_global_summary_population():
             "global_summary",
             "--limit",
             "0",
+            "--graph-answer-top-n",
+            "6",
         ]
     )
     assert args.variants == ["B_hybrid", "C_graph"]
     assert args.categories == ["global_summary"]
     assert args.limit == 0
+    assert args.graph_answer_top_n == 6
+
+
+def test_graph_context_budget_override_is_explicit_and_variant_scoped():
+    cfg = load_config()
+    assert _answer_top_n(cfg, "C_graph") == 12
+    assert _answer_top_n(cfg, "C_graph", graph_answer_top_n=6) == 6
+    assert _answer_top_n(cfg, "B_hybrid", graph_answer_top_n=12) == 6
 
 
 def test_graphml_adapter_preserves_nodes_edges_and_source_doc_ids(tmp_path):

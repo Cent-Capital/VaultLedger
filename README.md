@@ -72,9 +72,19 @@ The quality result is mixed and does not justify promoting C over B. Strict enti
 recall missed its preregistered gate at 11/15 (73.3%); a post-hoc, schema-derived
 account alias diagnostic finds 15/15 but precision remains 15/81 (18.5%). On the
 six `global_summary` rows with the shipped `qwen3:8b`, C scored 33.3% citation hit
-and 33.3% abstention accuracy versus B's 66.7% and 66.7%. See the generated
+and 33.3% abstention accuracy versus B's 66.7% and 66.7%. Those columns were
+collinear on every scored row, and the two-row difference is underpowered
+(`n=6`, Fisher exact two-tailed `p=0.567`). B remains the provisional default while
+a pre-registered equal-context sensitivity arm separates retrieval from context
+budget. See the generated
 [Phase-15 matrix](reports/phase15_global_summary_matrix.md) and the complete
 [build record](PROGRESS.md) for denominators, latency, receipts, and caveats.
+
+The committed GraphML is enough to reproduce graph-quality scoring, but the three
+gitignored LightRAG vector stores require an approximately 45-minute
+`make graph-index` rebuild before a clean clone can query Variant C. Both Obsidian
+export commands write `exports/obsidian_vault`; the README `Source:` line identifies
+which projection was generated last, and `make graph-vault` restores the demo view.
 
 ## Fresh-machine quickstart
 
@@ -200,6 +210,7 @@ re-recording script.
 | `make guardrails-eval` | Regenerate the Phase-13 named-guard acceptance report |
 | `make graph-index` | Build the Phase-15 LightRAG index and versioned local-compute receipt; refuses overwrite |
 | `make graph-eval` | Run the shipped-model B-vs-C comparison on all six global-summary rows |
+| `make graph-eval-k6` | Run the pre-registered C_graph top-6 context sensitivity arm |
 | `make graph-vault-extracted` | Rebuild the extracted graph's Obsidian projection |
 | `make replay` | **Deliberately not built.** Phase 8 declined raw-input replay: storing raw questions and retrieved context would broaden local data retention against the product thesis. Exits non-zero and says so |
 | `make clean` | Remove caches and build artifacts |

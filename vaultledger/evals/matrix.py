@@ -246,6 +246,18 @@ def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
     return built
 
 
+def _answer_top_n(
+    cfg: Config,
+    variant: str,
+    *,
+    graph_answer_top_n: int | None = None,
+) -> int:
+    """Resolve the declared generation-context budget for one matrix arm."""
+    if variant == "C_graph":
+        return graph_answer_top_n or cfg.graph.answer_top_n
+    return cfg.retrieval.answer_top_n
+
+
 #: Row-level flags that get a rate, aggregate and per category.
 _RATES = (
     ("strict_answer_match_rate", "strict_match"),
@@ -410,6 +422,7 @@ def _run_cell(
     examples: list[QAExample],
     golden_set_hash: str,
     out_dir: Path,
+    graph_answer_top_n: int | None = None,
     guardrail_toggles: GuardrailToggles | None = None,
     records_db: Path | None = None,
 ) -> tuple[Path, Path]:
@@ -419,7 +432,16 @@ def _run_cell(
 
     slug = re.sub(r"[^a-z0-9]+", "_", model.casefold()).strip("_")
     arm = "on" if guardrail_toggles is not None else "off"
-    checkpoint_path = out_dir / f".matrix_checkpoint_{slug}_{variant.casefold()}_{arm}.json"
+    answer_top_n = _answer_top_n(
+        cfg,
+        variant,
+        graph_answer_top_n=graph_answer_top_n,
+    )
+    budget_suffix = f"_k{answer_top_n}" if graph_answer_top_n is not None else ""
+    checkpoint_path = (
+        out_dir
+        / f".matrix_checkpoint_{slug}_{variant.casefold()}_{arm}{budget_suffix}.json"
+    )
     checkpoint_key = {
         "model": model,
         "variant": variant,
@@ -428,6 +450,7 @@ def _run_cell(
         # The guard arm is part of the key: an off-arm checkpoint must never be
         # resumed into an on-arm run, or the cell would mix two pipelines.
         "guardrails": arm,
+        "retrieval_answer_top_n": answer_top_n,
         "example_ids": [example.id for example in examples],
     }
     rows: list[dict] = []
@@ -467,7 +490,7 @@ def _run_cell(
                     token_budget=cfg.loops.agent_tokens_max,
                     output_tokens_max=cfg.loops.agent_output_tokens_max,
                     seconds_budget=cfg.loops.agent_seconds_max,
-                    k=cfg.retrieval.answer_top_n,
+                    k=answer_top_n,
                     min_snippet_chars=cfg.generation.min_snippet_chars,
                     routing=routing,
                     guardrail_toggles=guardrail_toggles,
@@ -475,17 +498,12 @@ def _run_cell(
                     numeric_epsilon=cfg.thresholds.numeric_epsilon,
                 )
             else:
-                answer_k = (
-                    cfg.graph.answer_top_n
-                    if variant == "C_graph"
-                    else cfg.retrieval.answer_top_n
-                )
                 answer = answer_question_reliable(
                     example.question,
                     retriever,  # type: ignore[arg-type]
                     generator,
                     model_id=model,
-                    k=answer_k,
+                    k=answer_top_n,
                     max_retries=cfg.loops.repair_max,
                     min_snippet_chars=cfg.generation.min_snippet_chars,
                     routing=routing,
@@ -602,12 +620,15 @@ def _run_cell(
     rows.sort(key=lambda row: order[str(row["example_id"])])
     totals = _totals_from_rows(rows)
     metrics = _cell_metrics(examples, rows, totals)
+    metrics["retrieval_answer_top_n"] = float(answer_top_n)
     # Self-describing arm: a manifest must say which guard stack produced it, or
     # on-arm and off-arm cells become silently incomparable in the matrix.
     metrics["guardrails_enabled"] = 1.0 if guardrail_toggles is not None else 0.0
     failures = [row["failure"] for row in rows if row.get("failure")]
     manifest = RunManifest(
-        run_id=f"phase11_{slug}_{variant.casefold()}_{uuid4().hex[:12]}",
+        run_id=(
+            f"phase11_{slug}_{variant.casefold()}{budget_suffix}_{uuid4().hex[:12]}"
+        ),
         timestamp=datetime.now(UTC).isoformat(),
         git_sha=_git_sha(),
         config_hash=_config_hash(),
@@ -646,10 +667,10 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         f"Cells: **{len(manifests)}** across **{model_count} model(s)**",
         f"Total measured API spend: **${total_cost:.6f}** (local models are unpriced, not free)",
         "",
-        "| Model | Variant | N | Strict match | Numeric exact match | Citation hit | "
+        "| Model | Variant | Context k | N | Strict match | Numeric exact match | Citation hit | "
         "Abstention accuracy | Wall p50 | Wall p95 | Gateway p50 | Gateway p95 | "
         "Tokens in / out | Cost | Manifest |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
         metric = manifest.metrics
@@ -663,9 +684,12 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         wall_p95 = metric.get("p95_wall_latency_ms")
         wall_p50_text = f"{wall_p50:.0f} ms" if wall_p50 is not None else "—"
         wall_p95_text = f"{wall_p95:.0f} ms" if wall_p95 is not None else "—"
+        context_top_n = metric.get("retrieval_answer_top_n")
+        context_top_n_text = str(int(context_top_n)) if context_top_n is not None else "—"
         lines.append(
             "| "
-            f"`{manifest.model}` | `{manifest.variant}` | {int(metric['matrix_examples'])} | "
+            f"`{manifest.model}` | `{manifest.variant}` | {context_top_n_text} | "
+            f"{int(metric['matrix_examples'])} | "
             f"{metric['strict_answer_match_rate']:.1%} | "
             f"{numeric} | "
             f"{metric['citation_doc_hit_rate']:.1%} | "
@@ -786,6 +810,11 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "Every rate divides by the number of golden examples in its population, so a row "
             "that failed to produce an answer counts as a miss rather than shrinking the "
             "denominator.",
+            "",
+            "Citation hit and abstention accuracy are not necessarily independent signals. On "
+            "an answerable population where abstentions carry no citations and every answer that "
+            "does not abstain cites an expected document, the two columns are structurally "
+            "identical; inspect the row receipts before treating them as corroboration.",
             "",
             "`Strict match` is a deterministic lower-bound scorer: answerable rows must repeat "
             "the reference's literal amounts, dates, and identifiers; other rows require a "
@@ -931,11 +960,17 @@ def run_matrix(args: Namespace) -> int:
     cfg = load_config()
     models = args.models or [model.id for model in cfg.models.matrix]
     variants = args.variants or cfg.matrix.variants
+    graph_answer_top_n = getattr(args, "graph_answer_top_n", None)
     limit = cfg.matrix.smoke_limit if args.limit is None else args.limit
     if len(set(models)) != len(models):
         raise ValueError("matrix model ids must be unique")
     if len(set(variants)) != len(variants):
         raise ValueError("matrix variants must be unique")
+    if graph_answer_top_n is not None:
+        if graph_answer_top_n < 1:
+            raise ValueError("--graph-answer-top-n must be at least 1")
+        if "C_graph" not in variants:
+            raise ValueError("--graph-answer-top-n requires C_graph in --variants")
     _required_inputs(cfg, variants)
     golden = load_golden_set(args.golden)
     categories = set(getattr(args, "categories", None) or [])
@@ -975,6 +1010,9 @@ def run_matrix(args: Namespace) -> int:
                 examples=examples,
                 golden_set_hash=golden_hash(args.golden),
                 out_dir=out_dir,
+                graph_answer_top_n=(
+                    graph_answer_top_n if variant == "C_graph" else None
+                ),
                 guardrail_toggles=guardrail_toggles,
                 records_db=records_db,
             )
@@ -999,6 +1037,7 @@ def run_matrix(args: Namespace) -> int:
                 "answer_receipts": receipts,
                 "models": models,
                 "variants": variants,
+                "graph_answer_top_n": graph_answer_top_n,
                 "examples_per_cell": len(examples),
                 "total_cost_usd": total_cost,
             },
