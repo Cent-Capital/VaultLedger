@@ -30,8 +30,10 @@ below is discharged and the closing `PROGRESS.md` entry cites the receipts.
   entity recall ≥80%; report precision and the typed-relation exact lower bound.
   **Measured and MISSED: 73.3% recall (11/15), 13.6% precision, 0.0 relation
   recall.** All four misses are accounts extracted under a different surface form;
-  a post-hoc last4 rule reads 100%/23.5% and is recorded as a secondary
-  diagnostic only. See the 2026-08-11 `PROGRESS.md` entry.
+  ADR-0009's post-hoc, schema-derived last4 rule reads 100% recall / 18.5%
+  distinct-entity precision. The earlier node-counted convention is reproduced at
+  23.5%; it is not selected because duplicate account nodes should cost precision.
+  Both remain secondary diagnostics. See the 2026-08-11 `PROGRESS.md` entries.
 - [ ] Wire LightRAG local/global context behind `C_graph`, preserving source chunk
   citations through inserted document IDs/file paths.
 - [ ] Run all six `global_summary` rows for C and B on the same model/config from

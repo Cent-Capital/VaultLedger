@@ -1923,3 +1923,59 @@ does not yet exist.
 same-model B-vs-C scoring on all six `global_summary` rows; and an
 extracted-graph Obsidian export inspected in graph view (no CLI path exists for
 that yet — `export-ground-truth` is the only export subcommand).
+
+---
+
+## Phase 15 account-alias re-score — post-hoc recall passes; precision remains poor  (2026-08-11)
+
+Phase 15 remains **in progress**. This entry appends to rather than replaces the
+strict result above: the pre-registered metric remains **11/15 = 73.3% recall,
+11/81 = 13.6% precision, and the ≥80% gate remains recorded as MISSED**.
+
+ADR-0009 codifies the secondary account rule requested after that miss. The rule
+was committed at `23a52e8` with synthetic-fixture tests **before** it was applied
+to the fixed extracted GraphML. It is derived only from each ground-truth
+account's structured `last4` field and applies only when the expected entity kind
+is `account`: an extracted name must match `\*{2,}\s*<last4>\b` or
+`ending\s+in\s+<last4>\b`, case-insensitive. People, organizations, and merchants
+still use exact canonical matching. This sequencing limits post-hoc tuning but
+does not turn the alias result into a preregistered result.
+
+**Re-score of the committed 82-node / 206-edge GraphML** (81 unique canonical
+entity names after normalization):
+
+| metric | strict, pre-registered | account alias, post-hoc |
+|---|---:|---:|
+| entity recall | 11/15 = **73.3%** | 15/15 = **100.0%** |
+| entity precision, selected convention | 11/81 = **13.6%** | 15/81 = **18.5%** |
+| typed-relation exact recall | 0/15 = **0.0%** | unchanged: 0/15 = **0.0%** |
+
+The selected precision convention is **distinct expected entities matched / unique
+extracted canonical nodes**, with at most one numerator credit per expected
+account. Eight extracted nodes match the four expected accounts; the extra four
+are duplicate aliases and remain false-positive resolution errors in the
+denominator. This prevents entity fragmentation from improving precision.
+
+For comparability, the implementation also reproduces the earlier node-counted
+diagnostic exactly: 11 strict nodes + 8 account-alias nodes = **19/81 = 23.5%**.
+That convention is not selected because it rewards all three surface nodes for
+account 7788 as three correct extractions. The difference between 18.5% and 23.5%
+is therefore a declared metric decision, not a calculation discrepancy.
+
+Reproduce both columns with:
+
+```bash
+python -m vaultledger.graph score \
+  --graphml data/graph/lightrag/graph_chunk_entity_relation.graphml
+```
+
+**Verification before re-score:** `make lint` clean; `make test` = 146 passed,
+1 skipped. The new tests pin schema-derived suffixes, digit boundaries, the
+account-only scope, and duplicate-node precision using synthetic fixtures rather
+than the real extracted names.
+
+**What this changes:** the secondary alias recall clears 80% and confirms all
+four real accounts exist somewhere in the graph. **What it does not change:** the
+original gate miss, the poor 18.5% selected precision, fabricated account nodes,
+the uninterpretable predicate-vocabulary mismatch, or the three remaining phase
+items (`C_graph`, B-vs-C `global_summary`, extracted-graph Obsidian export).
