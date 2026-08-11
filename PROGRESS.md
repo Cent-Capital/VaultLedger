@@ -1847,3 +1847,79 @@ entity recall ≥80% on that extracted graph; `C_graph` local/global retrieval w
 source-chunk citations; same-model B-vs-C scoring on all `global_summary` rows;
 and an extracted-graph Obsidian export inspected in graph view. No Variant-C or
 acceptance claim has been made.
+
+---
+
+## Phase 15 mid-phase: the graph is built and scored — recall gate MISSED  (2026-08-11)
+
+Phase 15 remains **in progress**. Two acceptance items are now discharged with
+receipts; three remain unbuilt. No Variant-C claim is made.
+
+**Index built.** `make graph-index` ran from the clean SHA `920e7bd` and processed
+60 of 60 documents, exit 0. Receipt: `reports/phase15_graph_index_2e50d5948f99.json`
+— 45.8 minutes wall, 142 completion calls, 228 embedding calls, 378,092 input and
+53,572 output tokens, `total_cost_usd: 0.0` with `pricing_status: unpriced`. The
+resulting 82-node / 206-edge GraphML is committed (force-added past the
+`data/graph/` ignore rule) so the score below can be re-derived, not just believed.
+
+**The ≥80% entity-recall gate is missed.** Measured on the pre-registered metric:
+
+  entity recall      11/15 = 73.3%   <- AC threshold was 0.80. MISSED.
+  entity precision   11/81 = 13.6%
+  relation recall     0/15 = 0.0%
+
+**The miss is a naming-convention artifact, and that is stated here rather than
+used to erase the number.** People, organizations and merchants scored 11 of 11.
+All four misses are accounts, and all four *were* extracted — under a different
+surface form than `entities.json` uses:
+
+  ground truth `checking ****4021` -> extracted `Account no. ****4021`
+  ground truth `savings ****7788`  -> extracted `Account ****7788`
+  ground truth `checking ****3390` -> extracted `Checking Account Ending in 3390`
+  ground truth `checking ****5567` -> extracted `Account no. ****5567`
+
+`quality.py` refuses fuzzy matching by design and requires an explicit, reviewable
+alias table before crediting aliases. It behaved as specified; what it measured
+here is a string convention, not whether the extractor found the account.
+
+**Post-hoc re-score, labelled as post-hoc.** Applying one stated rule — credit an
+expected account iff some extracted node contains `****<last4>` or
+`ending in <last4>`, case-insensitive, nothing else fuzzy-matched — gives:
+
+  entity recall      15/15 = 100.0%  (post-hoc rule, NOT the pre-registered metric)
+  entity precision   19/81 = 23.5%
+
+This rule was written **after** seeing the strict result, which is exactly the
+condition under which a metric change is least trustworthy. It is therefore
+recorded as a secondary diagnostic, the headline stays 73.3%, and the phase
+reports the gate as missed. Codifying the alias table in `quality.py` and
+re-running is deferred, so that any future pass is measured by a rule that exists
+before the run rather than after it.
+
+**The precision number is the real finding, and it is bad.** 13.6% strict / 23.5%
+under the alias rule. The local 8B extractor mints account entities out of numbers
+that are not account numbers, traced to source:
+
+  `Checking Account Ending in 07302` <- the Jersey City ZIP from a payer address
+  `Checking Account Ending in 2525`  <- Marcus Chen's net pay of $2,525.39
+  `Checking Account Ending in 3125`, `... 3252` <- appear nowhere in the corpus
+                                                  in plain or comma-formatted digits
+
+For a privacy-first financial-document product, an extractor that fabricates
+account identifiers from ZIP codes and paycheck amounts is a more consequential
+result than the recall gate. It is consistent with the one-document smoke, which
+invented `Form 10909-NEC`, and with ADR-0008's warning that `qwen3:8b` sits far
+below LightRAG's ≥32B recommendation.
+
+**Relation recall of 0.0 is near-uninformative and must not be read as "no correct
+relations."** Ground truth uses typed predicates (`owns account`,
+`recurring merchant`); LightRAG emits keyword bags (`payment,transaction`,
+`account holder,invoice issuer`). Exact triple matching cannot cross those
+vocabularies, so 0/206 is a true lower bound that says nothing about whether the
+206 extracted relations are right. Judging them needs a predicate mapping that
+does not yet exist.
+
+**Still required:** `C_graph` local/global retrieval with source-chunk citations;
+same-model B-vs-C scoring on all six `global_summary` rows; and an
+extracted-graph Obsidian export inspected in graph view (no CLI path exists for
+that yet — `export-ground-truth` is the only export subcommand).

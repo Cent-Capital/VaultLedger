@@ -22,11 +22,16 @@ below is discharged and the closing `PROGRESS.md` entry cites the receipts.
   produced 7 nodes/6 edges and a `/private/tmp` receipt: 2 completion calls,
   3 embedding calls, 4,899 input tokens, 802 output tokens, 43.5 seconds, $0.00
   **unpriced** local inference. This is plumbing evidence, not an eval.
-- [ ] Build the full 60-document index from a clean commit with `make graph-index`.
+- [x] Build the full 60-document index from a clean commit with `make graph-index`.
   The command refuses to overwrite an existing index and writes a versioned
-  config/corpus/model/token/latency/cost receipt.
-- [ ] Score the full extracted GraphML against the 15-entity denominator. Gate on
+  config/corpus/model/token/latency/cost receipt. Done at `920e7bd`: 60/60
+  processed, 45.8 min, receipt `reports/phase15_graph_index_2e50d5948f99.json`.
+- [x] Score the full extracted GraphML against the 15-entity denominator. Gate on
   entity recall ≥80%; report precision and the typed-relation exact lower bound.
+  **Measured and MISSED: 73.3% recall (11/15), 13.6% precision, 0.0 relation
+  recall.** All four misses are accounts extracted under a different surface form;
+  a post-hoc last4 rule reads 100%/23.5% and is recorded as a secondary
+  diagnostic only. See the 2026-08-11 `PROGRESS.md` entry.
 - [ ] Wire LightRAG local/global context behind `C_graph`, preserving source chunk
   citations through inserted document IDs/file paths.
 - [ ] Run all six `global_summary` rows for C and B on the same model/config from

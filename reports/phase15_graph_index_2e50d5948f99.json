@@ -1,0 +1,22 @@
+{
+  "completion_calls": 142,
+  "config_hash": "e78a6bd349c7dcd87167f0b5f71937fe67f7477e5e954273e6fa971ed7552ccf",
+  "corpus_hash": "ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405",
+  "cost_note": "Local inference is unpriced, not free; latency and tokens are recorded.",
+  "documents_indexed": 60,
+  "embedding_calls": 228,
+  "embedding_model": "nomic-embed-text",
+  "engine": "lightrag",
+  "engine_version": "1.5.6",
+  "extraction_model": "ollama/qwen3:8b",
+  "git_sha": "920e7bd0ce8aed48a38c134bd68059f1127304cc",
+  "graphml": "data/graph/lightrag/graph_chunk_entity_relation.graphml",
+  "input_tokens": 378092,
+  "output_tokens": 53572,
+  "pricing_status": "unpriced",
+  "provider_latency_ms": 2745315.088,
+  "run_id": "2e50d5948f99",
+  "timestamp": "2026-08-11T02:37:56.827805+00:00",
+  "total_cost_usd": 0.0,
+  "wall_latency_ms": 2745824.027
+}
