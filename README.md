@@ -111,9 +111,13 @@ and [OCR provenance decision](decisions/ADR-0012-ocr-preprocessing-and-provenanc
   live index.
 - Eval startup refuses any user or OCR-derived chunk even if a path is misconfigured.
 
-The deterministic Phase 16 tests and a real local text-PDF smoke run are green. The
-scan acceptance arm remains unverified on this machine because `ocrmypdf` and
-Tesseract are not installed; the runtime correctly fails such a document explicitly.
+The deterministic Phase 16 tests, a real text-PDF smoke run, and the scan acceptance
+arm are all green. The scan arm was measured with `ocrmypdf 17.10.0` and
+`tesseract 5.5.3` on a genuinely image-only PDF (0 extractable characters): OCR
+provenance survived to the citation as `corpus=user, ocr_derived=True`, and the
+answer's figure was correct. **That is a pipeline result, not an accuracy result** —
+it was one cleanly rendered page, far easier than a photographed or low-contrast
+statement, so no claim is made about how reliably OCR reads real scans.
 
 ## Fresh-machine quickstart
 

@@ -5,6 +5,23 @@ SPEC.md and why, and a plain-English explainer of the trickiest piece (that
 paragraph is the interview prep). No backdating, no compressing — the commit
 history is the receipt.
 
+> ### Phase numbering changed on 2026-08-11 — read before trusting a phase number below
+>
+> **ADR-0011** re-sequenced the remaining roadmap. Entries written before that date
+> use the old numbering, and they are left exactly as written because this log is
+> append-only. Translate as you read:
+>
+> | Entries before 2026-08-11 say | It is now |
+> |---|---|
+> | Phase 16 — comparison report and portfolio | **Phase 19** |
+> | Phase 17 — six-model bake-off and latency–quality frontier | **Phase 18**, extended with a decoding sweep |
+> | *(new)* | **Phase 16** — external live documents, OCR, watcher *(closed)* |
+> | *(new)* | **Phase 17** — browser-UI packaging and handoff |
+>
+> So an older entry that says "Phase 17 must establish the frontier has a real
+> separation" is an obligation now owed by **Phase 18**. Those obligations were not
+> cancelled by the renumbering; only their labels moved.
+
 ---
 
 ## Phase 0 — Scaffold & config  (2026-07-11)
@@ -2161,7 +2178,7 @@ provisional default pending a powered comparison.
 **Next:** Phase 16 — generate the cross-variant comparison and portfolio artifacts
 without upgrading Phase 15's failed quality gates into successes.
 
-## Phase 16 — Live documents, safely (opened 2026-08-11; implementation complete, acceptance open)
+## Phase 16 — Live documents, safely (opened and closed 2026-08-11)
 
 ADR-0011 superseded the old next step above before Phase 16 code began: portfolio
 work moves to Phase 19, while Phase 16 now builds the external live-document path.
