@@ -2,11 +2,14 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety replay run clean
+.PHONY: install install-graph doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-vault replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
-	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway]"
+	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
 	$(PYTHON) -m spacy download en_core_web_sm
+
+install-graph:  ## Install Phase 15's isolated LightRAG + NetworkX dependencies
+	$(PYTHON) -m pip install -e ".[graph]"
 
 doctor:  ## Read-only check of the documented local Track-A setup
 	$(PYTHON) -m vaultledger.doctor
@@ -59,6 +62,12 @@ agentic-eval:  ## Phase 14 full target-category matrix, guards on
 
 agentic-safety:  ## Phase 14 live Phase-7 suite rerun, Variant D + guards on
 	$(PYTHON) -m vaultledger.evals safety --variant D_agentic --guardrails on
+
+graph-vault:  ## Phase 15 demo-only ground-truth vault (not extraction evidence)
+	$(PYTHON) -m vaultledger.graph export-ground-truth
+
+graph-index:  ## Phase 15 full LightRAG index + local-compute receipt
+	$(PYTHON) -m vaultledger.graph build
 
 replay:  ## Not built: Phase 8 declined raw-input replay on privacy grounds
 	@echo "replay: deliberately NOT built. Phase 8 declined it because persisting raw"

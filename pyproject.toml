@@ -45,6 +45,13 @@ rerank = [
 gateway = [
     "litellm>=1.74,<2",
 ]
+graph = [
+    # Phase 15 pins the current minor line: the embedded SDK is explicitly
+    # version-sensitive, while deterministic graph scoring is provider-neutral.
+    "lightrag-hku>=1.5.6,<1.6",
+    "networkx>=3.2,<4",
+    "aiohttp>=3.9,<4",  # explicit local HTTP binding; no runtime auto-install
+]
 observability = [
     "langfuse>=4.0,<5",
     # Langfuse pulls the OTLP *http* exporter; chromadb's installed OTLP *grpc*
@@ -58,7 +65,7 @@ observability = [
 #                              hand-rolled repair loop instead of instructor (ADR-0002)
 # Phase 8: local traces are built in; `observability` adds optional Langfuse export
 # Phase 11: LiteLLM is isolated in the `gateway` extra; `make install` includes it.
-# Phase 15 (graph):            lightrag-hku, networkx
+# Phase 15 (graph):            isolated in the `graph` extra
 
 [tool.setuptools.packages.find]
 include = ["vaultledger*"]

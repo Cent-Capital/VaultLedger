@@ -62,6 +62,7 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–9 complete (scaffold through judge validation + regression runner).
-**Next: Phase 10 — Track-A polish.** Timeline compressed 2026-07-13:
-Track A by ~Jul 26, whole project by Aug 10 (SPEC §16). See `PROGRESS.md`.
+Phases 0–14 are closed. Phase 14 met its Variant-D improvement AC on the shipped
+8B model and regressed on 4B; the split result is recorded, not averaged away.
+**Phase 15 — GraphRAG is in progress.** See `PHASE15_KICKOFF.md` and the latest
+`PROGRESS.md` entry for the exact built/pending boundary.

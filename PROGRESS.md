@@ -1797,3 +1797,53 @@ so over-refusal stays **0 of 6, not meaningfully tested**. Latency still cannot 
 models in this harness. Routing accuracy remains *met in form only*, and per the
 pre-Phase-14 review the router's category→tier map is backwards on 44 of 80 rows —
 still deliberately uncorrected, owed to Phase 17 on a held-out set.
+
+---
+
+## Phase 15 opened — measurable graph contracts and live LightRAG smoke  (2026-08-10)
+
+Phase 15 is **in progress, not closed**. ADR-0008 accepts the engine decision the
+SPEC pre-indicated: LightRAG 1.5.x through a narrow embedded adapter; Graphiti is
+the temporal alternative; Microsoft GraphRAG is the community-summary alternative;
+Obsidian is a generated projection and never a retrieval backend.
+
+The graph-quality denominator is now code, not interpretation at report time.
+`entities.json` contains **15 scoreable entities** in the types §14.3 names:
+3 people, 3 organizations, 5 recurring merchants, and 4 accounts. Addresses are
+attributes. Relation endpoints are not allowed to invent extra targets because
+the `shared_address` relation has explanatory prose as its object. The committed
+graph also contains 15 relations with 89 evidence-document links. Provider-neutral
+contracts, exact canonical entity scoring, a typed-relation exact lower bound, and
+a LightRAG GraphML adapter make those definitions independent from SDK storage.
+
+The Obsidian exporter is live and was exercised over the Phase-1 graph: 15 entity
+notes + 60 document notes with evidence wikilinks. Its README carries a warning
+that this is a **ground-truth demo projection, not extraction evidence**. It cannot
+be used to claim entity recall or to call Variant C built.
+
+The pinned `lightrag-hku==1.5.6` SDK exposed a packaging problem immediately: its
+Ollama module imports an undeclared Python client and attempts a runtime install.
+VaultLedger does not use that module. Its adapter calls the local HTTP API
+explicitly, sets `think: false` per ADR-0007, uses the measured 768-dimensional
+`nomic-embed-text` output, and records tokens/latency/cost status. The local model
+choice is based on `ollama show`, not disk size or tag inference: `qwen3:8b` declares
+8.2B parameters, versus 5.1B for the larger-on-disk `gemma4:e2b`.
+
+**Live one-document smoke — plumbing evidence only.** A disposable `/private/tmp`
+index over `f1099_cedargrove_david_2024` completed end to end: 7 nodes, 6 edges,
+2 completion calls, 3 embedding calls, 4,899 recorded input tokens, 802 output
+tokens, and 43.5 seconds wall time. Cost is `0.0` with `pricing_status: unpriced` —
+local compute is not called free. The first attempt completed extraction but found
+a receipt-path bug for indexes outside the repo; a regression test and portable
+path serializer fixed it, and the second run wrote the receipt successfully.
+
+Do not extrapolate the smoke quality. It found the two canonical entities present
+in that one 1099 and five form/field concepts, including a spurious
+`Form 10909-NEC` node. Comparing one document to the full-corpus denominator reads
+13.3% recall / 28.6% precision and is **not the Phase-15 eval population**.
+
+**Still required:** full 60-document clean-commit indexing and cost receipt;
+entity recall ≥80% on that extracted graph; `C_graph` local/global retrieval with
+source-chunk citations; same-model B-vs-C scoring on all `global_summary` rows;
+and an extracted-graph Obsidian export inspected in graph view. No Variant-C or
+acceptance claim has been made.

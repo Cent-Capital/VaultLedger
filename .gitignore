@@ -26,6 +26,7 @@ chroma/
 # Observability
 langfuse/
 data/traces/
+data/graph/
 
 # Obsidian export: generated; keep only a committed sample (add it with git add -f)
 exports/obsidian_vault/*

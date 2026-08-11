@@ -115,6 +115,17 @@ class Embedding(BaseModel):
     ollama_url: str = "http://localhost:11434"
 
 
+class Graph(BaseModel):
+    """Phase 15 local-only GraphRAG configuration (ADR-0008)."""
+
+    engine: str = "lightrag"
+    extraction_model: str = "ollama/qwen3:8b"
+    embedding_dim: int = Field(default=768, ge=1)
+    working_dir: str = "data/graph/lightrag"
+    obsidian_dir: str = "exports/obsidian_vault"
+    entity_recall_min: float = Field(default=0.80, ge=0, le=1)
+
+
 class Chunking(BaseModel):
     max_chars: int = 2400  # ~600 tokens at ~4 chars/token (SPEC 8.4: 500-800)
     overlap_frac: float = 0.15
@@ -150,6 +161,7 @@ class Config(BaseSettings):
     retrieval: Retrieval = Retrieval()
     generation: Generation = Generation()
     embedding: Embedding = Embedding()
+    graph: Graph = Graph()
     chunking: Chunking = Chunking()
     paths: Paths = Paths()
 
@@ -203,6 +215,7 @@ __all__ = [
     "Retrieval",
     "Generation",
     "Embedding",
+    "Graph",
     "Chunking",
     "Paths",
     "load_config",
