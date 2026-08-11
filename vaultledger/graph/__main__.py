@@ -13,7 +13,7 @@ from .ground_truth import load_ground_truth
 from .index import build_lightrag_index, write_index_receipt
 from .lightrag_io import load_lightrag_graphml
 from .obsidian import export_obsidian_vault
-from .quality import score_graph
+from .quality import score_graph, score_graph_with_account_aliases
 
 
 def _document_ids(ground_truth_dir: Path) -> list[str]:
@@ -63,7 +63,15 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({**receipt, "receipt": str(receipt_path)}, indent=2, sort_keys=True))
         return 0
     extracted = load_lightrag_graphml(args.graphml)
-    print(json.dumps(score_graph(extracted, expected).as_metrics(), indent=2, sort_keys=True))
+    strict = score_graph(extracted, expected)
+    alias = score_graph_with_account_aliases(extracted, expected)
+    print(
+        json.dumps(
+            {"strict": strict.as_metrics(), "account_alias": alias.as_metrics()},
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

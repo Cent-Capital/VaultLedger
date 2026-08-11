@@ -16,6 +16,9 @@ class GraphEntity:
     kind: str = "unknown"
     description: str = ""
     source_doc_ids: tuple[str, ...] = field(default_factory=tuple)
+    # Ground-truth-only structured identity used by ADR-0009's account alias
+    # rule. Extracted display names are never parsed to populate this field.
+    account_last4: str | None = None
 
 
 @dataclass(frozen=True)

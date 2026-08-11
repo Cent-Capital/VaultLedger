@@ -9,7 +9,7 @@ from pathlib import Path
 from .model import GraphEntity, GraphRelation, GraphSnapshot
 
 
-def _scoreable_entities(data: dict) -> dict[str, str]:
+def _scoreable_entities(data: dict) -> dict[str, tuple[str, str | None]]:
     """Return the entity population named by SPEC 14.3.
 
     Addresses are attributes in ``entities.json``, not headline graph entity
@@ -17,15 +17,18 @@ def _scoreable_entities(data: dict) -> dict[str, str]:
     one ``shared_address`` object is explanatory prose rather than an entity.
     The denominator is therefore people + organizations + merchants + accounts.
     """
-    entities: dict[str, str] = {}
+    entities: dict[str, tuple[str, str | None]] = {}
     for persona in data["personas"]:
-        entities[persona["name"]] = "person"
+        entities[persona["name"]] = ("person", None)
         for account in persona.get("accounts", []):
-            entities[f"{account['label']} ****{account['last4']}"] = "account"
+            entities[f"{account['label']} ****{account['last4']}"] = (
+                "account",
+                str(account["last4"]),
+            )
     for organization in data["organizations"]:
-        entities[organization["name"]] = str(organization["kind"])
+        entities[organization["name"]] = (str(organization["kind"]), None)
     for merchant in data["recurring_merchants"]:
-        entities[merchant] = "merchant"
+        entities[merchant] = ("merchant", None)
     return entities
 
 
@@ -46,8 +49,13 @@ def load_ground_truth(path: str | Path) -> GraphSnapshot:
         evidence[relation.subject].update(relation.evidence_doc_ids)
         evidence[relation.object].update(relation.evidence_doc_ids)
     entities = tuple(
-        GraphEntity(name=name, kind=kind, source_doc_ids=tuple(sorted(evidence[name])))
-        for name, kind in sorted(_scoreable_entities(data).items())
+        GraphEntity(
+            name=name,
+            kind=kind,
+            source_doc_ids=tuple(sorted(evidence[name])),
+            account_last4=last4,
+        )
+        for name, (kind, last4) in sorted(_scoreable_entities(data).items())
     )
     return GraphSnapshot(source="ground_truth", entities=entities, relations=relations)
 

@@ -11,7 +11,13 @@ from vaultledger.graph.lightrag_io import load_lightrag_graphml
 from vaultledger.graph.model import GraphEntity, GraphRelation, GraphSnapshot
 from vaultledger.graph.obsidian import export_obsidian_vault
 from vaultledger.graph.ollama_binding import _chat_payload
-from vaultledger.graph.quality import canonical_name, score_graph
+from vaultledger.graph.quality import (
+    account_alias_patterns,
+    account_alias_table,
+    canonical_name,
+    score_graph,
+    score_graph_with_account_aliases,
+)
 
 
 def _ground_truth() -> GraphSnapshot:
@@ -39,6 +45,17 @@ def test_ground_truth_denominator_is_explicit_and_relations_keep_evidence():
     assert len(graph.relations) == 15
     assert sum(len(relation.evidence_doc_ids) for relation in graph.relations) == 89
     assert not any("Nimbus address on" == entity.name for entity in graph.entities)
+    accounts = {
+        entity.name: entity.account_last4
+        for entity in graph.entities
+        if entity.kind == "account"
+    }
+    assert accounts == {
+        "checking ****3390": "3390",
+        "checking ****4021": "4021",
+        "checking ****5567": "5567",
+        "savings ****7788": "7788",
+    }
 
 
 def test_entity_metrics_deduplicate_and_only_normalize_representation():
@@ -64,6 +81,83 @@ def test_entity_metrics_deduplicate_and_only_normalize_representation():
     assert quality.entity_recall == 0.5
     assert quality.entity_precision == 0.5
     assert quality.relation_recall == 1.0
+
+
+def test_account_alias_rule_is_schema_derived_and_digit_anchored():
+    expected = GraphSnapshot(
+        source="expected",
+        entities=(GraphEntity("checking ****4021", kind="account", account_last4="4021"),),
+        relations=(),
+    )
+    assert account_alias_patterns("4021") == (
+        r"\*{2,}\s*4021\b",
+        r"ending\s+in\s+4021\b",
+    )
+    assert account_alias_table(expected) == {
+        "checking ****4021": (r"\*{2,}\s*4021\b", r"ending\s+in\s+4021\b")
+    }
+    extracted = GraphSnapshot(
+        source="extracted",
+        entities=(
+            GraphEntity("Account no. ****4021"),
+            GraphEntity("Checking Account Ending in 4021"),
+            GraphEntity("Account no. ****40210"),
+            GraphEntity("Checking Account Ending in 14021"),
+        ),
+        relations=(),
+    )
+    quality = score_graph_with_account_aliases(extracted, expected)
+    assert quality.alias_credited_nodes == 2
+    assert quality.duplicate_alias_nodes == 1
+    assert quality.quality.entity_recall == 1.0
+
+
+def test_account_alias_precision_credits_one_entity_and_penalizes_duplicate_nodes():
+    expected = GraphSnapshot(
+        source="expected",
+        entities=(
+            GraphEntity("Priya Raman", kind="person"),
+            GraphEntity("checking ****3390", kind="account", account_last4="3390"),
+        ),
+        relations=(),
+    )
+    extracted = GraphSnapshot(
+        source="extracted",
+        entities=(
+            GraphEntity("Priya Raman"),
+            GraphEntity("Account no. ****3390"),
+            GraphEntity("Account: ****3390"),
+            GraphEntity("Checking Account Ending in 3390"),
+            GraphEntity("Noise"),
+        ),
+        relations=(),
+    )
+    quality = score_graph_with_account_aliases(extracted, expected)
+    assert quality.quality.matched_entities == 2
+    assert quality.quality.entity_recall == 1.0
+    assert quality.quality.entity_precision == 2 / 5
+    assert quality.alias_matched_expected == 1
+    assert quality.alias_credited_nodes == 3
+    assert quality.duplicate_alias_nodes == 2
+    assert quality.node_counted_matched_entities == 4
+    assert quality.node_counted_entity_precision == 4 / 5
+    assert quality.precision_convention == "distinct_expected_one_credit_per_account"
+
+
+def test_account_alias_rule_does_not_loosen_non_account_matching():
+    expected = GraphSnapshot(
+        source="expected",
+        entities=(GraphEntity("Client 4021", kind="client", account_last4="4021"),),
+        relations=(),
+    )
+    extracted = GraphSnapshot(
+        source="extracted",
+        entities=(GraphEntity("Account no. ****4021"),),
+        relations=(),
+    )
+    quality = score_graph_with_account_aliases(extracted, expected)
+    assert quality.quality.matched_entities == 0
+    assert quality.alias_credited_nodes == 0
 
 
 def test_graphml_adapter_preserves_nodes_edges_and_source_doc_ids(tmp_path):
