@@ -2239,14 +2239,44 @@ Also found on review: the OCR page threshold was restated as a literal in both
 marking it `ocr_derived` — a silent ADR-0012 provenance failure no downstream check
 catches. It is now the shared `MIN_PAGE_TEXT_CHARS` constant, with a test.
 
-**Verification and remaining acceptance gap.** `make lint` is clean and `make test`
-is green at **167 passed**, including 13 Phase-16 tests for path refusal, OCR gating/failure,
-provenance, eval exclusion, incremental replacement, watcher stability/persistence,
-single-id graph insertion, and UI warnings. Neither `ocrmypdf` nor Tesseract is
-installed on this machine, so the real scanned-PDF arm has not run. Phase 16 is
-therefore **not closed**: its text-layer acceptance path is measured and green, but
-the ADR-0012 scan → OCR → marked answer criterion remains pending a machine with
-both executables. No OCR correctness claim is made.
+**Verification.** `make lint` is clean and `make test` is green at **167 passed**,
+including 13 Phase-16 tests for path refusal, OCR gating/failure, provenance, eval
+exclusion, incremental replacement, watcher stability/persistence, single-id graph
+insertion, and UI warnings.
+
+**Scan acceptance arm — run, and now green.** `ocrmypdf 17.10.0` and
+`tesseract 5.5.3` were installed, closing the gap this entry previously recorded as
+pending. A genuinely image-only PDF was generated — a rendered bank statement with
+a slight skew, carrying **0 extractable characters**, so `needs_ocr` was `True` on a
+real file rather than a stub. It was dropped into the shipped default inbox
+(`~/VaultLedger/Inbox`) and run through `make live-ingest`, exercising the real
+configuration rather than a test fixture path.
+
+The complete ADR-0012 chain is now measured end to end:
+
+  parse_ocr 2,988 ms (real ocrmypdf --skip-text), total 29,052 ms
+  receipt: ocr_derived: true, ocr_pages: [1], corpus: user
+  graph insert 24,997 ms — 2 completion + 3 embedding calls, 4,012 in / 258 out,
+    $0 pricing_status: unpriced
+  live answer: "The closing balance ... was $10,794.88" — correct
+  its citation: doc=scan_statement page=1 corpus=user ocr_derived=True
+
+OCR read every field of that statement correctly: all four amounts, the masked
+account number `****4021`, both period dates, and both names.
+
+**What that does and does not establish.** It establishes that the pipeline works:
+an image-only document is detected, OCR'd, chunked, indexed, graphed, retrieved,
+answered, and cited **with its OCR provenance intact all the way to the citation**.
+It does **not** establish that OCR is reliable. This was one cleanly *rendered*
+page, which is far easier than a photographed, faxed, or low-contrast statement —
+the conditions under which OCR actually misreads digits. One clean pass is not an
+accuracy measurement, and no OCR accuracy claim is made. ADR-0012's residual risk
+stands undiminished.
+
+**Isolation held under a real live run.** After ingesting a user document, the
+synthetic corpus hash is still `ba7148a112191bc8…`, `assert_evaluation_corpus`
+refuses the live index by name, the synthetic index is still accepted, and
+`git status` is empty — the live run wrote nothing inside the repository.
 
 **Trickiest piece (plain English).** A citation cannot discover that OCR read a
 printed digit incorrectly; it can only prove the model copied the extracted text.
@@ -2256,5 +2286,14 @@ verified chunk into the citation, and reaches the user at the same place as the
 number. That does not repair a wrong digit. It makes the residual risk visible and
 keeps unlabelled OCR text out of every reported metric.
 
-**Next:** install `ocrmypdf` and Tesseract, run the real scan acceptance arm, and
-close Phase 16 only if the OCR-derived citation flag is visible end to end.
+**Phase 16 is closed.** Every acceptance row in `PHASE16_BUILD_PLAN.md` is
+discharged, including the scan arm, and unlike Phase 15 this phase needs no waiver:
+its criteria were met rather than missed. ADR-0010's clause that the Phase-15 waiver
+"does not authorize closing Phase 16 ... on a failed gate" is honoured literally —
+the gate was run, not excused.
+
+**Next:** Phase 17 — browser-UI packaging and handoff per ADR-0011: demo video,
+one-click launcher, Ollama first-run flow, and a setup README for a non-technical
+recipient. Note for that phase: `ocrmypdf` and Tesseract are now a **second install
+dependency** for any recipient who wants scanned-document support, which is the
+open packaging question ADR-0012 deliberately left unsettled.

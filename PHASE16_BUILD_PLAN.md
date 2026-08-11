@@ -1,6 +1,7 @@
 # Phase 16 build plan — live documents, safely
 
-Opened 2026-08-11 · Implements ADR-0011 and ADR-0012 · Status: implementation complete; scan acceptance open
+Opened 2026-08-11 · Implements ADR-0011 and ADR-0012 · Status: **closed** — every
+acceptance row discharged, including the scan arm, measured on a real image-only PDF
 
 ## Outcome
 
