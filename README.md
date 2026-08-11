@@ -75,8 +75,10 @@ six `global_summary` rows with the shipped `qwen3:8b`, C scored 33.3% citation h
 and 33.3% abstention accuracy versus B's 66.7% and 66.7%. Those columns were
 collinear on every scored row, and the two-row difference is underpowered
 (`n=6`, Fisher exact two-tailed `p=0.567`). B remains the provisional default while
-a pre-registered equal-context sensitivity arm separates retrieval from context
-budget. See the generated
+a pre-registered equal-context sensitivity arm checks retrieval against context
+budget. That arm landed at 3/6 correct abstention behavior—exactly between B's
+4/6 and C@12's 2/6—so the confound remains unresolved rather than favoring either
+cause. See the generated three-arm
 [Phase-15 matrix](reports/phase15_global_summary_matrix.md) and the complete
 [build record](PROGRESS.md) for denominators, latency, receipts, and caveats.
 

@@ -2040,8 +2040,9 @@ rather than free. B therefore remains the **provisional operational default**, n
 the demonstrated winner of a powered experiment.
 
 **Context-budget sensitivity pre-registration (recorded before inference).** A
-third arm will hold model, six-row golden population, seed, guardrails, graph
-index, and code SHA fixed while changing only C's `answer_top_n` from 12 to 6.
+third arm will hold model, six-row golden population, seed, guardrails, and graph
+index fixed, run from a clean committed SHA, and change the experimental setting
+only by moving C's `answer_top_n` from 12 to 6.
 The primary comparison is the count of rows with correct abstention behavior; the
 citation column remains reported and its collinearity will be checked again. If
 C@6 is closer in absolute success-count distance to C@12's 2/6 than to B's 4/6,
@@ -2049,6 +2050,33 @@ the context budget is not the observed cause and the descriptive graph-retrieval
 result stands. If C@6 is closer to B, the original result is confounded and cannot
 separate graph retrieval from context length. A 3/6 tie is explicitly
 inconclusive. No original receipt or metric will be changed.
+
+**Sensitivity result: explicitly inconclusive under that rule.** The clean-SHA
+arm ran at `9fea94b`; its only runtime experimental change was C's context budget
+of 6. The intervening code adds the CLI override and receipt/report metadata but
+does not change retrieval, generation, guardrail, or scoring semantics. Its manifest
+`phase11_ollama_qwen3_8b_c_graph_k6_e508b61b6bf6` carries the same model,
+config hash, golden-set hash, seed, and guards-on setting as the original arms.
+All original receipts remain byte-unchanged.
+
+| arm | context k | coverage | strict | citation hit | abstention accuracy | wall p50 / p95 | gateway p50 / p95 | input / output tokens |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| B_hybrid | 6 | 5/6 | 0/6 | 4/6 = **66.7%** | 4/6 = **66.7%** | 13.05s / 53.08s | 9.48s / 24.35s | 9,301 / 906 |
+| C_graph original | 12 | 6/6 | 0/6 | 2/6 = **33.3%** | 2/6 = **33.3%** | 20.51s / 41.97s | 12.72s / 36.48s | 16,360 / 1,380 |
+| C_graph sensitivity | 6 | 6/6 | 0/6 | 2/6 = **33.3%** | 3/6 = **50.0%** | 30.22s / 112.59s | 19.09s / 107.28s | 10,760 / 4,060 |
+
+C@6's primary 3/6 abstention result is exactly equidistant from C@12's 2/6 and
+B's 4/6, the tie condition pre-registered as inconclusive. The experiment
+therefore **cannot separate graph retrieval from context budget**. Citation hit
+stayed 2/6, but the two metrics are no longer collinear in the sensitivity arm:
+`gs_005` answered without an expected-document citation, so abstention behavior
+was correct while citation hit failed. This is why both columns remain in the
+report and why the original collinearity is described as population-specific.
+The sensitivity run does not upgrade B into a demonstrated winner; it leaves B
+as the provisional operational default on simpler architecture and the existing
+evidence. The three-arm generated view is
+`reports/phase15_global_summary_matrix.md`; the single-arm generation artifact is
+`reports/phase15_graph_k6_matrix.md`.
 
 **Extracted graph visualization verified in the real app.** The collision-safe
 export produced 82 entity notes and 60 document notes; all 60 document notes have
@@ -2084,6 +2112,8 @@ clean; 152 tests passed; the 80-row golden set validates; the live Phase-7 gate 
 guardrail report stays green; judge validation is 20/20; retrieval regression is
 `passed: true` with zero deltas. The Phase-15-specific deterministic run is also
 green at 151 passed, 1 environment-dependent skip inside the restricted sandbox.
+The review-fix closeout is separately green: `make lint` passes and `make test`
+reports 153 passed, 1 environment-dependent skip.
 
 **Trickiest piece (plain English).** A graph engine does not automatically produce
 citations the product can verify. LightRAG returns graph context and internal file

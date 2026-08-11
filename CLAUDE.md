@@ -66,5 +66,7 @@ Phases 0–15 are closed. Phase 14 met its Variant-D improvement AC on the shipp
 8B model and regressed on 4B; the split result is recorded, not averaged away.
 Phase 15 built Variant C but missed the preregistered entity-recall gate and
 underperformed Variant B in an underpowered six-row global-summary comparison; B
-is the provisional default. ADR-0010 records the Phase-15-only failed-gate waiver.
-See the latest `PROGRESS.md` entry and committed receipts for the exact boundaries.
+is the provisional default. The preregistered equal-context arm was inconclusive
+(C@6 landed exactly between B and C@12), so the run cannot separate graph retrieval
+from context budget. ADR-0010 records the Phase-15-only failed-gate waiver. See the
+latest `PROGRESS.md` entry and committed receipts for the exact boundaries.

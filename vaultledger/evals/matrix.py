@@ -258,6 +258,20 @@ def _answer_top_n(
     return cfg.retrieval.answer_top_n
 
 
+def _reported_context_top_n(
+    manifest: RunManifest,
+    cfg: Config,
+    current_config_hash: str,
+) -> int | None:
+    """Read context k from a receipt, or safely recover a pre-field default."""
+    recorded = manifest.metrics.get("retrieval_answer_top_n")
+    if recorded is not None:
+        return int(recorded)
+    if manifest.config_hash == current_config_hash:
+        return _answer_top_n(cfg, manifest.variant)
+    return None
+
+
 #: Row-level flags that get a rate, aggregate and per category.
 _RATES = (
     ("strict_answer_match_rate", "strict_match"),
@@ -657,6 +671,8 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         raise ValueError("matrix manifests use different golden sets")
     total_cost = sum(manifest.total_cost_usd for manifest in manifests)
     model_count = len({manifest.model for manifest in manifests})
+    report_cfg = load_config()
+    current_config_hash = _config_hash()
     lines = [
         "# Model matrix",
         "",
@@ -684,8 +700,12 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         wall_p95 = metric.get("p95_wall_latency_ms")
         wall_p50_text = f"{wall_p50:.0f} ms" if wall_p50 is not None else "—"
         wall_p95_text = f"{wall_p95:.0f} ms" if wall_p95 is not None else "—"
-        context_top_n = metric.get("retrieval_answer_top_n")
-        context_top_n_text = str(int(context_top_n)) if context_top_n is not None else "—"
+        context_top_n = _reported_context_top_n(
+            manifest,
+            report_cfg,
+            current_config_hash,
+        )
+        context_top_n_text = str(context_top_n) if context_top_n is not None else "—"
         lines.append(
             "| "
             f"`{manifest.model}` | `{manifest.variant}` | {context_top_n_text} | "
@@ -720,13 +740,19 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                 "reference carries a numeric quantity; its `n` differs from the category `n` "
                 "for that reason, and a blank cell means no row in that category is in scope.",
                 "",
-                "| Model | Variant | Category | N | Strict match | Numeric exact match | "
-                "Citation hit | Abstention accuracy |",
-                "|---|---|---|---:|---:|---:|---:|---:|",
+                "| Model | Variant | Context k | Category | N | Strict match | "
+                "Numeric exact match | Citation hit | Abstention accuracy |",
+                "|---|---|---:|---|---:|---:|---:|---:|---:|",
             ]
         )
         for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
             metric = manifest.metrics
+            context_top_n = _reported_context_top_n(
+                manifest,
+                report_cfg,
+                current_config_hash,
+            )
+            context_top_n_text = str(context_top_n) if context_top_n is not None else "—"
             for category in categories:
                 count = metric.get(f"matrix_examples__{category}")
                 if count is None:
@@ -739,7 +765,8 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                 )
                 lines.append(
                     "| "
-                    f"`{manifest.model}` | `{manifest.variant}` | `{category}` | "
+                    f"`{manifest.model}` | `{manifest.variant}` | {context_top_n_text} | "
+                    f"`{category}` | "
                     f"{int(count)} | "
                     f"{metric[f'strict_answer_match_rate__{category}']:.1%} | "
                     f"{numeric} | "
@@ -816,6 +843,10 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "does not abstain cites an expected document, the two columns are structurally "
             "identical; inspect the row receipts before treating them as corroboration.",
             "",
+            "`Context k` is read from the manifest when recorded. For older receipts predating "
+            "that field, it is recovered only when the receipt's config hash exactly matches the "
+            "current config; otherwise the report shows an em dash.",
+            "",
             "`Strict match` is a deterministic lower-bound scorer: answerable rows must repeat "
             "the reference's literal amounts, dates, and identifiers; other rows require a "
             "normalized reference substring. It under-credits valid paraphrases and is not an "
@@ -826,7 +857,8 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "repairs, and guardrails. Gateway latency covers completion calls only. Token counts "
             "come from provider usage when available and do not include retrieval-side embedding "
             "or keyword-extraction calls. Every displayed value is loaded from the RunManifests "
-            "above; this file is generated, never hand-edited.",
+            "above, except the explicitly described config-hash recovery for historical context "
+            "k; this file is generated, never hand-edited.",
             "",
         ]
     )

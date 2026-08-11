@@ -3,13 +3,11 @@
 Manifest-backed comparison over the explicitly selected model, variants, and golden-set population. This report does not generalize beyond those cells.
 
 Golden set hash: `b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c`
-Cells: **3** across **1 model(s)**
+Cells: **1** across **1 model(s)**
 Total measured API spend: **$0.000000** (local models are unpriced, not free)
 
 | Model | Variant | Context k | N | Strict match | Numeric exact match | Citation hit | Abstention accuracy | Wall p50 | Wall p95 | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| `ollama/qwen3:8b` | `B_hybrid` | 6 | 6 | 0.0% | — | 66.7% | 66.7% | 13046 ms | 53082 ms | 9484 ms | 24350 ms | 9301 / 906 | $0.000000 | `phase11_ollama_qwen3_8b_b_hybrid_4a099797b084` |
-| `ollama/qwen3:8b` | `C_graph` | 12 | 6 | 0.0% | — | 33.3% | 33.3% | 20509 ms | 41970 ms | 12721 ms | 36476 ms | 16360 / 1380 | $0.000000 | `phase11_ollama_qwen3_8b_c_graph_f3be41d85c23` |
 | `ollama/qwen3:8b` | `C_graph` | 6 | 6 | 0.0% | — | 33.3% | 50.0% | 30222 ms | 112593 ms | 19094 ms | 107277 ms | 10760 / 4060 | $0.000000 | `phase11_ollama_qwen3_8b_c_graph_k6_e508b61b6bf6` |
 
 ## By category
@@ -18,8 +16,6 @@ Category-scoped acceptance criteria must be read from this table rather than inf
 
 | Model | Variant | Context k | Category | N | Strict match | Numeric exact match | Citation hit | Abstention accuracy |
 |---|---|---:|---|---:|---:|---:|---:|---:|
-| `ollama/qwen3:8b` | `B_hybrid` | 6 | `global_summary` | 6 | 0.0% | — | 66.7% | 66.7% |
-| `ollama/qwen3:8b` | `C_graph` | 12 | `global_summary` | 6 | 0.0% | — | 33.3% | 33.3% |
 | `ollama/qwen3:8b` | `C_graph` | 6 | `global_summary` | 6 | 0.0% | — | 33.3% | 50.0% |
 
 ## Reading the result

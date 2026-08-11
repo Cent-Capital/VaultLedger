@@ -1,0 +1,605 @@
+[
+  {
+    "example_id": "gs_001",
+    "expected_answer": "Priya has 1099 and invoice income from Halcyon Retail Group and Cedar Grove Media.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 41050.455,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 24894.031,
+      "input_tokens": 1358,
+      "output_tokens": 465,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_befbe00d5033",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "flag",
+          "details": "PRIYA-HALCYON-004: printed $16,431.22 vs line-item sum $16,251.22"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "downgrade_to_abstain",
+          "details": "answer did not disclose a cited invoice's arithmetic mismatch [NUM_MISMATCH]"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_001",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  },
+  {
+    "example_id": "gs_002",
+    "expected_answer": "David has 1099s from Nimbus Analytics LLC, Halcyon Retail Group, and Cedar Grove Media.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "normalized reference substring absent",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": true,
+    "abstention_correct": true,
+    "wall_latency_ms": 19394.489,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 13294.863,
+      "input_tokens": 1299,
+      "output_tokens": 204,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "David Okafor's 1099 payers are Cedar Grove Media, Nimbus Analytics LLC, and Halcyon Retail Group.",
+      "citations": [
+        {
+          "chunk_id": "f1099_cedargrove_david_2024#c0",
+          "doc_id": "f1099_cedargrove_david_2024",
+          "page": 1,
+          "snippet": "PAYER Cedar Grove Media 77 Media Row, Burbank, CA 91502"
+        },
+        {
+          "chunk_id": "f1099_nimbus_david_2024#c0",
+          "doc_id": "f1099_nimbus_david_2024",
+          "page": 1,
+          "snippet": "PAYER Nimbus Analytics LLC 900 Innovation Pkwy Suite 400, Jersey City, NJ 07302"
+        },
+        {
+          "chunk_id": "f1099_halcyon_david_2024#c0",
+          "doc_id": "f1099_halcyon_david_2024",
+          "page": 1,
+          "snippet": "Payer Halcyon Retail Group 1200 Commerce Blvd, Columbus, OH 43215"
+        }
+      ],
+      "abstained": false,
+      "confidence": 1.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_73a01460aae2",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "pass",
+          "details": "no cited invoice total mismatch"
+        },
+        {
+          "stage": "output",
+          "guard": "cross_persona_check",
+          "action": "pass",
+          "details": "no other-persona tagged PII detected"
+        },
+        {
+          "stage": "output",
+          "guard": "advice_linter",
+          "action": "pass",
+          "details": "no prescriptive advice phrasing detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_002",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    }
+  },
+  {
+    "example_id": "gs_003",
+    "expected_answer": "Marcus has pay stubs from Nimbus Analytics LLC and checking deposits from Nimbus payroll.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "normalized reference substring absent",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": true,
+    "abstention_correct": true,
+    "wall_latency_ms": 61177.785,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 56218.726,
+      "input_tokens": 1901,
+      "output_tokens": 1129,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "Marcus Chen's employment evidence includes multiple paystubs from Nimbus Analytics LLC. The paystubs show consistent gross pay of $4,038.46 and net pay of $2,525.39, with the same deduction amounts for Federal Tax, State Tax, Social Security, Medicare, Health Insurance, and Retirement 401K across all periods. The pay periods span from 2025-01-10 to 2025-05-15.",
+      "citations": [
+        {
+          "chunk_id": "paystub_marcus_01#c0",
+          "doc_id": "paystub_marcus_01",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_09#c0",
+          "doc_id": "paystub_marcus_09",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_07#c0",
+          "doc_id": "paystub_marcus_07",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        },
+        {
+          "chunk_id": "paystub_marcus_05#c0",
+          "doc_id": "paystub_marcus_05",
+          "page": 1,
+          "snippet": "Gross pay: $4,038.46"
+        }
+      ],
+      "abstained": false,
+      "confidence": 0.5,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_4a05f3d6168a",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "dropped citation: snippet not found verbatim in paystub_marcus_01#c0 (matched 0 others)"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "dropped citation: snippet not found verbatim in paystub_marcus_09#c0 (matched 0 others)"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "dropped citation: snippet not found verbatim in paystub_marcus_07#c0 (matched 0 others)"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "dropped citation: snippet not found verbatim in paystub_marcus_05#c0 (matched 0 others)"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "pass",
+          "details": "no cited invoice total mismatch"
+        },
+        {
+          "stage": "output",
+          "guard": "cross_persona_check",
+          "action": "pass",
+          "details": "no other-persona tagged PII detected"
+        },
+        {
+          "stage": "output",
+          "guard": "advice_linter",
+          "action": "pass",
+          "details": "no prescriptive advice phrasing detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    }
+  },
+  {
+    "example_id": "gs_004",
+    "expected_answer": "Halcyon Retail Group and Cedar Grove Media.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 12197.208,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 5515.865,
+      "input_tokens": 1368,
+      "output_tokens": 28,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_f79b091004be",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_004",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  },
+  {
+    "example_id": "gs_005",
+    "expected_answer": "Examples include Whole Foods Market, Con Edison, Verizon Wireless, Netflix, and Blue Bottle Coffee.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "normalized reference substring absent",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": true,
+    "wall_latency_ms": 112592.705,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 107277.434,
+      "input_tokens": 2497,
+      "output_tokens": 2206,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "Halcyon Retail Group, Cedar Grove Media, Netflix, Whole Foods Market, CVS Pharmacy, Con Edison, Blue Bottle Coffee, Verizon Wireless, Uber, Delta Air Lines, and Amazon Marketplace",
+      "citations": [
+        {
+          "chunk_id": "stmt_priya_checking_2025-01#c0",
+          "doc_id": "stmt_priya_checking_2025-01",
+          "page": 1,
+          "snippet": "2025-01-02 Halcyon Retail Group Payment $3,200.00"
+        },
+        {
+          "chunk_id": "stmt_marcus_checking_2025-01#c0",
+          "doc_id": "stmt_marcus_checking_2025-01",
+          "page": 1,
+          "snippet": "2025-01-06 Netflix $15.99"
+        },
+        {
+          "chunk_id": "stmt_marcus_checking_2025-05#c0",
+          "doc_id": "stmt_marcus_checking_2025-05",
+          "page": 1,
+          "snippet": "2025-05-05 Whole Foods Market $106.52"
+        },
+        {
+          "chunk_id": "stmt_david_checking_2025-05#c0",
+          "doc_id": "stmt_david_checking_2025-05",
+          "page": 1,
+          "snippet": "2025-05-02 Nimbus Analytics LLC Contract $2,040.00"
+        },
+        {
+          "chunk_id": "stmt_priya_checking_2025-05#c0",
+          "doc_id": "stmt_priya_checking_2025-05",
+          "page": 1,
+          "snippet": "2025-05-02 Halcyon Retail Group Payment $3,200.00"
+        },
+        {
+          "chunk_id": "stmt_priya_checking_2025-03#c0",
+          "doc_id": "stmt_priya_checking_2025-03",
+          "page": 1,
+          "snippet": "2025-03-02 Halcyon Retail Group Payment $3,200.00"
+        }
+      ],
+      "abstained": false,
+      "confidence": 1.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_989e6a71c5f4",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "recovered citation: cited 'stmt_priya_checking_2025-01#c0' but evidence is verbatim in stmt_marcus_checking_2025-01#c0"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "dropped citation: snippet not found verbatim in stmt_priya_checking_2025-05#c0 (matched 0 others)"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "dropped citation: snippet not found verbatim in stmt_priya_checking_2025-05#c0 (matched 0 others)"
+        },
+        {
+          "stage": "output",
+          "guard": "citation_verify",
+          "action": "flag",
+          "details": "recovered citation: cited 'stmt_pri3_checking_2025-03#c0' but evidence is verbatim in stmt_priya_checking_2025-03#c0"
+        },
+        {
+          "stage": "output",
+          "guard": "numeric_verify",
+          "action": "pass",
+          "details": "no cited invoice total mismatch"
+        },
+        {
+          "stage": "output",
+          "guard": "cross_persona_check",
+          "action": "pass",
+          "details": "no other-persona tagged PII detected"
+        },
+        {
+          "stage": "output",
+          "guard": "advice_linter",
+          "action": "pass",
+          "details": "no prescriptive advice phrasing detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_005",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent; judge review deferred"
+    }
+  },
+  {
+    "example_id": "gs_006",
+    "expected_answer": "It includes a prompt-injection statement, a near-duplicate invoice, and a wrong-total invoice.",
+    "category": "global_summary",
+    "strict_match": false,
+    "score_reason": "abstained on an answerable example",
+    "numeric_exact_match": null,
+    "numeric_score_reason": "no numeric quantity in the reference; out of scope",
+    "citation_doc_hit": false,
+    "abstention_correct": false,
+    "wall_latency_ms": 13659.602,
+    "gateway": {
+      "calls": 1,
+      "latency_ms": 7554.999,
+      "input_tokens": 2337,
+      "output_tokens": 28,
+      "cost_usd": 0.0,
+      "token_sources": [
+        "provider_usage"
+      ],
+      "pricing_statuses": [
+        "unpriced"
+      ]
+    },
+    "answer": {
+      "answer_text": "I couldn't find that in your documents.",
+      "citations": [],
+      "abstained": true,
+      "confidence": 0.0,
+      "model_used": "ollama/qwen3:8b",
+      "tier": "T1",
+      "variant": "C_graph",
+      "privacy_mode": "local",
+      "data_left_machine": false,
+      "routing": {
+        "query_id": "q_225171fa4e37",
+        "allowed_tiers": [
+          "T1"
+        ],
+        "chosen_tier": "T1",
+        "chosen_model": "ollama/qwen3:8b",
+        "reason": "Phase 11 local matrix cell: model and tier pinned by the manifest",
+        "escalations": 0,
+        "est_cost_usd": 0.0,
+        "actual_cost_usd": 0.0
+      },
+      "guardrail_events": [
+        {
+          "stage": "input",
+          "guard": "query_injection_guard",
+          "action": "pass",
+          "details": "no direct instruction-override attempt"
+        },
+        {
+          "stage": "input",
+          "guard": "advice_steer",
+          "action": "pass",
+          "details": "no advice-seeking intent detected"
+        }
+      ],
+      "agent_steps": []
+    },
+    "failure": {
+      "example_id": "gs_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    }
+  }
+]

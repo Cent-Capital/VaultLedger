@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
+from vaultledger.config import CONFIG_PATH
 from vaultledger.evals.golden import load_golden_set
 from vaultledger.evals.matrix import (
     category_metrics,
@@ -275,6 +277,23 @@ def test_matrix_report_is_generated_only_from_manifest_receipts(tmp_path: Path):
     assert "Context k" in report
     assert "retrieval-side embedding" in report
     assert "not necessarily independent signals" in report
+
+
+def test_matrix_report_recovers_legacy_context_only_from_matching_config(tmp_path: Path):
+    matching = _manifest("phase11_matching", "ollama/qwen3:8b")
+    matching.config_hash = hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()
+    stale = _manifest("phase11_stale", "ollama/qwen3:4b")
+    paths = []
+    for manifest in (matching, stale):
+        path = tmp_path / f"{manifest.run_id}.json"
+        path.write_text(manifest.model_dump_json())
+        paths.append(path)
+
+    output = tmp_path / "model_matrix.md"
+    write_matrix_report(paths, output)
+    rows = [line for line in output.read_text().splitlines() if line.startswith("| `ollama")]
+    assert any("| `B_hybrid` | 6 |" in row for row in rows)
+    assert any("| `B_hybrid` | — |" in row for row in rows)
 
 
 def test_report_renders_categories_and_never_back_fills_a_missing_metric(tmp_path: Path):
