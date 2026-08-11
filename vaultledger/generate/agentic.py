@@ -197,6 +197,8 @@ def answer_question_agentic(
                     doc_id=hit.chunk.doc_id,
                     page=hit.chunk.page,
                     snippet=citation.snippet,
+                    corpus=hit.chunk.corpus,
+                    ocr_derived=hit.chunk.ocr_derived,
                 )
                 for citation in action.citations
                 for hit in loop.hits

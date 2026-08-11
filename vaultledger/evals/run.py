@@ -40,7 +40,7 @@ from vaultledger.generate import (
 )
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
-from vaultledger.ingest.pipeline import load_chunks
+from vaultledger.ingest.pipeline import assert_evaluation_corpus, load_chunks
 from vaultledger.retrieve import (
     AgenticRetriever,
     CrossEncoderReranker,
@@ -77,6 +77,7 @@ def _ensure_inputs(cfg: Config, variant: str = "A_naive") -> None:
             "missing Phase 2 index artifacts; run `make data && make ingest` first: "
             + ", ".join(missing)
         )
+    assert_evaluation_corpus(index_dir)
 
 
 def validate_golden(args: argparse.Namespace) -> int:

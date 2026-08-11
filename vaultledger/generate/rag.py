@@ -55,6 +55,8 @@ def answer_question(
             doc_id=h.chunk.doc_id,
             page=h.chunk.page,
             snippet=_snippet(h.chunk.text),
+            corpus=h.chunk.corpus,
+            ocr_derived=h.chunk.ocr_derived,
         )
         for h in cited_hits
     ]

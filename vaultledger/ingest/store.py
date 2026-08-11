@@ -49,7 +49,10 @@ CREATE TABLE documents (
     pii_entity_types TEXT NOT NULL DEFAULT '[]',  -- JSON array of entity type names
     guardrail_events TEXT NOT NULL DEFAULT '[]',
     parse_status TEXT NOT NULL,                   -- 'ok' | 'failed'
-    error TEXT
+    error TEXT,
+    corpus TEXT NOT NULL DEFAULT 'synthetic',
+    ocr_derived INTEGER NOT NULL DEFAULT 0,
+    ocr_pages TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE bank_statements (
@@ -136,6 +139,29 @@ class RecordStore:
         self._conn.executescript(_SCHEMA)
         self._conn.commit()
 
+    def ensure_schema(self) -> None:
+        """Create or non-destructively upgrade a persistent incremental store."""
+        exists = self._conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='documents'"
+        ).fetchone()
+        if not exists:
+            self.init_schema()
+            return
+        columns = {
+            row["name"] for row in self._conn.execute("PRAGMA table_info(documents)")
+        }
+        additions = {
+            "corpus": "TEXT NOT NULL DEFAULT 'synthetic'",
+            "ocr_derived": "INTEGER NOT NULL DEFAULT 0",
+            "ocr_pages": "TEXT NOT NULL DEFAULT '[]'",
+        }
+        for name, declaration in additions.items():
+            if name not in columns:
+                self._conn.execute(
+                    f"ALTER TABLE documents ADD COLUMN {name} {declaration}"  # noqa: S608
+                )
+        self._conn.commit()
+
     def write_document(
         self,
         meta: DocMeta,
@@ -144,7 +170,11 @@ class RecordStore:
         guardrail_events: list[GuardrailEvent] | None = None,
     ) -> None:
         self._conn.execute(
-            "INSERT OR REPLACE INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT OR REPLACE INTO documents "
+            "(doc_id, doc_type, source_filename, period_start, period_end, "
+            "is_synthetic, page_count, pii_entity_types, guardrail_events, "
+            "parse_status, error, corpus, ocr_derived, ocr_pages) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 meta.doc_id,
                 meta.doc_type,
@@ -157,8 +187,25 @@ class RecordStore:
                 json.dumps([event.model_dump() for event in guardrail_events or []]),
                 parse_status,
                 error,
+                meta.corpus,
+                int(meta.ocr_derived),
+                json.dumps(meta.ocr_pages),
             ),
         )
+        self._conn.commit()
+
+    def delete_document(self, doc_id: str) -> None:
+        """Remove one document and its typed children before an incremental upsert."""
+        child_tables = (
+            "transactions",
+            "form_1099_boxes",
+            "invoice_line_items",
+            "pay_stub_deductions",
+        )
+        parent_tables = ("bank_statements", "forms_1099", "invoices", "pay_stubs")
+        for table in (*child_tables, *parent_tables):
+            self._conn.execute(f"DELETE FROM {table} WHERE doc_id = ?", (doc_id,))
+        self._conn.execute("DELETE FROM documents WHERE doc_id = ?", (doc_id,))
         self._conn.commit()
 
     def write_record(self, doc_id: str, record: ExtractedRecord) -> None:

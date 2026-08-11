@@ -58,6 +58,8 @@ def chunk_doc(
                     page=page.page_number,
                     char_start=start,
                     char_end=end,
+                    corpus=doc.corpus,  # type: ignore[arg-type]
+                    ocr_derived=page.page_number in doc.ocr_pages,
                 )
             )
             if j + 1 >= len(lines):

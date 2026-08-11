@@ -270,6 +270,8 @@ def verify_citations(
                 doc_id=chunk.doc_id,
                 page=chunk.page,
                 snippet=" ".join(snippet.split())[:320],
+                corpus=chunk.corpus,
+                ocr_derived=chunk.ocr_derived,
             )
         )
 
@@ -518,6 +520,8 @@ def answer_question_reliable(
                 doc_id=chunk.doc_id,
                 page=chunk.page,
                 snippet=citation.snippet,
+                corpus=chunk.corpus,
+                ocr_derived=chunk.ocr_derived,
             )
             for citation in draft.citations
             if (chunk := by_id.get(citation.chunk_id)) is not None

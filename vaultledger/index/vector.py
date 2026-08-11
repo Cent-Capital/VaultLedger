@@ -45,10 +45,47 @@ class VectorIndex:
                     "page": c.page,
                     "char_start": c.char_start,
                     "char_end": c.char_end,
+                    "corpus": c.corpus,
+                    "ocr_derived": c.ocr_derived,
                 }
                 for c in chunks
             ],
         )
+        return collection.count()
+
+    def upsert_document(self, doc_id: str, chunks: list[Chunk]) -> int:
+        """Replace one document's vectors without rebuilding the collection."""
+        try:
+            collection = self._client.get_collection(_COLLECTION)
+        except Exception:
+            collection = self._client.create_collection(
+                _COLLECTION, metadata={"embedding_model": self._embedder.model}
+            )
+        built_with = (collection.metadata or {}).get("embedding_model")
+        if built_with != self._embedder.model:
+            raise RuntimeError(
+                f"index built with embedding model {built_with!r}, "
+                f"updated with {self._embedder.model!r} — rebuild the live index"
+            )
+        collection.delete(where={"doc_id": doc_id})
+        if chunks:
+            vectors = self._embedder.embed([chunk.text for chunk in chunks])
+            collection.upsert(
+                ids=[chunk.chunk_id for chunk in chunks],
+                embeddings=vectors,
+                documents=[chunk.text for chunk in chunks],
+                metadatas=[
+                    {
+                        "doc_id": chunk.doc_id,
+                        "page": chunk.page,
+                        "char_start": chunk.char_start,
+                        "char_end": chunk.char_end,
+                        "corpus": chunk.corpus,
+                        "ocr_derived": chunk.ocr_derived,
+                    }
+                    for chunk in chunks
+                ],
+            )
         return collection.count()
 
     def query(self, text: str, k: int = 10) -> list[tuple[str, float]]:

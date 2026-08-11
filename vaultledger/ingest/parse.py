@@ -46,11 +46,20 @@ class ParsedDoc:
     full_text: str  # page texts joined with "\n"
     pages: list[ParsedPage]
     needs_ocr: bool = False  # some page had ~no extractable text
+    ocr_pages: tuple[int, ...] = ()  # pages whose text layer came from OCR preprocessing
+    corpus: str = "synthetic"
 
 
 # Rows are grouped by their `top` coordinate; words whose tops differ by less
 # than this many points belong to the same visual row.
 _ROW_TOLERANCE = 3.0
+
+#: A page with fewer than this many non-whitespace characters is treated as having
+#: no usable text layer. ADR-0012's provenance guarantee depends on `ocr.py` using
+#: this same threshold to decide which pages it OCR'd: if the two ever disagree, a
+#: page could be OCR'd without being marked `ocr_derived`, which no downstream check
+#: would catch. Import it — do not restate the literal.
+MIN_PAGE_TEXT_CHARS = 20
 
 
 def rows_from_words(words: list[Word]) -> list[list[Word]]:
@@ -75,7 +84,7 @@ def parse_pdf(path: str | Path) -> ParsedDoc:
     with pdfplumber.open(path) as pdf:
         for i, page in enumerate(pdf.pages, start=1):
             text = page.extract_text() or ""
-            if len(text.strip()) < 20:
+            if len(text.strip()) < MIN_PAGE_TEXT_CHARS:
                 needs_ocr = True
             words = [
                 Word(text=w["text"], x0=w["x0"], x1=w["x1"], top=w["top"])

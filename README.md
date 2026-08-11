@@ -3,15 +3,17 @@
 Local-first financial-document Q&A with verified citations and a manifest-backed
 evaluation harness.
 
-VaultLedger parses synthetic bank statements, 1099s, invoices, and pay stubs on
-your machine. It combines dense and lexical retrieval, reranks the evidence, and
+VaultLedger parses synthetic evaluation documents and PDFs from an external user
+inbox on your machine. It combines dense and lexical retrieval, reranks the evidence, and
 uses a local model to answer questions. Every surfaced fact must retain a
 verifiable source snippet. Paid hosted tiers are retired by ADR-0003, so the
 live product and model experiments stay on the local Ollama service.
 
-**Synthetic data only.** VaultLedger is an engineering and evaluation project,
-not a production financial service. It has no bank connection, contains no real
-account data, and provides document extraction and Q&A, never financial advice.
+**Synthetic data only in evaluation receipts.** Phase 16 can index user PDFs, but
+isolates their source files, derived indexes, graph, Obsidian projection, and traces
+outside the public repository. User documents never enter a metric denominator.
+VaultLedger is not a production financial service and provides document extraction
+and Q&A, never financial advice.
 
 ## Track-A status
 
@@ -43,7 +45,8 @@ router are implemented. The current [model matrix](reports/model_matrix.md)
 contains full 80-case `qwen3:4b` and `qwen3:8b` Variant-B runs. The generated
 [routing frontier](reports/routing_frontier.md) compares four policies over
 those same cached answers, including bounded T0→T1 escalation. This is still a
-two-model experiment; the two-family × three-size bake-off remains Phase 17.
+two-model experiment; the two-family × three-size bake-off is re-sequenced to
+Phase 18 by ADR-0011.
 
 The router matched its 80 initial-route labels on 100% of cases by construction.
 Its useful result is the measured policy comparison: strict match was 47.5%
@@ -88,6 +91,30 @@ gitignored LightRAG vector stores require an approximately 45-minute
 export commands write `exports/obsidian_vault`; the README `Source:` line identifies
 which projection was generated last, and `make graph-vault` restores the demo view.
 
+## Phase 16 live-document status
+
+Phase 16 implements the accepted
+[roadmap re-sequence](decisions/ADR-0011-roadmap-resequence-and-local-distribution.md)
+and [OCR provenance decision](decisions/ADR-0012-ocr-preprocessing-and-provenance.md):
+
+- `~/VaultLedger/Inbox` is the default source directory. Startup refuses any live
+  inbox, index, graph, Obsidian, or trace path that resolves inside this repository.
+- Text-layer PDFs are incrementally added to a separate SQLite/chunk/BM25/Chroma
+  corpus. Real layouts that do not match the synthetic typed extractors remain
+  retrieval-answerable from their exact text.
+- Scanned pages are preprocessed with `ocrmypdf --skip-text`, then reparsed by the
+  existing citation-preserving path. OCR provenance survives through chunks and
+  verified citations; the UI warns that digits and table geometry may be wrong.
+- The bounded watcher waits for two identical size/mtime observations, persists its
+  processed-file state, and inserts one stable document id into LightRAG instead of
+  rebuilding the graph. Per-file timings and local-model usage stay in the external
+  live index.
+- Eval startup refuses any user or OCR-derived chunk even if a path is misconfigured.
+
+The deterministic Phase 16 tests and a real local text-PDF smoke run are green. The
+scan acceptance arm remains unverified on this machine because `ocrmypdf` and
+Tesseract are not installed; the runtime correctly fails such a document explicitly.
+
 ## Fresh-machine quickstart
 
 ### 1. Prerequisites
@@ -96,6 +123,8 @@ which projection was generated last, and `make graph-vault` restores the demo vi
 - Python 3.11 or newer
 - [Ollama](https://ollama.com/download)
 - Git
+- Optional for scanned PDFs: `ocrmypdf` and Tesseract (for example,
+  `brew install ocrmypdf` on macOS). Text-layer PDFs do not invoke either tool.
 - About 10 GB free for the virtual environment and local models. The
   cross-encoder reranker downloads about 1.1 GB on the first query.
 
@@ -150,6 +179,18 @@ The SPEC-by-example answer is `$4,207.55` with a citation to
 `stmt_marcus_checking_2025-03`. A live local model may still abstain if it cannot
 produce a verifiable citation; that safe failure is intentional.
 
+### 5. Use the external live inbox
+
+Drop text-layer PDFs into `~/VaultLedger/Inbox`, then run:
+
+```bash
+make live-ingest
+```
+
+Use `make watch` for the configured bounded polling session. In the app, select
+**User documents** independently in Library and Ask. Do not redirect any `live.*`
+path in `config.yaml` into the checkout; startup will refuse it.
+
 ## Full Track-A acceptance gate
 
 ```bash
@@ -169,14 +210,14 @@ acceptance.
 ## Product walkthrough
 
 - **Library / Ingest** shows corpus health, parse failures, PII tag counts, and
-  local index state. Rebuild runs the same ingestion pipeline as `make ingest`.
+  local index state, with a visible synthetic/user boundary and OCR provenance.
 - **Ask** defaults to Variant B: dense + BM25, Reciprocal Rank Fusion, and local
   cross-encoder reranking. Answers show privacy outcome, verified citations,
   model/tier/variant, guard events, latency, estimated tokens, cost, and trace.
 - **Evals** shows dense-to-hybrid retrieval evidence, safety and judge results,
   regression deltas, and local trace rollups.
 - **Experiment Lab** surfaces the current two-model matrix and Phase-12 router
-  frontier while keeping the six-model Phase-17 bake-off boundary explicit.
+  frontier while keeping the six-model Phase-18 bake-off boundary explicit.
   Regenerate the routing report and chart with `make router-eval`.
 
 The [Track-A demo plan](demo/README.md) contains the exact recording and
@@ -198,6 +239,8 @@ re-recording script.
 | `make install` | Install Track-A development and runtime dependencies |
 | `make data` | Regenerate the byte-identical synthetic PDF corpus |
 | `make ingest` | Parse, extract, tag PII, chunk, and build local indexes |
+| `make live-ingest` | Scan the external inbox once; incrementally update live indexes and graph |
+| `make watch` | Watch the external inbox for the configured finite poll budget |
 | `make doctor` | Read-only setup and readiness diagnosis |
 | `make lint` | Run Ruff |
 | `make test` | Run deterministic phase gates |
@@ -228,6 +271,10 @@ re-recording script.
   `make matrix`.
 - **Embedding-model mismatch:** delete only the derived `data/index/` directory
   and run `make ingest`; never change `config.yaml` silently around an old index.
+- **A scan fails with missing OCR tools:** install both `ocrmypdf` and Tesseract,
+  then change or re-drop the file so the watcher retries it. Text PDFs are unaffected.
+- **Live path rejected at startup:** keep the inbox and every derivative under an
+  external location such as `~/VaultLedger/`; a gitignored repo directory is not safe.
 
 ## Repository map
 

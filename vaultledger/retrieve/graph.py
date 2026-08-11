@@ -100,10 +100,14 @@ class LightRAGRetriever:
         cfg: Config,
         *,
         query_mode: GraphQueryMode | None = None,
+        live: bool = False,
     ) -> LightRAGRetriever:
+        live_paths = cfg.live_paths() if live else None
         return cls(
-            index_dir=cfg.repo_path(cfg.paths.index_dir),
-            working_dir=cfg.repo_path(cfg.graph.working_dir),
+            index_dir=(live_paths["index"] if live_paths else cfg.repo_path(cfg.paths.index_dir)),
+            working_dir=(
+                live_paths["graph"] if live_paths else cfg.repo_path(cfg.graph.working_dir)
+            ),
             model=cfg.graph.extraction_model,
             embedding_model=cfg.embedding.model,
             embedding_dim=cfg.graph.embedding_dim,

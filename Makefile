@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -19,6 +19,12 @@ data:  ## Regenerate the synthetic corpus (byte-identical from the seed)
 
 ingest:  ## Ingest the corpus: parse -> extract -> SQLite -> PII -> chunk -> index
 	$(PYTHON) -m vaultledger.ingest
+
+live-ingest:  ## Scan the external live inbox once after the file-stability gate
+	$(PYTHON) -m vaultledger.ingest --live-once
+
+watch:  ## Watch the external live inbox for the configured bounded poll budget
+	$(PYTHON) -m vaultledger.ingest --watch
 
 lint:  ## Static checks: ruff
 	$(PYTHON) -m ruff check .

@@ -108,6 +108,7 @@ def run_ingest(config: Config | None = None, embed: bool = True) -> IngestResult
                 period_end=period_end,
                 page_count=parsed.page_count,
                 pii_entity_types=pii_types,
+                corpus="synthetic",
             )
             chunks = chunk_doc(
                 parsed,
@@ -137,7 +138,12 @@ def run_ingest(config: Config | None = None, embed: bool = True) -> IngestResult
 
     with open(index_dir / "chunks.jsonl", "w") as f:
         for chunk in all_chunks:
-            f.write(chunk.model_dump_json() + "\n")
+            # exclude_defaults keeps the synthetic corpus byte-identical across the
+            # Phase-16 provenance schema change, so `corpus_hash` in every committed
+            # receipt still identifies this corpus. Chunk's six positional fields are
+            # required and always emitted; only `corpus`/`ocr_derived` can be omitted,
+            # and only when they equal the synthetic defaults a reader assumes anyway.
+            f.write(chunk.model_dump_json(exclude_defaults=True) + "\n")
     result.chunks = len(all_chunks)
 
     Bm25Index.build(all_chunks).save(index_dir / "bm25.json")
@@ -165,4 +171,21 @@ def load_chunks(index_dir: str | Path) -> list[Chunk]:
     return chunks
 
 
-__all__ = ["run_ingest", "load_chunks", "IngestResult"]
+def assert_evaluation_corpus(index_dir: str | Path) -> list[Chunk]:
+    """Refuse user or OCR-derived chunks in any measured evaluation run."""
+    chunks = load_chunks(index_dir)
+    invalid = [
+        chunk.chunk_id
+        for chunk in chunks
+        if chunk.corpus != "synthetic" or chunk.ocr_derived
+    ]
+    if invalid:
+        sample = ", ".join(invalid[:3])
+        raise ValueError(
+            "evaluation corpus contains user or OCR-derived chunks; "
+            f"refusing to score ({sample})"
+        )
+    return chunks
+
+
+__all__ = ["run_ingest", "load_chunks", "assert_evaluation_corpus", "IngestResult"]

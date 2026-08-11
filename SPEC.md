@@ -8,7 +8,7 @@
 
 This is the single source of truth for building VaultLedger. It is written to be consumed by an AI coding agent as well as by you.
 
-> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-10)
+> ### ⚠️ ACTIVE DEVIATIONS — read before trusting any section below (last updated 2026-08-11)
 >
 > This document is **v2.0 as originally written**. Several accepted ADRs have since
 > overridden parts of it. The body below has *not* been rewritten, so where it
@@ -44,7 +44,8 @@ This is the single source of truth for building VaultLedger. It is written to be
 >    *metadata* is retained; raw-input replay is not claimed and
 >    `python -m vaultledger.replay` does not exist. Revisit only with an explicit
 >    retention design.
-> 7. **Phase 17 (multi-model bake-off) was added after Phase 16** (**ADR-0003**).
+> 7. **Phase 17 (multi-model bake-off) was originally added after Phase 16**
+>    (**ADR-0003**); item 10 below now supersedes that numbering and order.
 > 8. **`AgentStep` carries a failure field that §8 does not list** (**ADR-0006**,
 >    accepted 2026-08-05). §8 fixes the contract at `step / tool / input /
 >    output_summary / tokens_used`, none of which can record that a tool *raised*.
@@ -60,6 +61,16 @@ This is the single source of truth for building VaultLedger. It is written to be
 >    the product uses must match the eval gateway's decoding settings** — Qwen 3
 >    thinking was disabled in the matrix path since Phase 11 but never in the
 >    product path, so the app and the safety runner measured a different system.
+> 10. **The remaining roadmap is re-sequenced** (**ADR-0011**, accepted
+>     2026-08-11): Phase 16 is external live documents/OCR/watcher, Phase 17 is
+>     browser-UI packaging and handoff, Phase 18 is the model plus decoding
+>     bake-off, and Phase 19 is the comparison/portfolio work. The body schedule
+>     below is historical where it conflicts. Distribution is a browser UI plus
+>     one-click launcher; a native shell is deferred.
+> 11. **OCR uses `ocrmypdf --skip-text` preprocessing with provenance**
+>     (**ADR-0012**, accepted 2026-08-11), not the in-parser pytesseract stretch
+>     path named below. OCR-derived pages are visibly marked in citations and are
+>     excluded from every eval population; missing OCR tools fail clearly.
 >
 > Deviations are added here at the moment their ADR is accepted. If you are an agent
 > reading this file, treat any section below that contradicts this list as stale.

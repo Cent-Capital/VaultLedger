@@ -62,7 +62,10 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–15 are closed. Phase 14 met its Variant-D improvement AC on the shipped
+Phases 0–15 are closed. Phase 16 is open under ADR-0011/ADR-0012: its external
+text-PDF ingest/index/graph/citation path is implemented and locally measured,
+but the real scanned-PDF acceptance arm is pending because this machine does not
+currently have `ocrmypdf` or Tesseract. Phase 14 met its Variant-D improvement AC on the shipped
 8B model and regressed on 4B; the split result is recorded, not averaged away.
 Phase 15 built Variant C but missed the preregistered entity-recall gate and
 underperformed Variant B in an underpowered six-row global-summary comparison; B

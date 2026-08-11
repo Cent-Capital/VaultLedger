@@ -143,6 +143,26 @@ class Paths(BaseModel):
     traces: str = "data/traces"
 
 
+class LiveDocuments(BaseModel):
+    """Phase 16 user-document locations and bounded watcher/OCR settings.
+
+    These paths intentionally do not reuse ``Paths``: the synthetic corpus is
+    reproducible evaluation input, while user documents and every derivative of
+    them must live outside the public repository (ADR-0011).
+    """
+
+    inbox_dir: str = "~/VaultLedger/Inbox"
+    index_dir: str = "~/VaultLedger/index"
+    graph_working_dir: str = "~/VaultLedger/graph"
+    obsidian_dir: str = "~/VaultLedger/obsidian_vault"
+    traces_dir: str = "~/VaultLedger/traces"
+    watcher_poll_seconds: float = Field(default=1.0, gt=0)
+    watcher_stable_polls: int = Field(default=2, ge=2)
+    watcher_max_polls: int = Field(default=3600, ge=1)
+    ocr_timeout_seconds: float = Field(default=300.0, gt=0)
+    graph_timeout_seconds: float = Field(default=900.0, gt=0)
+
+
 class Config(BaseSettings):
     """Validated view of ``config.yaml``."""
 
@@ -167,10 +187,51 @@ class Config(BaseSettings):
     graph: Graph = Graph()
     chunking: Chunking = Chunking()
     paths: Paths = Paths()
+    live: LiveDocuments = LiveDocuments()
 
     def repo_path(self, rel: str) -> Path:
         """Resolve a repo-relative path from config against the repo root."""
         return REPO_ROOT / rel
+
+    def live_paths(self) -> dict[str, Path]:
+        """Resolve and validate every user-data path before any live-data I/O.
+
+        ``~`` is accepted in the human-edited YAML because ADR-0011 specifies
+        that portable default. The returned paths are absolute and resolved.
+        No path may be the repository or one of its descendants, and live roots
+        may not contain one another: source PDFs and derived text must remain
+        visibly separate.
+        """
+        raw = {
+            "inbox": self.live.inbox_dir,
+            "index": self.live.index_dir,
+            "graph": self.live.graph_working_dir,
+            "obsidian": self.live.obsidian_dir,
+            "traces": self.live.traces_dir,
+        }
+        resolved = {
+            name: Path(value).expanduser().resolve(strict=False)
+            for name, value in raw.items()
+        }
+        repo_root = REPO_ROOT.resolve()
+        for name, path in resolved.items():
+            if path == repo_root or path.is_relative_to(repo_root):
+                raise ValueError(
+                    f"live {name} path must be outside the repository: {path}"
+                )
+            if not path.is_absolute():  # defensive; resolve() is absolute
+                raise ValueError(f"live {name} path must resolve to an absolute path: {path}")
+        names = sorted(resolved)
+        for index, left_name in enumerate(names):
+            left = resolved[left_name]
+            for right_name in names[index + 1 :]:
+                right = resolved[right_name]
+                if left.is_relative_to(right) or right.is_relative_to(left):
+                    raise ValueError(
+                        "live paths must not contain one another: "
+                        f"{left_name}={left}, {right_name}={right}"
+                    )
+        return resolved
 
     @classmethod
     def settings_customise_sources(
@@ -221,6 +282,7 @@ __all__ = [
     "Graph",
     "Chunking",
     "Paths",
+    "LiveDocuments",
     "load_config",
     "CONFIG_PATH",
     "REPO_ROOT",

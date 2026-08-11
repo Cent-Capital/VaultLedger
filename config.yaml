@@ -97,3 +97,15 @@ paths:
   ground_truth: "data/ground_truth"
   index_dir: "data/index"            # derived, rebuildable, gitignored
   traces: "data/traces"              # local query traces; contains prompt metadata
+
+live:                                  # Phase 16 user data; ADR-0011 requires external paths
+  inbox_dir: "~/VaultLedger/Inbox"
+  index_dir: "~/VaultLedger/index"   # extracted text/records stay outside the public repo too
+  graph_working_dir: "~/VaultLedger/graph"
+  obsidian_dir: "~/VaultLedger/obsidian_vault"
+  traces_dir: "~/VaultLedger/traces"
+  watcher_poll_seconds: 1.0
+  watcher_stable_polls: 2             # two identical size/mtime observations before ingest
+  watcher_max_polls: 3600             # bounded: one hour at the default interval
+  ocr_timeout_seconds: 300
+  graph_timeout_seconds: 900          # hard per-file cap around LightRAG insertion

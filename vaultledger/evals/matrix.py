@@ -20,6 +20,7 @@ from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
 from vaultledger.generate import answer_question_agentic, answer_question_reliable
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
+from vaultledger.ingest.pipeline import assert_evaluation_corpus
 from vaultledger.retrieve import (
     AgenticRetriever,
     CrossEncoderReranker,
@@ -202,6 +203,7 @@ def _required_inputs(cfg: Config, variants: list[str]) -> None:
             "missing index artifacts; run `make data && make ingest` first: "
             + ", ".join(missing)
         )
+    assert_evaluation_corpus(index_dir)
 
 
 def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:

@@ -17,6 +17,11 @@ from vaultledger import __version__, load_config  # noqa: E402
 st.set_page_config(page_title="VaultLedger", page_icon="🔒", layout="wide")
 
 cfg = load_config()
+try:
+    live_paths = cfg.live_paths()
+except ValueError as exc:
+    st.error(f"Unsafe live-document configuration: {exc}")
+    st.stop()
 
 st.markdown(
     """
@@ -51,11 +56,14 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-st.caption(f"Track-A v{__version__} · synthetic data only · document Q&A, never advice")
+st.caption(
+    f"Track-A v{__version__} · synthetic evals isolated from user documents · "
+    "document Q&A, never advice"
+)
 
 with st.sidebar:
-    st.success("Track A · release candidate")
-    st.caption("Phases 0–10 · internship deliverable")
+    st.success("Phase 16 · live documents")
+    st.caption("External inbox · local processing")
     st.divider()
     st.subheader("Local run config")
     st.metric("Seed", cfg.seed)
@@ -76,33 +84,77 @@ library, ask, evals, lab = st.tabs(
 
 with library:
     st.header("Your document library")
-    st.caption("A deterministic 60-document synthetic corpus. No real financial data.")
-    index_dir = cfg.repo_path(cfg.paths.index_dir)
+    library_corpus = st.segmented_control(
+        "Library source",
+        options=["Synthetic evaluation corpus", "User documents"],
+        default="Synthetic evaluation corpus",
+        key="library_corpus",
+    )
+    is_live_library = library_corpus == "User documents"
+    if is_live_library:
+        st.warning(
+            "User documents are isolated from all evaluation metrics. "
+            "Scanned pages are OCR-derived and may misread digits or layout."
+        )
+        st.caption(f"External inbox: `{live_paths['inbox']}`")
+        index_dir = live_paths["index"]
+    else:
+        st.caption(
+            "Deterministic 60-document synthetic corpus · the only evaluation population."
+        )
+        index_dir = cfg.repo_path(cfg.paths.index_dir)
     db_path = index_dir / "records.db"
 
     col_btn, col_note = st.columns([1, 3])
     with col_btn:
-        rebuild = st.button("Rebuild indexes", type="primary")
+        rebuild = st.button(
+            "Scan inbox now" if is_live_library else "Rebuild synthetic indexes",
+            type="primary",
+        )
     with col_note:
-        st.caption("Parse → extract → PII-tag → chunk → Chroma + BM25. Local only.")
+        st.caption(
+            "Validate → OCR if needed → PII-tag → chunk → incremental indexes. Local only."
+            if is_live_library
+            else "Parse → extract → PII-tag → chunk → Chroma + BM25. Local only."
+        )
     if rebuild:
-        from vaultledger.ingest import run_ingest
-
-        with st.spinner("Ingesting corpus (parse, extract, PII-tag, chunk, embed)…"):
+        with st.spinner("Updating the selected local document library…"):
             try:
-                result = run_ingest(cfg)
-                st.success(
-                    f"Ingested {result.docs_ok} documents "
-                    f"({result.docs_failed} failed), {result.chunks} chunks, "
-                    f"vector index {'built' if result.embedded else 'skipped'}."
-                )
-            except (RuntimeError, FileNotFoundError) as exc:
+                if is_live_library:
+                    from vaultledger.ingest.watcher import InboxWatcher
+
+                    results = InboxWatcher(cfg).watch(
+                        max_polls=cfg.live.watcher_stable_polls
+                    )
+                    if not results:
+                        st.info("No new or changed stable PDFs found in the external inbox.")
+                    for result in results:
+                        message = (
+                            f"{result.doc_id}: {result.status}, {result.chunks} chunks, "
+                            f"OCR pages={result.ocr_pages or 'none'}, "
+                            f"{result.stage_latency_ms.get('total', 0) / 1000:.2f}s"
+                        )
+                        st.success(message) if result.status == "ok" else st.error(
+                            f"{message} · {result.error}"
+                        )
+                else:
+                    from vaultledger.ingest import run_ingest
+
+                    result = run_ingest(cfg)
+                    st.success(
+                        f"Ingested {result.docs_ok} documents "
+                        f"({result.docs_failed} failed), {result.chunks} chunks, "
+                        f"vector index {'built' if result.embedded else 'skipped'}."
+                    )
+            except (RuntimeError, FileNotFoundError, ValueError) as exc:
                 st.error(str(exc))
 
     if not db_path.exists():
         st.info(
-            "No ingested corpus yet. Run `make data && make ingest`, then `make doctor`, "
-            "or click Rebuild after the PDFs exist."
+            f"No user index yet. Drop PDFs into `{live_paths['inbox']}` and scan the inbox."
+            if is_live_library
+            else "No synthetic corpus yet. Run `make data && make ingest`, then "
+            "`make doctor`, or click Rebuild after the PDFs exist."
         )
     else:
         conn = sqlite3.connect(db_path)
@@ -114,9 +166,15 @@ with library:
             "guardrail_events" if "guardrail_events" in document_columns
             else "'[]' AS guardrail_events"
         )
+        corpus_column = "corpus" if "corpus" in document_columns else "'synthetic' AS corpus"
+        ocr_column = (
+            "ocr_derived" if "ocr_derived" in document_columns else "0 AS ocr_derived"
+        )
+        ocr_pages_column = "ocr_pages" if "ocr_pages" in document_columns else "'[]' AS ocr_pages"
         docs = conn.execute(
             "SELECT doc_id, doc_type, period_start, period_end, page_count, "
-            f"pii_entity_types, {guardrail_column}, parse_status "
+            f"pii_entity_types, {guardrail_column}, parse_status, {corpus_column}, "
+            f"{ocr_column}, {ocr_pages_column} "
             "FROM documents ORDER BY doc_id"  # noqa: S608 - fixed column choice above
         ).fetchall()
         chunks_file = index_dir / "chunks.jsonl"
@@ -143,6 +201,12 @@ with library:
                         event["action"] != "pass"
                         for event in json.loads(d["guardrail_events"])
                     ),
+                    "Source": "User" if d["corpus"] == "user" else "Synthetic",
+                    "OCR": (
+                        f"Scanned pages {json.loads(d['ocr_pages'])}"
+                        if d["ocr_derived"]
+                        else "Text layer"
+                    ),
                     "Status": d["parse_status"],
                 }
                 for d in docs
@@ -154,6 +218,26 @@ with library:
 
 with ask:
     st.header("Ask your documents")
+    answer_corpus = st.segmented_control(
+        "Answer from",
+        options=["Synthetic evaluation corpus", "User documents"],
+        default="Synthetic evaluation corpus",
+        key="answer_corpus",
+        help="The corpora use separate indexes. User files never enter an eval denominator.",
+    )
+    is_live_answer = answer_corpus == "User documents"
+    answer_index_dir = live_paths["index"] if is_live_answer else cfg.repo_path(
+        cfg.paths.index_dir
+    )
+    answer_db_path = answer_index_dir / "records.db"
+    answer_traces_dir = (
+        live_paths["traces"] if is_live_answer else cfg.repo_path(cfg.paths.traces)
+    )
+    if is_live_answer:
+        st.warning(
+            "User-document answers are unmeasured. OCR-marked evidence may contain "
+            "misread digits; verify figures against the original scan."
+        )
     answer_variant = st.segmented_control(
         "Retrieval mode",
         options=["B_hybrid", "C_graph", "D_agentic"],
@@ -170,15 +254,24 @@ with ask:
     }
     st.caption(captions[answer_variant])
     st.success("Privacy mode: Local · paid hosted tiers retired by ADR-0003")
-    sample = st.selectbox(
-        "Measured examples",
-        (
+    sample_options = (
+        ("Write my own question",)
+        if is_live_answer
+        else (
             "Marcus's March closing balance",
             "Priya's total 1099 income",
             "An unanswerable credit-score question",
             "Write my own question",
+        )
+    )
+    sample = st.selectbox(
+        "Measured examples",
+        sample_options,
+        help=(
+            "Write a question about the selected user corpus."
+            if is_live_answer
+            else "These come from the versioned golden set."
         ),
-        help="These come from the versioned golden set.",
     )
     sample_questions = {
         "Marcus's March closing balance": "What was Marcus Chen's March closing balance?",
@@ -225,16 +318,16 @@ with ask:
                     else None
                 )
                 hybrid = HybridRetriever(
-                    index_dir,
+                    answer_index_dir,
                     embedder,
                     candidate_k=cfg.retrieval.candidate_k,
                     rank_constant=cfg.retrieval.rrf_constant,
                     reranker=reranker,
                 )
                 if answer_variant == "D_agentic":
-                    retriever = AgenticRetriever(hybrid, db_path)
+                    retriever = AgenticRetriever(hybrid, answer_db_path)
                 elif answer_variant == "C_graph":
-                    retriever = LightRAGRetriever.from_config(cfg)
+                    retriever = LightRAGRetriever.from_config(cfg, live=is_live_answer)
                 else:
                     retriever = hybrid
                 generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
@@ -255,9 +348,9 @@ with ask:
                             ),
                             max_retries=cfg.loops.repair_max,
                             min_snippet_chars=cfg.generation.min_snippet_chars,
-                            trace_store=TraceStore(cfg.repo_path(cfg.paths.traces)),
+                            trace_store=TraceStore(answer_traces_dir),
                             guardrail_toggles=GuardrailToggles.from_config(cfg.guardrails),
-                            records_db=db_path,
+                            records_db=answer_db_path,
                             numeric_epsilon=cfg.thresholds.numeric_epsilon,
                             agent_steps_max=cfg.loops.agent_steps_max,
                             agent_tokens_max=cfg.loops.agent_tokens_max,
@@ -273,7 +366,8 @@ with ask:
                     # or a future remote path would leave it silently lying.
                     if answer.data_left_machine:
                         st.warning(
-                            "Synthetic query context left your machine: YES · "
+                            f"{('User' if is_live_answer else 'Synthetic')} query context "
+                            "left your machine: YES · "
                             f"answer model `{answer.model_used}`"
                         )
                     else:
@@ -283,9 +377,21 @@ with ask:
                     else:
                         st.write(answer.answer_text)
                     if answer.citations:
+                        ocr_citations = [
+                            citation for citation in answer.citations if citation.ocr_derived
+                        ]
+                        if ocr_citations:
+                            st.error(
+                                "Scanned-document evidence used. OCR can misread digits and "
+                                "table columns even when the citation is verbatim. Verify all "
+                                "figures against the original PDF."
+                            )
                         st.subheader("Verified citations")
                         for c in answer.citations:
-                            with st.expander(f"{c.doc_id} · page {c.page} · {c.chunk_id}"):
+                            provenance = " · OCR-derived scan" if c.ocr_derived else " · text layer"
+                            with st.expander(
+                                f"{c.doc_id} · page {c.page} · {c.chunk_id}{provenance}"
+                            ):
                                 st.write(c.snippet)
                     if answer.guardrail_events:
                         with st.expander(f"Reliability events ({len(answer.guardrail_events)})"):

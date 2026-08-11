@@ -22,6 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 DocType = Literal["bank_statement", "form_1099", "invoice", "pay_stub", "unknown"]
 Tier = Literal["T0", "T1", "T2", "T3"]
 Variant = Literal["A_naive", "B_hybrid", "C_graph", "D_agentic"]
+Corpus = Literal["synthetic", "user"]
 
 
 # --- Ingestion & retrieval primitives -------------------------------------
@@ -34,6 +35,9 @@ class DocMeta(BaseModel):
     is_synthetic: bool = True
     page_count: int
     pii_entity_types: list[str] = Field(default_factory=list)  # e.g. ["PERSON","US_BANK_NUMBER"]
+    corpus: Corpus = "synthetic"
+    ocr_derived: bool = False
+    ocr_pages: list[int] = Field(default_factory=list)
 
 
 class Chunk(BaseModel):
@@ -43,6 +47,8 @@ class Chunk(BaseModel):
     page: int
     char_start: int
     char_end: int
+    corpus: Corpus = "synthetic"
+    ocr_derived: bool = False
 
 
 class Citation(BaseModel):
@@ -50,6 +56,8 @@ class Citation(BaseModel):
     doc_id: str
     page: int
     snippet: str  # the exact supporting text
+    corpus: Corpus = "synthetic"
+    ocr_derived: bool = False
 
 
 # --- Routing, guardrails, agent steps (referenced by Answer) --------------
@@ -141,6 +149,7 @@ __all__ = [
     "DocType",
     "Tier",
     "Variant",
+    "Corpus",
     "DocMeta",
     "Chunk",
     "Citation",

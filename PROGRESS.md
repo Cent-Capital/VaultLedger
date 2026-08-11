@@ -2160,3 +2160,101 @@ provisional default pending a powered comparison.
 
 **Next:** Phase 16 — generate the cross-variant comparison and portfolio artifacts
 without upgrading Phase 15's failed quality gates into successes.
+
+## Phase 16 — Live documents, safely (opened 2026-08-11; implementation complete, acceptance open)
+
+ADR-0011 superseded the old next step above before Phase 16 code began: portfolio
+work moves to Phase 19, while Phase 16 now builds the external live-document path.
+ADR-0012 selects `ocrmypdf --skip-text` preprocessing and requires visible OCR
+provenance. `PHASE16_BUILD_PLAN.md` translates both accepted decisions into the
+implementation order and acceptance-test matrix.
+
+**External-data boundary.** Typed `live.*` configuration now separates the user
+inbox, derived index, LightRAG store, Obsidian projection, and query traces from the
+synthetic/eval paths. The default is under `~/VaultLedger/`. App startup and every
+live CLI operation resolve all five roots first and refuse any root at or below the
+public repository. The roots may not contain one another. This is deliberately
+stronger than gitignore: source PDFs, extracted text, graph data, projections, and
+questions all stay outside the checkout.
+
+**Real-PDF and OCR path.** Text-layer PDFs flow through the existing pdfplumber
+offset/geometry parser without invoking OCR. Pages with near-zero text trigger
+`ocrmypdf --skip-text`, write only to the external index, and are reparsed by the
+same path. Missing `ocrmypdf` or Tesseract, a timeout, a non-zero exit, missing
+output, or a still-unreadable page becomes an explicit failed document with no
+chunks. Genuine layouts do not have to match the two synthetic extractors: typed
+record extraction is best effort, while exact text remains available to retrieval.
+
+**Provenance and eval isolation.** Document metadata stores corpus, document OCR
+status, and OCR page numbers. Each chunk is marked from its source page, and the
+citation verifier copies corpus/OCR status from the matched chunk rather than from
+model output. The Library and Ask tabs visibly separate synthetic and user corpora;
+an answer citing an OCR page shows a prominent warning to verify digits and table
+columns against the original. Eval startup now rejects any user or OCR-derived
+chunk even if someone points an eval command at the wrong index.
+
+**Incremental watcher and graph.** `make live-ingest` runs a stability-gated inbox
+scan and `make watch` runs a configured finite polling budget. The watcher requires
+two identical size/mtime observations, persists processed fingerprints externally,
+and re-ingests only changed files. A stable document id replaces its SQLite,
+chunk/BM25, and Chroma rows. LightRAG receives one `ainsert` call; on a changed
+document, its prior id is deleted before insertion. The live GraphML is projected to
+the external Obsidian vault after each successful graph insert. Per-file stage
+latency, model-call/token usage, and local cost status are appended to an external
+JSONL receipt.
+
+**Measured text-PDF smoke.** A generated invoice PDF was copied to an isolated
+`/private/tmp` inbox and exercised against the installed `nomic-embed-text` and
+`qwen3:8b` models. The complete parse → SQLite/BM25 → Chroma → one-document
+LightRAG → Obsidian path completed in **26.286 s**. Graph insertion took **25.240 s**
+and recorded 2 completion calls, 3 embedding calls, 4,280 input tokens, 311 output
+tokens, and `$0` API spend explicitly labelled `unpriced`. The graph projection
+contained the document plus three entity notes. A live Variant-B answer correctly
+returned the three landing-page builds, `$1,787.79` unit price, and `$5,363.37` line
+amount with the exact source line as a verified `corpus=user`, `ocr_derived=false`
+citation. Two preceding prompts asking only for the short total line safely
+abstained when their citation did not survive the minimum-length verifier; they are
+not counted as successful answers.
+
+**Found on review: the provenance schema would have moved the synthetic corpus
+hash.** `Chunk` gained `corpus` and `ocr_derived`, and the default serializer emits
+them, so the next `make ingest` would have rewritten `chunks.jsonl` and changed its
+`corpus_hash` from `ba7148a112191bc8…` to `2e9fb7631c411c98…` — while every core
+chunk field stayed byte-identical and only two constant fields were added. Every
+committed Phase-11 and Phase-15 receipt cites the old hash, so a reader comparing
+receipts across the Phase-16 boundary would have seen a corpus that appeared to have
+changed when only its serialization had.
+
+Both halves of the fix are recorded rather than one: chunk writers now use
+`model_dump_json(exclude_defaults=True)`, which restores `chunks.jsonl` to
+`ba7148a112191bc8…` byte-for-byte, and this note explains why the serialization is
+customized. `Chunk`'s six content fields are required and therefore always emitted;
+only `corpus`/`ocr_derived` can be omitted, and only when they equal the synthetic
+defaults a reader already assumes. User chunks carry a non-default `corpus`, so their
+provenance is always written and `assert_evaluation_corpus` still sees it. Two tests
+pin both halves.
+
+Also found on review: the OCR page threshold was restated as a literal in both
+`parse.py` and `ocr.py`. They agreed, but a drift in either would OCR a page without
+marking it `ocr_derived` — a silent ADR-0012 provenance failure no downstream check
+catches. It is now the shared `MIN_PAGE_TEXT_CHARS` constant, with a test.
+
+**Verification and remaining acceptance gap.** `make lint` is clean and `make test`
+is green at **167 passed**, including 13 Phase-16 tests for path refusal, OCR gating/failure,
+provenance, eval exclusion, incremental replacement, watcher stability/persistence,
+single-id graph insertion, and UI warnings. Neither `ocrmypdf` nor Tesseract is
+installed on this machine, so the real scanned-PDF arm has not run. Phase 16 is
+therefore **not closed**: its text-layer acceptance path is measured and green, but
+the ADR-0012 scan → OCR → marked answer criterion remains pending a machine with
+both executables. No OCR correctness claim is made.
+
+**Trickiest piece (plain English).** A citation cannot discover that OCR read a
+printed digit incorrectly; it can only prove the model copied the extracted text.
+The implementation therefore treats OCR status like evidence provenance, not an
+ingest log detail: the flag follows the exact page into the chunk, follows the
+verified chunk into the citation, and reaches the user at the same place as the
+number. That does not repair a wrong digit. It makes the residual risk visible and
+keeps unlabelled OCR text out of every reported metric.
+
+**Next:** install `ocrmypdf` and Tesseract, run the real scan acceptance arm, and
+close Phase 16 only if the OCR-derived citation flag is visible end to end.

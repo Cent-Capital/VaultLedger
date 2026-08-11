@@ -52,5 +52,17 @@ class Bm25Index:
         ranked = sorted(zip(self.chunk_ids, scores, strict=True), key=lambda p: -p[1])
         return ranked[:k]
 
+    def upsert(self, chunks: list[Chunk], *, replace_doc_id: str) -> None:
+        """Replace one document's lexical entries, preserving every other document."""
+        kept = [
+            (chunk_id, tokens)
+            for chunk_id, tokens in zip(self.chunk_ids, self._tokenized, strict=True)
+            if not chunk_id.startswith(f"{replace_doc_id}#c")
+        ]
+        kept.extend((chunk.chunk_id, tokenize(chunk.text)) for chunk in chunks)
+        self.chunk_ids = [chunk_id for chunk_id, _ in kept]
+        self._tokenized = [tokens for _, tokens in kept]
+        self._bm25 = BM25Okapi(self._tokenized) if self._tokenized else None
+
 
 __all__ = ["Bm25Index", "tokenize"]
