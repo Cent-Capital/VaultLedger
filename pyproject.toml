@@ -83,3 +83,9 @@ select = ["E", "F", "I", "W", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# `scripts/` is executable product code (the Phase 17 launcher) but is not an
+# installed package, so tests/test_phase17.py can only import it when the repo
+# root is on sys.path. `make test` gets that for free from `python -m pytest`;
+# CI runs bare `pytest`, which does not. Without this, collection fails and the
+# whole suite is skipped on CI.
+pythonpath = ["."]
