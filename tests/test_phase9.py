@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -18,6 +19,8 @@ from vaultledger.evals.regression import (
     load_baseline,
 )
 from vaultledger.schemas import RunManifest
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _manifest(metrics: dict[str, float]) -> RunManifest:
@@ -89,6 +92,17 @@ def test_regression_self_comparison_is_rejected():
 
     with pytest.raises(ValueError, match="self-comparison"):
         compare_manifest(baseline, current)
+
+
+def test_eval_full_regenerates_dense_and_hybrid_runs_before_regression():
+    makefile = (REPO_ROOT / "Makefile").read_text()
+    eval_full = makefile.split("eval-full:", 1)[1].split("verify-track-a:", 1)[0]
+
+    dense = eval_full.index("run --variant A_naive")
+    hybrid = eval_full.index("run --variant B_hybrid")
+    regression = eval_full.index("evals regression")
+
+    assert dense < hybrid < regression
 
 
 def test_regression_runner_catches_deliberately_injected_drop():

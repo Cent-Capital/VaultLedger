@@ -50,6 +50,7 @@ eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
 	$(PYTHON) -m vaultledger.evals safety
 	$(PYTHON) -m vaultledger.evals guardrails-eval
 	$(PYTHON) -m vaultledger.evals judge-validate
+	$(PYTHON) -m vaultledger.evals run --variant A_naive
 	$(PYTHON) -m vaultledger.evals run --variant B_hybrid
 	$(PYTHON) -m vaultledger.evals regression
 
