@@ -529,8 +529,8 @@ def _write_comparison(
     lines = [
         "# Phase 4 retrieval comparison",
         "",
-        f"Golden set hash: `{current.golden_set_hash}`  ",
-        f"Phase-3 baseline: `{baseline.run_id}`  ",
+        f"Golden set hash: `{current.golden_set_hash}`",
+        f"Phase-3 baseline: `{baseline.run_id}`",
         f"Phase-4 run: `{current.run_id}`",
         "",
         f"| Metric | Dense only | + BM25 / RRF | {final_label} | Final delta vs dense |",

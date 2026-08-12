@@ -2386,3 +2386,83 @@ human usability test.
 **Phase 17 remains open.** Every code, artifact, clean-virtualenv, and development-
 account browser gate is green. Closure still requires the fresh standard-macOS-user
 machine half. No waiver has been applied and no fresh-Mac claim is made.
+
+### Phase 17 review continuation — code half complete; owner half still open
+
+**Launcher acceptance repairs landed.** The ZIP quickstart and troubleshooting now
+document Gatekeeper's one-time **right-click → Open → Open** path and state why it is
+needed: the launcher is not code-signed under ADR-0011. When
+`data/index/records.db` is absent, the launcher visibly runs the model-free
+`python -m vaultledger.synth` and `python -m vaultledger.ingest --no-embed` path
+before opening the app, so a fresh ZIP's first Library screen no longer depends on
+the reader knowing a Make target. `KeyboardInterrupt` now exits 130 with the
+requested cancellation message, malformed Ollama JSON is rendered as a readable
+launcher error, and setup tears down any Streamlit child on cancellation. Ollama
+detection probes the loopback service before looking for the optional CLI symlink,
+checks `/Applications/Ollama.app` before declaring the app absent, and uses the
+service pull API if models are missing but no CLI symlink exists.
+
+**The four stale reader claims were corrected at their sources.** Regression now
+raises on a manifest whose run id equals the frozen baseline id. `eval-full`
+regenerates a full dense manifest and then a full B-hybrid manifest before running
+regression, so the Phase-4 comparison and regression both compare compatible,
+distinct runs. The canonical `reports/model_matrix.md` was regenerated from the two
+full 80-row B-hybrid manifests (`61802221d874` / `33c0a0d50c76`), while Phase 14's
+D-agentic cells now have their own `reports/phase14_agentic_matrix.md`; future
+`agentic-eval` runs cannot overwrite the canonical matrix. The guard-on matrix was
+also regenerated from its own committed cells. `make router-eval` is pinned to the
+same two canonical B-hybrid answer receipts named by the README, and the router
+generator now names Phase 18 rather than Phase 17. The matrix/config generator
+strings use the same renumbering. Generated reports were regenerated through their
+writers; none was hand-edited.
+
+**Context truncation now keeps the best evidence.** Context assembly first selects
+blocks in descending retrieval-score order, counts separators against the character
+budget, skips an oversized block when a smaller later block can fit, and only then
+applies the lost-in-the-middle edge ordering. The reproduced six-by-2,400-character
+case now exposes ranks `1, 2, 3, 4` and drops `5, 6`; the old code exposed
+`1, 3, 5, 6` and dropped ranks 2 and 4. A regression test pins the surviving-rank
+set and the separator accounting. The 12,000-character default is now typed as
+`generation.context_budget_chars` in `config.yaml`, rather than living only as an
+answer-changing literal in `retrieve/context.py`.
+
+**Track-A gate — first run red, then fixed and green; both outcomes retained.** The
+first `make verify-track-a` run at `8cecd81` passed Ruff, **185 tests**, golden-set
+validation, the live 11-case Phase-7 arm, guardrail evaluation, and the 20-label
+judge run. It then failed after writing fresh B-hybrid manifest
+`phase4_0f1681241cd3`: `_write_comparison` raised
+`ValueError: baseline and Phase-4 run use different golden-set hashes` because the
+Phase-3 comparison baseline still carried the pre-relabel golden hash. Exit was 2
+after **160.2 s** wall time. That failure was not replaced with a green-only story.
+
+The sequencing fix at `b69499a` adds the fresh full dense run before the fresh full
+B-hybrid run. The second `make verify-track-a` exited **0** after **150.0 s**: Ruff
+clean; **186 passed**; golden validation green; Phase-7 safety, guardrails, and judge
+validation green; dense manifest `phase3_b45ca825de1a`; B-hybrid manifest
+`phase4_e72bb7213548`; and regression `passed: true` against distinct frozen
+baseline `phase4_551b3b20b9f9`. All four reported retrieval deltas were `0.0`; those
+numbers are meaningful here only because the run ids differ. The synthetic chunk
+hash was checked before the edits, after the code/test runs, after the failed gate,
+and after the green gate; every check returned exactly
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+
+**The CI/local contradiction is now explicit.** CI was red for **seven consecutive
+pushes** while this file recorded `make verify-track-a` green at the Phase-14 close
+SHA (`62107bf`). Both statements were true: the local gate ran on a machine with a
+built corpus, while CI first collected zero tests because the repository root was
+absent from bare pytest's path and, after that fix, exposed four tests whose corpus
+CI had never built. Nothing reconciled the two because nobody checked the Actions
+history. Commits `56466d1` and `c9a3a61` fixed those separate failures. CI run
+`31557816109` then reported 177 passed / 2 runtime-dependent skips and green; its
+Ubuntu corpus build produced the same `ba7148a…5405` hash as macOS, the first
+cross-platform observation of that byte identity. That is one observation, not yet
+a reliability measurement, so CI still prints rather than gates on the hash.
+
+**What did not land, and why Phase 17 remains open.** Part B belongs to the owner
+and has not been performed: there is still no fresh macOS Administrator-account
+install transcript and no `receipts/phase17_machine_half.md`. The pre-existing
+development-account/clean-venv receipt is not relabelled as that evidence. Homebrew
+and `Ollama.app` remain system-wide gaps, the Standard-user path remains untested,
+and no independent non-technical cold read occurred. Checklist A5–A7 are explicitly
+post-run findings and were not pulled forward. Phase 17 therefore remains **open**;
+Phase 18 is not opened.

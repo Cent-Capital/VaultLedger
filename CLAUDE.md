@@ -62,7 +62,15 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–16 are closed. Phase 16 (ADR-0011/ADR-0012) delivered the external
+Phases 0–16 are closed. Phase 17 is open: its code half (Gatekeeper instructions,
+first-run corpus bootstrap, cancellation/error handling, service-first Ollama
+detection, regression/report corrections, and context-budget fix) has landed and
+`make verify-track-a` is green at `b69499a`, but the owner-only fresh macOS
+Administrator-account install and `receipts/phase17_machine_half.md` do not exist
+yet. Do not describe the development-account or clean-virtualenv receipt as that
+machine half, and do not open Phase 18 until the Phase-17 close checklist is met.
+
+Phase 16 (ADR-0011/ADR-0012) delivered the external
 live-document path: inbox outside the repo, real OCR via `ocrmypdf --skip-text`,
 provenance carried to the citation, incremental indexes and a bounded watcher. Its
 scan arm was measured on a genuinely image-only PDF and passed — but that was one

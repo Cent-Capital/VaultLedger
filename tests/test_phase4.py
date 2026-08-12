@@ -116,3 +116,4 @@ def test_comparison_report_uses_manifest_values(tmp_path):
     assert "phase3_base" in report and "phase4_new" in report
     assert "| Recall@20 | 0.8000 | 0.8500 | 0.9000 | +0.1000 |" in report
     assert "All values come from the manifests" in report
+    assert not any(line.endswith(" ") for line in report.splitlines())

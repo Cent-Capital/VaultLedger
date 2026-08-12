@@ -1,7 +1,7 @@
 # Phase 13 guardrail evaluation
 
-Manifest: `phase13_guardrails_6cf2b1ba4447`
-Phase-7 injection source: `phase7_d0b6b7444eb3`
+Manifest: `phase13_guardrails_bdc161ff949e`
+Phase-7 injection source: `phase7_2d59408c72b2`
 
 | Acceptance check | Result | Evidence |
 |---|---|---|
