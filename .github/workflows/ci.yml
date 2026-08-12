@@ -17,6 +17,11 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev,synth,graph]"
 
+      - name: spaCy model
+        # `make install` does this; CI installs via pip directly and would
+        # otherwise fail at ingest, where Presidio's analyzer loads the model.
+        run: python -m spacy download en_core_web_sm
+
       - name: Lint (ruff)
         run: ruff check .
 
@@ -24,13 +29,33 @@ jobs:
         run: python -c "import vaultledger.schemas, vaultledger.config; print('schemas + config import OK')"
 
       - name: No unbounded loops (SPEC 15.2)
-        # Every loop must be bounded; ban `while True` in the package.
+        # Every loop must be bounded; ban `while True`. `scripts/` and `app/`
+        # are executable product code too — the Phase 17 launcher lives in
+        # `scripts/` and was outside this gate until now.
         run: |
-          if grep -rnE 'while\s+True' vaultledger/; then
+          if grep -rnE 'while\s+True' vaultledger/ scripts/ app/; then
             echo "::error::Found 'while True' — loops must be bounded (SPEC 15.2)."
             exit 1
           fi
           echo "loop lint OK"
+
+      - name: Build the corpus and indexes (no embeddings)
+        # Four tests read the built chunk corpus, and `data/index/` is
+        # gitignored derived data, so CI has to build it or those tests can
+        # only ever pass on a developer machine. `--no-embed` is the path
+        # `ingest/pipeline.py` documents for exactly this case: SQLite, chunks
+        # and BM25 build without Ollama; only the vector index is skipped.
+        run: |
+          python -m vaultledger.synth
+          python -m vaultledger.ingest --no-embed
+
+      - name: Corpus hash (informational)
+        # The macOS build machine produces
+        # ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405.
+        # Printed, not gated: whether the corpus regenerates byte-identically
+        # across platforms has never been measured. Do not turn this into an
+        # assertion until it has held for several runs.
+        run: sha256sum data/index/chunks.jsonl
 
       - name: Tests
         run: pytest
