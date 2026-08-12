@@ -14,7 +14,29 @@ has not been pushed.
 
 ---
 
-## 1. CI runs zero tests (blocker — fix before pushing)
+## Update 2026-08-12 — items 1 and 5 have landed; 2, 3 and 4 are open
+
+Items **1** (`56466d1`) and **5** (`c9a3a61`) were fixed and pushed while writing
+this brief. **CI is green for the first time since at least 2026-08-10.**
+
+One correction to what item 1 originally said. It claimed the `pythonpath` line
+would make CI green. **It did not, and could not.** That fix was necessary but not
+sufficient: it restored collection (0 tests → 179 collected), which then revealed a
+second, older failure that had been hidden behind the collection error — four tests
+reading a corpus CI never built. Item 5 was written after observing that. The
+original text is left below as written, with the correction attached, because this
+log does not silently rewrite claims that turned out to be wrong.
+
+Entry state was also wrong on one point: the brief said no CI badge existed yet
+because the commit was unpushed. In fact CI had failed on **seven consecutive
+pushes** since 2026-08-10. That was inferred rather than checked, and `gh run list`
+would have settled it in one command.
+
+**Open for Codex: items 2, 3 and 4.**
+
+---
+
+## 1. CI runs zero tests — **LANDED in `56466d1`, but see the correction above**
 
 **Reproduce:**
 
@@ -49,11 +71,14 @@ pythonpath = ["."]
 
 **Verify:** `.venv/bin/pytest -q` (bare, not `python -m`) must report 179 passed.
 
-**Then extend the CI loop lint.** `.github/workflows/ci.yml`'s "No unbounded loops"
-step greps `vaultledger/` only. `scripts/` is now executable product code (481 lines)
-and `app/` is the UI; neither is covered. Nothing violates the rule today — that was
-checked — but the gate no longer covers the newest code. Widen the grep to
-`vaultledger/ scripts/ app/`.
+**Measured after landing:** bare `pytest` 179 passed locally. On CI the collection
+error was gone and the run reported `4 failed, 173 passed, 2 skipped` — the suite
+executed for the first time, and the four remaining failures are item 5, not this one.
+
+**Then extend the CI loop lint.** — done in `c9a3a61`. `.github/workflows/ci.yml`'s
+"No unbounded loops" step greped `vaultledger/` only; `scripts/` is executable
+product code (481 lines) and `app/` is the UI. Now greps `vaultledger/ scripts/ app/`.
+No current violations.
 
 ---
 
@@ -241,6 +266,58 @@ retrieval was re-measured. Say so in the PROGRESS entry.
 
 ---
 
+## 5. CI never built the corpus — **LANDED in `c9a3a61`**
+
+Added after item 1 restored collection and exposed this underneath it.
+
+**The failure:**
+
+```
+FAILED tests/test_phase3.py::test_golden_expected_snippets_exist_in_current_chunks
+FAILED tests/test_phase3.py::test_context_assembly_wraps_chunks_as_untrusted_data
+FAILED tests/test_phase3.py::test_answer_question_returns_valid_local_answer_contract
+FAILED tests/test_phase15.py::test_lightrag_inputs_preserve_one_document_id_per_source
+E  FileNotFoundError: 'data/index/chunks.jsonl'
+```
+
+`data/index/` is gitignored derived data. These four tests could only ever pass on a
+machine where someone had run `make data && make ingest`. They had **never** passed
+on CI.
+
+This is the same shape as the item 2 claims: `ingest/pipeline.py`'s module docstring
+says `embed=False` is *"used by CI, which has no model runtime."* The capability was
+built and documented for CI. **CI never called it.**
+
+**What landed:**
+
+- `python -m vaultledger.synth` then `python -m vaultledger.ingest --no-embed` before
+  pytest. All four tests use fake retrievers and generators, so they need the chunk
+  corpus and no model runtime.
+- `python -m spacy download en_core_web_sm`. `make install` does this (`Makefile:9`)
+  but CI pip-installs directly, and `PiiTagger.__init__` loads the model
+  unconditionally at `pipeline.py:77`, so ingest would have failed without it.
+- The corpus hash printed, **not** asserted.
+
+**Measured on CI (`31557816109`):** `ingested 60 docs (0 failed), 60 chunks, vector
+index SKIPPED`; `177 passed, 2 skipped`; green.
+
+**New finding, worth a PROGRESS note.** The Ubuntu runner produced
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405` — **byte-identical
+to the macOS build machine.** The "regenerates byte-identical from the seed" claim has
+been in `CLAUDE.md` since Phase 1 and had only ever been observed on one platform.
+This is the first cross-platform evidence for it.
+
+**Do not gate on the hash yet.** One observation is not a reliability measurement.
+Leave the step informational until it has held across several runs; then converting it
+to an assertion is a genuinely strong invariant, because it catches the silent
+receipt-orphaning drift this repo already worries about.
+
+The 2 skips are the Langfuse and Ollama tests no-opping without credentials or a model
+runtime. That is expected, but it means **CI proves less than the local 179** — worth
+one honest sentence wherever the test count is quoted.
+
+---
+
 ## Out of scope for this brief — do not fold in
 
 These were found in the same review and are real, but each needs its own pass with its
@@ -270,8 +347,10 @@ own acceptance criteria:
 
 ## Acceptance for this brief
 
-- [ ] Bare `.venv/bin/pytest -q` reports 179 passed (not just `make test`).
-- [ ] CI loop lint covers `vaultledger/ scripts/ app/`.
+- [x] Bare `.venv/bin/pytest -q` reports 179 passed (not just `make test`). — `56466d1`
+- [x] CI loop lint covers `vaultledger/ scripts/ app/`. — `c9a3a61`
+- [x] CI builds the corpus and the four index-reading tests actually run. — `c9a3a61`
+- [x] **CI is green.** Run `31557816109`: 177 passed, 2 skipped.
 - [ ] `compare_manifest` raises on a self-comparison; a deliberate self-compare fails.
 - [ ] The four stale claims are corrected at their **generator**, and any affected
       report is regenerated rather than hand-edited.
@@ -282,6 +361,12 @@ own acceptance criteria:
 - [ ] `make lint` clean.
 - [ ] A `PROGRESS.md` entry that states plainly which claims were wrong and for how
       long. Two of them survived a commit titled *"Pre-Phase-17 audit: correct two
-      stale status claims"* — that is worth recording, not smoothing over.
-- [ ] **Push.** `main` is ahead of `origin/main` by 1 and the README instructs the
-      recipient to download a ZIP from GitHub that currently contains no launcher.
+      stale status claims"* — that is worth recording, not smoothing over. It should
+      also record that **CI was red for seven consecutive pushes** while
+      `PROGRESS.md` recorded `verify-track-a` green at the Phase 14 close SHA. Both
+      were true — the gate passed on a machine with a built corpus and had never
+      passed on CI — and nothing reconciled them because nobody opened the Actions
+      tab. Note the cross-platform corpus-hash result from item 5 in the same entry.
+- [x] **Push.** Done: `56466d1` and `c9a3a61` are on `origin/main`, along with the
+      Phase 17 packaging commit `02a6aa2` that had been sitting unpushed. The GitHub
+      ZIP the README points at now actually contains the launcher.
