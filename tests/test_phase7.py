@@ -9,7 +9,7 @@ from vaultledger.evals.golden import load_golden_set
 from vaultledger.evals.metrics import abstention_confusion
 from vaultledger.generate.reliable import answer_question_reliable
 from vaultledger.generate.schema import ABSTAIN_SENTENCE
-from vaultledger.retrieve.context import reorder_for_lost_in_middle
+from vaultledger.retrieve.context import assemble_context, reorder_for_lost_in_middle
 from vaultledger.retrieve.types import ScoredChunk
 from vaultledger.schemas import Chunk
 
@@ -156,6 +156,30 @@ def test_lost_in_middle_reordering_moves_best_evidence_to_edge_and_recovers_answ
     assert degraded.abstained
     assert not recovered.abstained
     assert recovered.citations[0].chunk_id == "gold"
+
+
+def test_context_budget_selects_highest_ranked_evidence_before_edge_reordering():
+    hits = [
+        _hit(f"rank_{rank}", "X" * 2400, 1.0 - 0.1 * rank, rank)
+        for rank in range(1, 7)
+    ]
+
+    context = assemble_context(hits, budget_chars=12_000)
+    surviving_ranks = sorted(int(rank) for rank in re.findall(r"rank=(\d+)", context))
+
+    assert surviving_ranks == [1, 2, 3, 4]
+
+    first_two = hits[:2]
+    block_lengths = [
+        len(
+            f"[chunk_id={hit.chunk.chunk_id} doc_id={hit.chunk.doc_id} "
+            f"page={hit.chunk.page} rank={hit.rank}]\n{hit.chunk.text}"
+        )
+        for hit in first_two
+    ]
+    separator_budget = sum(block_lengths)
+    separator_limited = assemble_context(first_two, budget_chars=separator_budget)
+    assert re.findall(r"rank=(\d+)", separator_limited) == ["1"]
 
 
 def test_abstention_confusion_matrix_is_explicit_and_tags_both_error_directions():

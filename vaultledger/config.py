@@ -59,7 +59,7 @@ class ModelRegistry(BaseModel):
 class Matrix(BaseModel):
     """Phase 11 local model-matrix defaults.
 
-    The full six-model lineup is deliberately pinned at Phase 17 kickoff. The
+    The full six-model lineup is deliberately pinned at Phase 18 kickoff. The
     two models here prove the matrix machinery without claiming the deferred
     bake-off has happened.
     """
@@ -109,6 +109,7 @@ class Generation(BaseModel):
     # Minimum normalized snippet length a citation must carry to be verifiable.
     min_snippet_chars: int = 16
     litm_reorder: bool = True
+    context_budget_chars: int = Field(default=12_000, ge=1)
 
 
 class Embedding(BaseModel):

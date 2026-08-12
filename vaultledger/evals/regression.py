@@ -51,6 +51,10 @@ def compare_manifest(
     baseline: RegressionBaseline,
     current: RunManifest,
 ) -> RegressionReport:
+    if current.run_id == baseline.source_run_id:
+        raise ValueError(
+            "refusing regression self-comparison: current run matches the baseline run"
+        )
     if current.golden_set_hash != baseline.golden_set_hash:
         raise ValueError("baseline and current manifest use different golden sets")
     deltas: list[MetricDelta] = []

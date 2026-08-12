@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -91,10 +92,87 @@ def test_second_click_during_setup_does_not_duplicate_work(tmp_path):
 
 def test_missing_ollama_opens_official_download_and_stops_readably(monkeypatch):
     opened = []
+    monkeypatch.setattr(
+        launcher,
+        "ollama_model_names",
+        lambda: (_ for _ in ()).throw(urllib.error.URLError("offline")),
+    )
     monkeypatch.setattr(launcher.shutil, "which", lambda name: None)
+    monkeypatch.setattr(launcher.sys, "platform", "linux")
     with pytest.raises(launcher.LauncherError, match="not installed"):
         launcher.ensure_ollama(opener=opened.append)
     assert opened == [launcher.OLLAMA_DOWNLOAD_URL]
+
+
+def test_running_ollama_with_models_needs_no_cli_symlink(monkeypatch):
+    monkeypatch.setattr(
+        launcher,
+        "ollama_model_names",
+        lambda: {"nomic-embed-text:latest", "qwen3:8b"},
+    )
+    monkeypatch.setattr(launcher.shutil, "which", lambda name: None)
+
+    launcher.ensure_ollama(runner=lambda *args, **kwargs: pytest.fail("CLI invoked"))
+
+
+def test_running_ollama_without_cli_pulls_missing_model_through_service(monkeypatch):
+    pulled = []
+    monkeypatch.setattr(
+        launcher,
+        "ollama_model_names",
+        lambda: {"nomic-embed-text:latest"},
+    )
+    monkeypatch.setattr(launcher.shutil, "which", lambda name: None)
+    monkeypatch.setattr(launcher, "_pull_model_via_api", pulled.append)
+
+    launcher.ensure_ollama(runner=lambda *args, **kwargs: pytest.fail("CLI invoked"))
+
+    assert pulled == ["qwen3:8b"]
+
+
+def test_first_zip_launch_builds_model_free_corpus_with_visible_commands(
+    tmp_path, capsys
+):
+    records_db = tmp_path / "data" / "index" / "records.db"
+    calls = []
+
+    def runner(command, **kwargs):
+        calls.append((command, kwargs))
+        if command[-1] == "--no-embed":
+            records_db.parent.mkdir(parents=True)
+            records_db.touch()
+        return subprocess.CompletedProcess(command, 0)
+
+    launcher.ensure_synthetic_corpus(
+        Path("/private/venv/bin/python"),
+        records_db=records_db,
+        runner=runner,
+    )
+
+    assert [call[0] for call in calls] == [
+        ["/private/venv/bin/python", "-m", "vaultledger.synth"],
+        ["/private/venv/bin/python", "-m", "vaultledger.ingest", "--no-embed"],
+    ]
+    assert all(call[1]["cwd"] == launcher.REPO_ROOT for call in calls)
+    assert "Creating the 60 sample PDFs" in capsys.readouterr().out
+
+
+def test_launcher_main_handles_cancel_and_malformed_service_response(monkeypatch, capsys):
+    monkeypatch.setattr(
+        launcher,
+        "launch",
+        lambda: (_ for _ in ()).throw(KeyboardInterrupt()),
+    )
+    assert launcher.main() == 130
+    assert "Setup cancelled. Nothing was changed." in capsys.readouterr().out
+
+    monkeypatch.setattr(
+        launcher,
+        "launch",
+        lambda: (_ for _ in ()).throw(ValueError("bad JSON")),
+    )
+    assert launcher.main() == 1
+    assert "VaultLedger could not start: bad JSON" in capsys.readouterr().out
 
 
 def test_first_run_pulls_only_missing_pinned_models_with_visible_process(monkeypatch):

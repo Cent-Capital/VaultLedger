@@ -66,7 +66,7 @@ def _canonical(text: str) -> str:
 
 
 def strict_answer_match(example: QAExample, answer: Answer) -> tuple[bool, str]:
-    """Conservative deterministic score used until Phase 17's judged bake-off.
+    """Conservative deterministic score used until Phase 18's judged bake-off.
 
     Unanswerable examples are scored on abstention.  For answerable examples,
     every literal amount/date/identifier in the reference must occur in the
@@ -1030,7 +1030,7 @@ def run_matrix(args: Namespace) -> int:
 
     # Phase 13 ablation arm. Default "off" preserves the meaning of every
     # manifest committed before the guards existed; "on" measures the stack the
-    # product actually ships. Which arm becomes canonical is a Phase 17 decision,
+    # product actually ships. Which arm becomes canonical is a Phase 18 decision,
     # deliberately not made silently by changing this default.
     guardrails_on = getattr(args, "guardrails", "off") == "on"
     guardrail_toggles = GuardrailToggles.from_config(cfg.guardrails) if guardrails_on else None

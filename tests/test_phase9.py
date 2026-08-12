@@ -80,6 +80,17 @@ def test_persisted_regression_baseline_passes_at_its_recorded_values():
     assert not any(delta.regressed for delta in report.deltas)
 
 
+def test_regression_self_comparison_is_rejected():
+    baseline = load_baseline()
+    current = _manifest(
+        {name: policy.baseline for name, policy in baseline.metrics.items()}
+    )
+    current.run_id = baseline.source_run_id
+
+    with pytest.raises(ValueError, match="self-comparison"):
+        compare_manifest(baseline, current)
+
+
 def test_regression_runner_catches_deliberately_injected_drop():
     baseline = load_baseline()
     metrics = {name: policy.baseline for name, policy in baseline.metrics.items()}

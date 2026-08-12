@@ -31,6 +31,7 @@ INSTALL_MARKER = VENV_DIR / ".vaultledger-install"
 STATE_DIR = Path.home() / "Library" / "Application Support" / "VaultLedger"
 STATE_FILE = STATE_DIR / "launcher.json"
 LOCK_FILE = STATE_DIR / "launcher.lock"
+SYNTHETIC_RECORDS_DB = REPO_ROOT / "data" / "index" / "records.db"
 
 OLLAMA_URL = "http://127.0.0.1:11434"
 OLLAMA_DOWNLOAD_URL = "https://ollama.com/download/mac"
@@ -171,6 +172,33 @@ def ollama_model_names() -> set[str]:
     return {str(model.get("name", "")) for model in payload.get("models", [])}
 
 
+def _pull_model_via_api(
+    model: str,
+    *,
+    urlopen: Callable[..., object] = urllib.request.urlopen,
+) -> None:
+    """Pull a model through the running service when no CLI symlink exists."""
+
+    request = urllib.request.Request(  # noqa: S310 - fixed loopback endpoint
+        f"{OLLAMA_URL}/api/pull",
+        data=json.dumps({"name": model}).encode(),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urlopen(request, timeout=None) as response:  # noqa: S310 - loopback only
+        for raw_line in response:
+            if not raw_line.strip():
+                continue
+            update = json.loads(raw_line)
+            if update.get("error"):
+                raise LauncherError(str(update["error"]))
+            status = str(update.get("status", "Downloading"))
+            completed = int(update.get("completed", 0))
+            total = int(update.get("total", 0))
+            progress = f" {completed / total:.0%}" if total else ""
+            print(f"  {status}{progress}", flush=True)
+
+
 def _has_model(names: set[str], wanted: str) -> bool:
     return wanted in names or f"{wanted}:latest" in names
 
@@ -197,21 +225,22 @@ def ensure_ollama(
 ) -> None:
     """Start Ollama if needed and visibly pull the two product-path models."""
 
-    command = executable or shutil.which("ollama")
-    if not command:
-        opener(OLLAMA_DOWNLOAD_URL)
-        raise LauncherError(
-            "Ollama is not installed. Its official macOS download page is open. Install "
-            "Ollama, open it once, then double-click Launch VaultLedger again."
-        )
-
     try:
         names = ollama_model_names()
     except (OSError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        command = executable or shutil.which("ollama")
+        app_installed = sys.platform == "darwin" and Path("/Applications/Ollama.app").exists()
+        if not command and not app_installed:
+            opener(OLLAMA_DOWNLOAD_URL)
+            raise LauncherError(
+                "Ollama is not installed. Its official macOS download page is open. Install "
+                "Ollama, open it once, then double-click Launch VaultLedger again."
+            ) from None
         _heading("Starting the local AI service")
-        if sys.platform == "darwin" and Path("/Applications/Ollama.app").exists():
+        if app_installed:
             runner(["/usr/bin/open", "-gja", "Ollama"], check=False)
         else:
+            assert command is not None
             subprocess.Popen(
                 [command, "serve"],
                 stdout=subprocess.DEVNULL,
@@ -225,6 +254,7 @@ def ensure_ollama(
             ) from None
         names = ollama_model_names()
 
+    command = executable or shutil.which("ollama")
     missing = [model for model in REQUIRED_MODELS if not _has_model(names, model)]
     if missing:
         _heading("Downloading the local AI models")
@@ -235,12 +265,43 @@ def ensure_ollama(
         )
     for model in missing:
         print(f"\nDownloading {model}…", flush=True)
-        result = runner([command, "pull", model], check=False)
-        if result.returncode != 0:
+        try:
+            if command:
+                result = runner([command, "pull", model], check=False)
+                if result.returncode != 0:
+                    raise LauncherError(f"Ollama could not download {model}.")
+            else:
+                _pull_model_via_api(model)
+        except (OSError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
             raise LauncherError(
                 f"Ollama could not download {model}. Check the internet connection and free "
                 "disk space, then launch VaultLedger again."
-            )
+            ) from exc
+
+
+def ensure_synthetic_corpus(
+    python: Path,
+    *,
+    records_db: Path = SYNTHETIC_RECORDS_DB,
+    runner: Callable[..., subprocess.CompletedProcess] = subprocess.run,
+) -> None:
+    """Build the model-free first-screen corpus when a ZIP has no derived index."""
+
+    if records_db.exists():
+        print("Synthetic document library is ready.", flush=True)
+        return
+    _heading("Building the sample document library (first launch only)")
+    print("Creating the 60 sample PDFs…", flush=True)
+    runner([str(python), "-m", "vaultledger.synth"], cwd=REPO_ROOT, check=True)
+    print("Parsing and indexing the sample documents without a model runtime…", flush=True)
+    runner(
+        [str(python), "-m", "vaultledger.ingest", "--no-embed"],
+        cwd=REPO_ROOT,
+        check=True,
+    )
+    if not records_db.exists():
+        raise LauncherError("The sample document library build finished without a records index.")
+    print("Sample document library is ready.", flush=True)
 
 
 def detect_ocr_tools(which: Callable[[str], str | None] = shutil.which) -> OcrStatus:
@@ -426,6 +487,7 @@ def launch(*, opener: Callable[[str], object] = webbrowser.open) -> int:
             opener(existing)
             return 0
         python = ensure_environment()
+        ensure_synthetic_corpus(python)
         ensure_ollama()
         explain_ocr(detect_ocr_tools())
         inbox = prepare_default_inbox()
@@ -436,7 +498,7 @@ def launch(*, opener: Callable[[str], object] = webbrowser.open) -> int:
         _heading("Opening VaultLedger")
         process = start_streamlit(python, port)
         _write_state(process.pid, port)
-    except Exception:
+    except (Exception, KeyboardInterrupt):
         if process is not None and process.poll() is None:
             process.terminate()
         raise
@@ -464,11 +526,15 @@ def launch(*, opener: Callable[[str], object] = webbrowser.open) -> int:
 def main() -> int:
     try:
         return launch()
+    except KeyboardInterrupt:
+        print("\nSetup cancelled. Nothing was changed.", flush=True)
+        return 130
     except (
         LauncherError,
         OSError,
         subprocess.CalledProcessError,
         urllib.error.URLError,
+        ValueError,
     ) as exc:
         print(f"\nVaultLedger could not start: {exc}", flush=True)
         print("No user document was changed.", flush=True)

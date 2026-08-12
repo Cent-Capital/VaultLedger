@@ -3,7 +3,7 @@
 # and the model registry / tier map. Code reads this via vaultledger.config.
 #
 # ADR-0003 retires paid hosted tiers. Phase 11 proves the local gateway and
-# matrix against the two models already pinned; Phase 17 pins the final 2x3
+# matrix against the two models already pinned; Phase 18 pins the final 2x3
 # local lineup and records measured parameter/resident sizes.
 
 seed: 42
@@ -39,7 +39,7 @@ models:
 
 matrix:
   variants: ["B_hybrid"]
-  smoke_limit: 12             # 0 = full golden set; full six-model sweep is Phase 17
+  smoke_limit: 12             # 0 = full golden set; full six-model sweep is Phase 18
 
 router:                        # Phase 12 deterministic initial-routing policy (ADR-0004)
   t0_categories: ["single_doc", "guardrail_benign"]
@@ -73,6 +73,7 @@ retrieval:
 generation:                       # Phase 5 structured output + citation verify
   min_snippet_chars: 16           # shortest normalized snippet a citation may carry
   litm_reorder: true              # put highest-value evidence at context edges
+  context_budget_chars: 12000     # hard character budget for assembled evidence
 
 embedding:
   model: "nomic-embed-text"          # local via Ollama; changing this invalidates the index

@@ -386,7 +386,7 @@ def write_router_report(
             "are routing effects rather than generation rerolls.",
             "",
             "Latency is noisy: Phase 11 observed about 10% p95 movement between identical "
-            "runs. Treat close x-axis positions as unresolved until Phase 17 repeats cells "
+            "runs. Treat close x-axis positions as unresolved until Phase 18 repeats cells "
             "and reports a spread. Local cost remains $0.0 (unpriced, not free).",
             "",
             "This report and its SVG are generated from the router RunManifest; per-query "

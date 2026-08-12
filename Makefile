@@ -50,6 +50,7 @@ eval-full:  ## Full LLM evals, cost-capped (Phase 9+)
 	$(PYTHON) -m vaultledger.evals safety
 	$(PYTHON) -m vaultledger.evals guardrails-eval
 	$(PYTHON) -m vaultledger.evals judge-validate
+	$(PYTHON) -m vaultledger.evals run --variant B_hybrid
 	$(PYTHON) -m vaultledger.evals regression
 
 verify-track-a: lint test eval-full  ## Phase 10 acceptance gate
@@ -58,13 +59,15 @@ matrix:  ## Multi-model benchmark matrix (Phase 11+)
 	$(PYTHON) -m vaultledger.evals matrix
 
 router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontier
-	$(PYTHON) -m vaultledger.evals router-eval
+	$(PYTHON) -m vaultledger.evals router-eval \
+		--t0-answers reports/phase11_ollama_qwen3_4b_b_hybrid_61802221d874_answers.json \
+		--t1-answers reports/phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76_answers.json
 
 guardrails-eval:  ## Phase 13 deterministic named-guard acceptance report
 	$(PYTHON) -m vaultledger.evals guardrails-eval
 
 agentic-eval:  ## Phase 14 full target-category matrix, guards on
-	$(PYTHON) -m vaultledger.evals matrix --variants D_agentic --categories aggregation multi_hop --limit 0 --guardrails on
+	$(PYTHON) -m vaultledger.evals matrix --variants D_agentic --categories aggregation multi_hop --limit 0 --guardrails on --report reports/phase14_agentic_matrix.md
 
 agentic-safety:  ## Phase 14 live Phase-7 suite rerun, Variant D + guards on
 	$(PYTHON) -m vaultledger.evals safety --variant D_agentic --guardrails on

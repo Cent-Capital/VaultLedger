@@ -1,6 +1,6 @@
 # Phase 12 routing frontier
 
-Router manifest: `phase12_router_83f6f7c036c0`
+Router manifest: `phase12_router_0d86de0d2bfc`
 Golden set hash: `b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c`
 Source model cells: `phase11_ollama_qwen3_4b_b_hybrid_61802221d874`, `phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76`
 
@@ -18,6 +18,6 @@ Source generation coverage: **T0 98.8% / T1 98.8%**. Failed source rows score as
 
 Strict match is the conservative Phase-11 literal-anchor scorer, not an LLM-judge verdict. Dynamic-policy latency sums every attempted model call. The four policies reuse the exact same cached answers, so policy differences are routing effects rather than generation rerolls.
 
-Latency is noisy: Phase 11 observed about 10% p95 movement between identical runs. Treat close x-axis positions as unresolved until Phase 17 repeats cells and reports a spread. Local cost remains $0.0 (unpriced, not free).
+Latency is noisy: Phase 11 observed about 10% p95 movement between identical runs. Treat close x-axis positions as unresolved until Phase 18 repeats cells and reports a spread. Local cost remains $0.0 (unpriced, not free).
 
 This report and its SVG are generated from the router RunManifest; per-query RoutingDecisions and source-cell ids live in the adjacent details receipt.

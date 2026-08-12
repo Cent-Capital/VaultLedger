@@ -8,8 +8,32 @@ Total measured API spend: **$0.000000** (local models are unpriced, not free)
 
 | Model | Variant | Context k | N | Strict match | Numeric exact match | Citation hit | Abstention accuracy | Wall p50 | Wall p95 | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| `ollama/qwen3:4b` | `B_hybrid` | — | 80 | 40.0% | — | 56.2% | 57.5% | — | — | 8579 ms | 17900 ms | 154736 / 8723 | $0.000000 | `phase11_ollama_qwen3_4b_b_hybrid_61802221d874` |
-| `ollama/qwen3:8b` | `B_hybrid` | — | 80 | 42.5% | — | 73.8% | 78.8% | — | — | 6602 ms | 13464 ms | 155210 / 7386 | $0.000000 | `phase11_ollama_qwen3_8b_b_hybrid_33c0a0d50c76` |
+| `ollama/qwen3:4b` | `D_agentic` | — | 26 | 7.7% | 8.3% (n=24) | 11.5% | 11.5% | — | — | 15386 ms | 27258 ms | 132318 / 14971 | $0.000000 | `phase11_ollama_qwen3_4b_d_agentic_7163e731454e` |
+| `ollama/qwen3:8b` | `D_agentic` | — | 26 | 38.5% | 41.7% (n=24) | 53.8% | 57.7% | — | — | 20311 ms | 66202 ms | 90424 / 12562 | $0.000000 | `phase11_ollama_qwen3_8b_d_agentic_4c9522233d68` |
+
+## By category
+
+Category-scoped acceptance criteria must be read from this table rather than inferred from the aggregate row. `Numeric` is scored only over rows whose reference carries a numeric quantity; its `n` differs from the category `n` for that reason, and a blank cell means no row in that category is in scope.
+
+| Model | Variant | Context k | Category | N | Strict match | Numeric exact match | Citation hit | Abstention accuracy |
+|---|---|---:|---|---:|---:|---:|---:|---:|
+| `ollama/qwen3:4b` | `D_agentic` | — | `aggregation` | 14 | 7.1% | 8.3% (n=12) | 14.3% | 14.3% |
+| `ollama/qwen3:4b` | `D_agentic` | — | `multi_hop` | 12 | 8.3% | 8.3% (n=12) | 8.3% | 8.3% |
+| `ollama/qwen3:8b` | `D_agentic` | — | `aggregation` | 14 | 57.1% | 66.7% (n=12) | 71.4% | 71.4% |
+| `ollama/qwen3:8b` | `D_agentic` | — | `multi_hop` | 12 | 16.7% | 16.7% (n=12) | 33.3% | 41.7% |
+
+## Agent-loop controls
+
+**Trace coverage, step budget and token budget are invariants, not results.** The loop appends exactly one step per iteration over a fixed range and charges tokens through `min(..., budget - used)`, so all three read 100% by construction — a planner that never returns a valid action still scores 100% on every one. They are regression guards: if one ever drops, the loop's bookkeeping is broken. They are **not** evidence that the agent behaved well, and must never be reported as a measured safety property.
+
+`Exhausted` is the only column here that varies with model behaviour, and it is the one worth reading. Note that a wall-clock exhaustion caused by an unreachable generator is a transport failure, not a model failure; the two are labelled separately in the step trace (ADR-0007).
+
+Computed from the complete `AgentStep` arrays in each answer receipt. Rates divide by all golden examples in the cell, so a failed row stays a miss; the step and token averages divide only by rows that ran.
+
+| Model | Trace coverage | Step budget | Token budget | Exhausted | Average / max steps | Average traced tokens |
+|---|---:|---:|---:|---:|---:|---:|
+| `ollama/qwen3:4b` | 100.0% | 100.0% | 100.0% | 88.5% | 5.46 / 6 | 4960 |
+| `ollama/qwen3:8b` | 100.0% | 100.0% | 100.0% | 3.8% | 3.42 / 6 | 3127 |
 
 ## Reading the result
 

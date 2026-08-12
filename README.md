@@ -30,9 +30,13 @@ reranker. Later launches reuse all of these files and are much faster.
 1. Download the repository with GitHub's
    [Download ZIP](https://github.com/abhinavgupta0809/vaultledger/archive/refs/heads/main.zip)
    link, then double-click the downloaded ZIP once to unpack it.
-2. Open the unpacked `vaultledger-main` folder and double-click
-   **`Launch VaultLedger.command`**. Do not close the small Terminal window that
-   appears; it is the app's progress and status window. You do not need to type in it.
+2. Open the unpacked `vaultledger-main` folder. **On the first launch, right-click
+   `Launch VaultLedger.command`, choose Open, then choose Open in the confirmation
+   dialog.** This one-time step is needed because the launcher is not code-signed
+   (ADR-0011 deliberately avoids an Apple Developer account). Later, you can
+   double-click **`Launch VaultLedger.command`** normally. Do not close the small
+   Terminal window that appears; it is the app's progress and status window. You do
+   not need to type in it.
 3. If Python is missing, the launcher opens its official download page and tells you
    what to do. If Ollama is missing, it opens the official Ollama macOS download page;
    install Ollama, open it once, then double-click the launcher again.
@@ -79,8 +83,9 @@ historical browser walkthrough committed as the
 - The v1 judge separated 10 clear acceptable and 10 clear unacceptable
   calibration cases at TPR/TNR `1.00`. Those authored boundary cases do not
   establish perfect judge accuracy on ambiguous answers.
-- The current retrieval regression report compares two distinct full pipeline
-  runs and is green. The deliberate negative-control report is red.
+- The retrieval gate rejects self-comparisons. `make eval-full` creates a fresh
+  full B-hybrid retrieval manifest before comparing it with the frozen baseline;
+  the deliberate negative-control report remains red.
 
 The design source of truth is [SPEC.md](SPEC.md). The build receipt, including
 deviations and measured boundaries, is [PROGRESS.md](PROGRESS.md).
@@ -316,6 +321,10 @@ re-recording script.
 
 ## Troubleshooting
 
+- **macOS says the launcher is from an unidentified developer:** right-click
+  `Launch VaultLedger.command`, choose **Open**, then choose **Open** once more. This
+  Gatekeeper confirmation is needed only on the first launch because the app is not
+  code-signed; later launches can use a normal double-click.
 - **`make doctor` says Ollama is unavailable:** open the Ollama app or run
   `ollama serve`, then re-run the three `ollama pull` commands.
 - **The app says no ingested corpus:** run `make data && make ingest`.
