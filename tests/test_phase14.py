@@ -505,6 +505,7 @@ def test_product_generator_disables_thinking_like_the_eval_gateway(monkeypatch):
     assert sent["stream"] is False
     assert sent["options"]["temperature"] == 0.0
     assert sent["options"]["top_p"] == 0.95
+    assert sent["options"]["top_k"] == 20
     assert sent["options"]["seed"] == 42
     assert sent["options"]["num_ctx"] == 8192
 

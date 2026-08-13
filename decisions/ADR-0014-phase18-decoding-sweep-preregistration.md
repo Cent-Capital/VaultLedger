@@ -1,17 +1,20 @@
 # ADR-0014: Phase 18 decoding sweep preregistration
 
-2026-08-12 · Status: **accepted** (implements the owner-decided Phase 18 brief)
+2026-08-12 · Status: **accepted; amended 2026-08-13 before the first sweep cell**
 
 ## Context
 
 Before Phase 18, VaultLedger sent `temperature=0.0` but never sent `top_p` or
 `seed`. The installed `qwen3:8b` Modelfile reports `top_p=0.95`, so `0.95` was
 the effective silent value; Ollama's `0.9` engine fallback did not apply to this
-model. `receipts/phase18_decoding_defaults.json` compares the old implicit
-profile with explicit `temperature=0.0`, `top_p=0.95`, and `seed=42` on the same
-model, prompt, schema, and pre-parity `/api/generate` transport. The two outputs
-are byte-identical. That receipt proves the config promotion only; it does not
-claim the later chat-transport parity correction is behavior-neutral.
+model. The product decodes greedily at `temperature=0.0`, so promoting `top_p`
+to explicit config cannot change which token is selected, and
+`receipts/phase18_decoding_defaults.json` confirms the output stayed identical.
+That byte comparison is not discriminating evidence on its own: the probe also
+uses a `const` schema that admits only one answer. The value `0.95` is justified
+separately by the proof script's enforced cross-check against the installed
+model's own `/api/show` parameters. The receipt covers config promotion only;
+it does not claim the later chat-transport correction is behavior-neutral.
 
 The owner has already bounded the experiment to `qwen3:8b`. Sweeping all six
 models would multiply a likely null experiment from six cells to 36 without
@@ -24,19 +27,21 @@ answering a different product question.
 - Experimental factorial grid:
 
   ```text
-  temperature  {0.0, 0.3, 0.7}
-  top_p        {1.0, 0.9}
+  temperature  {0.3, 0.7}
+  top_p        {1.0, 0.9, 0.8}
   ```
 
 - Baseline: the canonical six-model matrix's `qwen3:8b` cell at the promoted
   defaults, `temperature=0.0` and `top_p=0.95`. It is not rerun as a duplicate
   grid cell. The comparison therefore has seven unique decoding profiles: the
-  baseline plus six experimental cells.
+  baseline plus six experimental cells where nucleus sampling is live.
 - Seed: `42` in every candidate and judge call. Thinking is disabled. The
   actual context window is `8192`, structured output is capped at `768` tokens,
-  and request timeout is `600` seconds in every product and eval call. Those are
-  fixed controls, not sweep dimensions. The retrieval context budget and all
-  other non-decoding configuration remain fixed.
+  `top_k=20` is explicit, and request timeout is `600` seconds in every product
+  and eval call. Those are fixed controls, not sweep dimensions. `top_k=20`
+  preserves the installed qwen3:8b default while preventing a live sampling
+  parameter from disappearing from the manifest. The retrieval context budget
+  and all other non-decoding configuration remain fixed.
 - Cost: local inference only; manifests record `$0.0` as unpriced, not free.
 
 The context value was selected before the experimental sweep after a mechanics-only
@@ -44,6 +49,14 @@ smoke exposed that `qwen3:14b` could not complete even one row within 600 second
 at `32768`. VaultLedger assembles at most 12,000 context characters, so `8192`
 retains headroom for the prompt and output while avoiding a host-infeasible KV
 allocation. Every model receives the same value; the large model gets no exception.
+
+The 2026-08-13 amendment replaces the originally registered temperature-zero
+cells `(0.0, 1.0)` and `(0.0, 0.9)` with `(0.3, 0.8)` and `(0.7, 0.8)`.
+At greedy temperature, `top_p` is inert, so both old cells duplicated each other
+and the `0.0 / 0.95` baseline and could never satisfy the decision rule. The
+replacement spends the same six-cell budget where the swept parameter is live.
+This correction was committed before any full-population sweep cell ran; the
+earlier N=1 default-profile smoke is mechanics evidence, not a sweep result.
 
 The grid in `config.yaml` and this decision record must be committed before any
 sweep cell runs. A smoke test of runner mechanics is not an experimental cell

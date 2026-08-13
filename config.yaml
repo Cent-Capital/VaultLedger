@@ -47,8 +47,8 @@ matrix:
   # Phase 18 pre-registered sweep. The current default (0.0, 0.95) is the
   # canonical qwen3:8b matrix cell and serves as the seventh/baseline cell.
   decoding_sweep_model: "ollama/qwen3:8b"
-  decoding_temperatures: [0.0, 0.3, 0.7]
-  decoding_top_ps: [1.0, 0.9]
+  decoding_temperatures: [0.3, 0.7]
+  decoding_top_ps: [1.0, 0.9, 0.8]
 
 router:                        # Phase 12 deterministic initial-routing policy (ADR-0004)
   t0_categories: ["single_doc", "guardrail_benign"]
@@ -84,6 +84,7 @@ generation:                       # Phase 5 + Phase 18 typed decoding controls
   # qwen3:8b's installed Modelfile reports 0.95. Ollama's engine fallback is
   # 0.9, but it was not effective because the model overrides it.
   top_p: 0.95
+  top_k: 20                    # fixed sampling control; qwen3:8b installed default is 20
   num_ctx: 8192                  # one host-feasible context window on every generation path
   output_tokens_max: 768         # bound every structured product/eval completion
   request_timeout_seconds: 600   # patience only; load/generation overruns remain TOOL_ERR

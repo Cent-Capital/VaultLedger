@@ -65,6 +65,7 @@ def test_litellm_gateway_preserves_protocol_and_records_provider_usage():
     assert seen["think"] is False
     assert seen["temperature"] == 0.0
     assert seen["top_p"] == 0.95
+    assert seen["top_k"] == 20
     assert seen["seed"] == 42
     assert seen["response_format"]["type"] == "json_schema"
     assert generator.snapshot().input_tokens == 123
@@ -98,6 +99,7 @@ def test_product_and_matrix_use_the_same_native_chat_payload(monkeypatch):
     settings = {
         "temperature": 0.3,
         "top_p": 0.9,
+        "top_k": 20,
         "seed": 42,
         "num_ctx": 8192,
         "max_tokens": 768,
@@ -122,6 +124,7 @@ def test_product_and_matrix_use_the_same_native_chat_payload(monkeypatch):
     assert sent[0][1]["options"] == {
         "temperature": 0.3,
         "top_p": 0.9,
+        "top_k": 20,
         "seed": 42,
         "num_ctx": 8192,
         "num_predict": 768,

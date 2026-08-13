@@ -84,7 +84,8 @@ def _decoding_text(manifest: RunManifest) -> str:
     if manifest.decoding is None:
         return "—"
     cap = f", max={manifest.decoding.max_tokens}" if manifest.decoding.max_tokens else ""
-    return f"t={manifest.decoding.temperature:g}, p={manifest.decoding.top_p:g}{cap}"
+    top_k = f", k={manifest.decoding.top_k}" if manifest.decoding.top_k else ""
+    return f"t={manifest.decoding.temperature:g}, p={manifest.decoding.top_p:g}{top_k}{cap}"
 
 
 def _manifest_sort_key(manifest: RunManifest) -> tuple:
@@ -510,6 +511,7 @@ def _run_cell(
         base_url=cfg.embedding.ollama_url,
         temperature=temperature,
         top_p=top_p,
+        top_k=cfg.generation.top_k,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
         max_tokens=cfg.generation.output_tokens_max,
@@ -522,6 +524,7 @@ def _run_cell(
         base_url=cfg.embedding.ollama_url,
         temperature=temperature,
         top_p=top_p,
+        top_k=cfg.generation.top_k,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
         timeout=cfg.generation.request_timeout_seconds,
@@ -554,6 +557,7 @@ def _run_cell(
         "retrieval_answer_top_n": answer_top_n,
         "temperature": temperature,
         "top_p": top_p,
+        "top_k": cfg.generation.top_k,
         "seed": cfg.seed,
         "num_ctx": cfg.generation.num_ctx,
         "max_tokens": cfg.generation.output_tokens_max,
@@ -754,6 +758,7 @@ def _run_cell(
             base_url=cfg.embedding.ollama_url,
             temperature=cfg.generation.temperature,
             top_p=cfg.generation.top_p,
+            top_k=cfg.generation.top_k,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
             max_tokens=cfg.generation.output_tokens_max,
@@ -866,6 +871,7 @@ def _run_cell(
         decoding=DecodingProfile(
             temperature=temperature,
             top_p=top_p,
+            top_k=cfg.generation.top_k,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
             max_tokens=cfg.generation.output_tokens_max,
@@ -909,17 +915,18 @@ def write_latency_quality_frontier(
             else "strict_answer_match_rate"
         )
         quality = float(metric[quality_key])
+        coverage = float(metric.get("generation_eval_coverage", 0.0))
         metadata = manifest.model_metadata
         resident = metadata.resident_size_bytes if metadata else 0
         family = metadata.family if metadata else manifest.model.split("/", 1)[-1].split(":")[0]
-        points.append((manifest, latency, quality, quality_key, resident, family))
+        points.append((manifest, latency, quality, quality_key, coverage, resident, family))
 
     width, height = 1180, 720
     left, right, top, bottom = 90, 260, 105, 180
     plot_width = width - left - right
     plot_height = height - top - bottom
     max_latency = max((point[1] for point in points), default=1.0) or 1.0
-    max_resident = max((point[4] for point in points), default=1) or 1
+    max_resident = max((point[5] for point in points), default=1) or 1
 
     def x_pos(latency: float) -> float:
         return left + (latency / (max_latency * 1.1)) * plot_width
@@ -1010,7 +1017,15 @@ def write_latency_quality_frontier(
         for rank, (index, _) in enumerate(same_band):
             quality_ranks[(quality, index)] = rank
 
-    for index, (manifest, latency, quality, quality_key, resident, family) in enumerate(points):
+    for index, (
+        manifest,
+        latency,
+        quality,
+        quality_key,
+        coverage,
+        resident,
+        family,
+    ) in enumerate(points):
         x, y = x_pos(latency), y_pos(quality)
         root = (
             "qwen3"
@@ -1039,10 +1054,12 @@ def write_latency_quality_frontier(
         label_anchor = ' text-anchor="end"' if place_left else ""
         title = (
             f"{manifest.model}; {quality_key}={quality:.1%}; "
-            f"median wall={latency:.0f} ms; resident={_gib(resident) if resident else 'unknown'}"
+            f"generation coverage={coverage:.1%}; median completed-row wall={latency:.0f} ms; "
+            f"resident={_gib(resident) if resident else 'unknown'}"
         )
         svg.extend(
             [
+                f'<g class="data-point" data-model="{escape(manifest.model)}">',
                 (
                     f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{fill}" '
                     f'stroke="{color}" stroke-width="3"><title>{escape(title)}</title>'
@@ -1055,8 +1072,9 @@ def write_latency_quality_frontier(
                 (
                     f'<text x="{label_x:.1f}" y="{label_y + 16:.1f}" '
                     f'font-size="11" class="mono muted"{label_anchor}>{quality:.1%} · '
-                    f'{latency / 1000:.1f}s</text>'
+                    f'{latency / 1000:.1f}s · cov {coverage:.0%}</text>'
                 ),
+                "</g>",
             ]
         )
     legend_x = left + plot_width + 50
@@ -1091,7 +1109,7 @@ def write_latency_quality_frontier(
                 'class="muted">more resident bytes</text>'
             ),
             (
-                f'<rect x="70" y="{caveat_y}" width="{width - 140}" height="65" rx="8" '
+                f'<rect x="70" y="{caveat_y}" width="{width - 140}" height="76" rx="8" '
                 'fill="#f8fafc" stroke="#d0d5dd"/>'
             ),
             (
@@ -1102,6 +1120,11 @@ def write_latency_quality_frontier(
                 f'<text x="90" y="{caveat_y + 47}" font-size="11" class="muted">'
                 'Phase 13 saw ~50% p50 movement between runs with byte-identical answers. '
                 'Machine load can move points more than the apparent model gap.</text>'
+            ),
+            (
+                f'<text x="90" y="{caveat_y + 64}" font-size="11" class="muted">'
+                'Latency uses completed rows only; points below 100% coverage are not '
+                'comparable on the x axis.</text>'
             ),
             '</svg>',
         ]

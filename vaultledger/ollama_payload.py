@@ -19,6 +19,7 @@ def ollama_chat_payload(
     prompt: str,
     temperature: float,
     top_p: float,
+    top_k: int,
     seed: int,
     num_ctx: int,
     fmt: dict | str | None = None,
@@ -40,6 +41,7 @@ def ollama_chat_payload(
         "options": {
             "temperature": temperature,
             "top_p": top_p,
+            "top_k": top_k,
             "seed": seed,
             "num_ctx": num_ctx,
         },

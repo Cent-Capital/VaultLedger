@@ -2527,24 +2527,32 @@ ADR-0013 overstates it. Phase 18 opens next (`PHASE18_KICKOFF_BRIEF.md`).
 **The experiment is preregistered, but it has not been run.** ADR-0014 fixes the
 six-model product matrix at `B_hybrid`, all 80 golden rows, guardrails on, seed 42,
 and a fixed local `qwen3:8b` judge. It separately fixes the qwen3:8b factorial grid
-at temperatures `{0.0, 0.3, 0.7}` × top-p `{1.0, 0.9}`, with the current
-`0.0 / 0.95` cell as the baseline and a conjunctive decision rule. Smoke rows are
-explicitly excluded from the finding. No sweep cell or canonical full matrix has
-run, and no model winner, decoding winner, null result, or latency ordering is
-claimed here.
+at temperatures `{0.3, 0.7}` × top-p `{1.0, 0.9, 0.8}`, with the current
+`0.0 / 0.95` cell as the baseline and a conjunctive decision rule. The original
+temperature-zero experimental cells were replaced before any sweep because top-p
+is inert under greedy decoding; all six experimental cells now exercise sampling.
+Smoke rows are explicitly excluded from the finding. No sweep cell or canonical
+full matrix has run, and no model winner, decoding winner, null result, or latency
+ordering is claimed here.
 
-**The decoding promotion has the narrow proof it requires.** Commit `ddb7ecb`
+**The decoding promotion has the narrow check it requires.** Commit `ddb7ecb`
 promoted temperature, top-p, seed, and context into typed configuration before any
 experimental sweep. `receipts/phase18_decoding_defaults.json` compares the old
 implicit qwen3:8b profile with explicit `temperature=0.0`, `top_p=0.95`, and
 `seed=42` on the same pre-parity `/api/generate` path. Both outputs hash to
 `b226be22d7d5d5c6c76c72a8a94432dc993d804376e29ffb2597246855196c4a` and are
-byte-identical. That receipt does not claim the later transport change is neutral.
+byte-identical. That byte result is confirmatory, not discriminating: temperature
+zero is greedy and the probe's `const` schema permits only one answer. Behaviour
+cannot change from making top-p explicit at greedy temperature; the separate reason
+for choosing `0.95` is the script's fail-loud cross-check against qwen3:8b's
+installed `/api/show` parameter. The receipt does not claim the later transport
+change is neutral.
 
 **Product and evaluation now call one actual system.** ADR-0015 and the shared
 native `/api/chat` payload remove the old product `/api/generate` versus eval-chat
 split. Product, matrix, judge, agent, and graph paths receive the same temperature,
-top-p, seed, `think=false`, context, and structured-output cap. The refreshed live
+top-p, fixed `top_k=20`, seed, `think=false`, context, and structured-output cap. The
+refreshed live
 parity receipt at `61cc61f` records `num_ctx=8192`, `num_predict=768`, and a
 600-second request ceiling; product and eval outputs are again byte-identical at
 `c1f33eaf44913dcb7c88f4df37c46170143de0756f79c9095c7d99b1b56d3664`, with
@@ -2563,6 +2571,12 @@ only. Candidate pre-warm time is outside row latency, installed identity is read
 from Ollama `show`/`tags`, and resident/VRAM bytes are captured from `ps` while the
 candidate is loaded.
 
+This common-window decision also moves the live LightRAG path from its Phase-15
+`num_ctx=32768` implementation to `8192`. The committed Phase-15 receipts and waiver
+remain historical evidence about the old system; current Variant-C runs can truncate
+LightRAG's independently assembled global context earlier and must not be described
+as reproducing those Phase-15 numbers without a new measurement.
+
 **The six exact tags are installed.** The pinned lineup is qwen3 4B/8B/14B and
 gemma3 1B/4B/12B. Ollama reports `Q4_K_M` for each, parameter labels of 4.0B, 8.2B,
 14.8B, 999.89M, 4.3B, and 12.2B respectively, and distinct installed digests. The
@@ -2576,9 +2590,12 @@ decoding key; incomplete judge coverage retains the checkpoint and fails loudly.
 The report surfaces all failed reasons plus representative passes, calls the judge's
 20-label validation weak evidence, and describes strict matching as a literal-anchor
 scorer rather than a lower bound. The manifest-generated frontier uses latency,
-judge/strict quality, resident-byte bubble area, family styling, and direct labels;
+judge/strict quality, generation coverage, resident-byte bubble area, family styling,
+and direct labels;
 visual QA caught and fixed axis/label collisions before any canonical artifact was
-written. Its embedded caveat says it is descriptive, not a latency ranking.
+written. Its embedded caveat says it is descriptive, not a latency ranking, and
+warns that latency excludes failed rows so points below 100% coverage are not
+comparable on the x axis.
 
 **Kickoff verification.** `make test` reports **191 passed, 1 environment-dependent
 skip** and `make lint` is clean; the generated SVG parses as XML and was visually

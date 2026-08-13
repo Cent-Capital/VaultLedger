@@ -20,7 +20,7 @@ path could not justify a product model choice.
 
 All active local generation uses one shared `ollama_chat_payload` builder and
 Ollama's native `/api/chat` endpoint. The builder owns messages, JSON schema,
-`think=false`, `temperature`, `top_p`, `seed`, `num_ctx`, and output-token cap.
+`think=false`, `temperature`, `top_p`, `top_k`, `seed`, `num_ctx`, and output-token cap.
 The product wrapper, measured matrix gateway, agent planner, judge, and
 LightRAG binding all receive the typed settings from `config.yaml`.
 

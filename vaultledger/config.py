@@ -62,8 +62,8 @@ class Matrix(BaseModel):
     variants: list[str] = ["B_hybrid"]
     smoke_limit: int = Field(default=12, ge=0)
     decoding_sweep_model: str = "ollama/qwen3:8b"
-    decoding_temperatures: list[float] = [0.0, 0.3, 0.7]
-    decoding_top_ps: list[float] = [1.0, 0.9]
+    decoding_temperatures: list[float] = [0.3, 0.7]
+    decoding_top_ps: list[float] = [1.0, 0.9, 0.8]
 
 
 class Router(BaseModel):
@@ -109,6 +109,7 @@ class Generation(BaseModel):
     # making that value explicit preserves the pre-Phase-18 effective value.
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     top_p: float = Field(default=0.95, gt=0.0, le=1.0)
+    top_k: int = Field(default=20, ge=1)
     num_ctx: int = Field(default=8192, ge=1)
     output_tokens_max: int = Field(default=768, ge=1)
     request_timeout_seconds: int = Field(default=600, ge=1)

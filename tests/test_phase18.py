@@ -99,6 +99,7 @@ def test_matrix_warmup_loads_without_generating_and_pins_context(monkeypatch):
     assert sent["payload"]["options"] == {
         "temperature": 0.0,
         "top_p": 0.95,
+        "top_k": 20,
         "seed": 42,
         "num_ctx": 8192,
     }
@@ -114,6 +115,7 @@ def test_generation_timeout_is_typed_and_shared():
     settings = {
         "temperature": cfg.generation.temperature,
         "top_p": cfg.generation.top_p,
+        "top_k": cfg.generation.top_k,
         "seed": cfg.seed,
         "num_ctx": cfg.generation.num_ctx,
         "max_tokens": cfg.generation.output_tokens_max,
@@ -123,6 +125,8 @@ def test_generation_timeout_is_typed_and_shared():
     assert LiteLLMGenerator("ollama/qwen3:8b", **settings).timeout == 600
     assert OllamaGenerator("ollama/qwen3:8b", **settings).max_tokens == 768
     assert LiteLLMGenerator("ollama/qwen3:8b", **settings).max_tokens == 768
+    assert OllamaGenerator("ollama/qwen3:8b", **settings).top_k == 20
+    assert LiteLLMGenerator("ollama/qwen3:8b", **settings).top_k == 20
 
 
 def _manifest() -> RunManifest:
@@ -157,6 +161,7 @@ def _manifest() -> RunManifest:
         decoding=DecodingProfile(
             temperature=0.0,
             top_p=0.95,
+            top_k=20,
             seed=42,
             num_ctx=8192,
             max_tokens=768,
@@ -191,6 +196,7 @@ def _manifest() -> RunManifest:
 
 def test_phase18_report_and_frontier_are_manifest_generated(tmp_path: Path):
     manifest = _manifest()
+    manifest.metrics["generation_eval_coverage"] = 0.6
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(manifest.model_dump_json())
     frontier = tmp_path / "model_frontier.svg"
@@ -200,12 +206,20 @@ def test_phase18_report_and_frontier_are_manifest_generated(tmp_path: Path):
     write_matrix_report([manifest_path], report, frontier_path=frontier)
 
     ElementTree.parse(frontier)
+    root = ElementTree.parse(frontier).getroot()
     svg = frontier.read_text()
     markdown = report.read_text()
     assert "Descriptive only — not a latency ranking" in svg
     assert "bubble area ≈ resident bytes" in svg
-    assert 'width="1180" height="720"' in svg
-    assert '<rect x="70" y="630" width="1040" height="65"' in svg
+    assert "Latency uses completed rows only" in svg
+    assert "cov 60%" in svg
+    points = [element for element in root.iter() if element.attrib.get("class") == "data-point"]
+    assert len(points) == 1
+    view_box = [float(value) for value in root.attrib["viewBox"].split()]
+    _, _, width, height = view_box
+    for label in points[0].findall("{http://www.w3.org/2000/svg}text"):
+        assert 0 <= float(label.attrib["x"]) <= width
+        assert 0 <= float(label.attrib["y"]) <= height
     assert "sha256:full-digest" in markdown
     assert "8.2B" in markdown and "Q4_K_M" in markdown
     assert "The answer omits one required invoice amount." in markdown

@@ -136,6 +136,7 @@ class DecodingProfile(BaseModel):
 
     temperature: float
     top_p: float
+    top_k: int | None = Field(default=None, ge=1)
     seed: int
     num_ctx: int
     max_tokens: int | None = Field(default=None, ge=1)

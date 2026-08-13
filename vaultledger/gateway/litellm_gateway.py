@@ -78,6 +78,7 @@ class LiteLLMGenerator:
         timeout: int = 600,
         temperature: float = 0.0,
         top_p: float = 0.95,
+        top_k: int = 20,
         seed: int = 42,
         num_ctx: int = 8192,
         max_tokens: int | None = None,
@@ -89,6 +90,7 @@ class LiteLLMGenerator:
         self.timeout = timeout
         self.temperature = temperature
         self.top_p = top_p
+        self.top_k = top_k
         self.seed = seed
         self.num_ctx = num_ctx
         self.max_tokens = max_tokens
@@ -146,6 +148,7 @@ class LiteLLMGenerator:
                     self.temperature if temperature is None else temperature
                 ),
                 top_p=self.top_p,
+                top_k=self.top_k,
                 seed=self.seed,
                 num_ctx=self.num_ctx,
                 fmt=schema,
@@ -178,6 +181,7 @@ class LiteLLMGenerator:
                         self.temperature if temperature is None else temperature
                     ),
                     top_p=self.top_p,
+                    top_k=self.top_k,
                     seed=self.seed,
                     think=False,
                     timeout=self.timeout,

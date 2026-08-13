@@ -18,6 +18,7 @@ def ollama_warm_model(
     base_url: str = "http://localhost:11434",
     temperature: float = 0.0,
     top_p: float = 0.95,
+    top_k: int = 20,
     seed: int = 42,
     num_ctx: int = 8192,
     keep_alive: str = "10m",
@@ -32,6 +33,7 @@ def ollama_warm_model(
         "options": {
             "temperature": temperature,
             "top_p": top_p,
+            "top_k": top_k,
             "seed": seed,
             "num_ctx": num_ctx,
         },
@@ -123,6 +125,7 @@ class OllamaGenerator:
         *,
         temperature: float = 0.0,
         top_p: float = 0.95,
+        top_k: int = 20,
         seed: int = 42,
         num_ctx: int = 8192,
         max_tokens: int | None = None,
@@ -132,6 +135,7 @@ class OllamaGenerator:
         self.base_url = base_url.rstrip("/")
         self.temperature = temperature
         self.top_p = top_p
+        self.top_k = top_k
         self.seed = seed
         self.num_ctx = num_ctx
         self.max_tokens = max_tokens
@@ -181,6 +185,7 @@ class OllamaGenerator:
             prompt=prompt,
             temperature=self.temperature if temperature is None else temperature,
             top_p=self.top_p,
+            top_k=self.top_k,
             seed=self.seed,
             num_ctx=self.num_ctx,
             fmt=fmt,

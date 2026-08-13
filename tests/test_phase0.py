@@ -139,14 +139,15 @@ def test_config_loads_expected_values():
     assert not hasattr(cfg.models, "T2")  # ADR-0003 retires paid hosted tiers
     assert cfg.matrix.variants == ["B_hybrid"]
     assert cfg.matrix.decoding_sweep_model == "ollama/qwen3:8b"
-    assert cfg.matrix.decoding_temperatures == [0.0, 0.3, 0.7]
-    assert cfg.matrix.decoding_top_ps == [1.0, 0.9]
+    assert cfg.matrix.decoding_temperatures == [0.3, 0.7]
+    assert cfg.matrix.decoding_top_ps == [1.0, 0.9, 0.8]
     assert cfg.variant_default == "B_hybrid"
     assert cfg.reranker.model == "BAAI/bge-reranker-base"
     assert cfg.retrieval.rrf_constant == 60
     assert cfg.retrieval.answer_top_n == 6
     assert cfg.generation.temperature == 0.0
     assert cfg.generation.top_p == 0.95
+    assert cfg.generation.top_k == 20
     assert cfg.generation.num_ctx == 8192
     assert cfg.generation.output_tokens_max == 768
     assert cfg.generation.request_timeout_seconds == 600

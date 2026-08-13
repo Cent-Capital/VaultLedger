@@ -55,6 +55,7 @@ def test_lightrag_retriever_from_config_forwards_generation_controls():
 
     assert retriever.max_tokens == cfg.generation.output_tokens_max
     assert retriever.timeout_seconds == cfg.generation.request_timeout_seconds
+    assert retriever.top_k == cfg.generation.top_k
 
 
 def test_retrieve_package_imports_first_in_fresh_interpreter():
@@ -404,6 +405,7 @@ def test_local_binding_disables_thinking_and_maps_json_mode():
         response_format={"type": "json_object"},
         temperature=0.0,
         top_p=0.95,
+        top_k=20,
         seed=42,
         num_ctx=32768,
         max_tokens=512,
@@ -414,6 +416,7 @@ def test_local_binding_disables_thinking_and_maps_json_mode():
     assert payload["options"]["num_predict"] == 512
     assert payload["options"]["temperature"] == 0.0
     assert payload["options"]["top_p"] == 0.95
+    assert payload["options"]["top_k"] == 20
     assert payload["options"]["seed"] == 42
     assert payload["options"]["num_ctx"] == 32768
     assert [message["role"] for message in payload["messages"]] == [

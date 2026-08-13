@@ -38,6 +38,7 @@ def _chat_payload(
     response_format: Any | None,
     temperature: float,
     top_p: float,
+    top_k: int,
     seed: int,
     num_ctx: int,
     max_tokens: int | None = None,
@@ -52,6 +53,7 @@ def _chat_payload(
         history_messages=history_messages,
         temperature=temperature,
         top_p=top_p,
+        top_k=top_k,
         seed=seed,
         num_ctx=num_ctx,
         fmt=fmt,
@@ -70,6 +72,7 @@ class LocalOllamaBinding:
         base_url: str,
         temperature: float = 0.0,
         top_p: float = 0.95,
+        top_k: int = 20,
         seed: int = 42,
         num_ctx: int = 8192,
         max_tokens: int | None = None,
@@ -81,6 +84,7 @@ class LocalOllamaBinding:
         self.timeout_seconds = timeout_seconds
         self.temperature = temperature
         self.top_p = top_p
+        self.top_k = top_k
         self.seed = seed
         self.num_ctx = num_ctx
         self.max_tokens = max_tokens
@@ -105,6 +109,7 @@ class LocalOllamaBinding:
             response_format=kwargs.get("response_format"),
             temperature=self.temperature,
             top_p=self.top_p,
+            top_k=self.top_k,
             seed=self.seed,
             num_ctx=self.num_ctx,
             max_tokens=kwargs.get("max_tokens", self.max_tokens),

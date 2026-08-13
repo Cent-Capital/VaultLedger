@@ -345,6 +345,7 @@ with ask:
                     base_url=cfg.embedding.ollama_url,
                     temperature=cfg.generation.temperature,
                     top_p=cfg.generation.top_p,
+                    top_k=cfg.generation.top_k,
                     seed=cfg.seed,
                     num_ctx=cfg.generation.num_ctx,
                     max_tokens=cfg.generation.output_tokens_max,

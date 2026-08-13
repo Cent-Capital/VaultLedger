@@ -73,6 +73,7 @@ class LightRAGRetriever:
         base_url: str,
         temperature: float = 0.0,
         top_p: float = 0.95,
+        top_k: int = 20,
         seed: int = 42,
         num_ctx: int = 8192,
         max_tokens: int | None = None,
@@ -91,6 +92,7 @@ class LightRAGRetriever:
         self.base_url = base_url.rstrip("/")
         self.temperature = temperature
         self.top_p = top_p
+        self.top_k = top_k
         self.seed = seed
         self.num_ctx = num_ctx
         self.max_tokens = max_tokens
@@ -126,6 +128,7 @@ class LightRAGRetriever:
             base_url=cfg.embedding.ollama_url,
             temperature=cfg.generation.temperature,
             top_p=cfg.generation.top_p,
+            top_k=cfg.generation.top_k,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
             max_tokens=cfg.generation.output_tokens_max,
@@ -156,6 +159,7 @@ class LightRAGRetriever:
             base_url=self.base_url,
             temperature=self.temperature,
             top_p=self.top_p,
+            top_k=self.top_k,
             seed=self.seed,
             num_ctx=self.num_ctx,
             max_tokens=self.max_tokens,
