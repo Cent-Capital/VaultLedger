@@ -35,6 +35,7 @@ from vaultledger.schemas import (
     Answer,
     DecodingProfile,
     MatrixJudgeVerdict,
+    ModelMetadata,
     QAExample,
     RoutingDecision,
     RunManifest,
@@ -547,10 +548,15 @@ def _run_cell(
         "example_ids": [example.id for example in examples],
     }
     rows: list[dict] = []
+    model_metadata = None
     if checkpoint_path.exists():
         checkpoint = json.loads(checkpoint_path.read_text())
         if all(checkpoint.get(key) == value for key, value in checkpoint_key.items()):
             rows = list(checkpoint.get("rows", []))
+            if checkpoint.get("model_metadata"):
+                model_metadata = ModelMetadata.model_validate(
+                    checkpoint["model_metadata"]
+                )
             print(
                 f"matrix resume: {model} × {variant} at {len(rows)}/{len(examples)}",
                 flush=True,
@@ -713,10 +719,21 @@ def _run_cell(
     # judging happens as a second block to avoid alternating model loads on every
     # row. The six-model run would otherwise spend most of its time thrashing
     # qwen3:8b (judge) in and out between candidate calls.
-    model_metadata = ollama_model_metadata(
-        model,
-        base_url=cfg.embedding.ollama_url,
-    )
+    if model_metadata is None:
+        model_metadata = ollama_model_metadata(
+            model,
+            base_url=cfg.embedding.ollama_url,
+        )
+        checkpoint_path.write_text(
+            json.dumps(
+                {
+                    **checkpoint_key,
+                    "model_metadata": model_metadata.model_dump(),
+                    "rows": rows,
+                },
+                indent=2,
+            )
+        )
 
     if judge_model:
         judge_generator = LiteLLMGenerator(
@@ -752,7 +769,14 @@ def _run_cell(
             except Exception as exc:
                 row["judge_error"] = str(exc)
                 checkpoint_path.write_text(
-                    json.dumps({**checkpoint_key, "rows": rows}, indent=2)
+                    json.dumps(
+                        {
+                            **checkpoint_key,
+                            "model_metadata": model_metadata.model_dump(),
+                            "rows": rows,
+                        },
+                        indent=2,
+                    )
                 )
                 continue
             usage = judge_generator.snapshot().delta(before)
@@ -768,7 +792,14 @@ def _run_cell(
                 "cost_usd": usage.cost_usd,
             }
             checkpoint_path.write_text(
-                json.dumps({**checkpoint_key, "rows": rows}, indent=2)
+                json.dumps(
+                    {
+                        **checkpoint_key,
+                        "model_metadata": model_metadata.model_dump(),
+                        "rows": rows,
+                    },
+                    indent=2,
+                )
             )
 
     order = {example.id: index for index, example in enumerate(examples)}
@@ -794,6 +825,13 @@ def _run_cell(
         for row in rows
         if row.get("judge")
     ]
+    completed_rows = [row for row in rows if not row.get("error")]
+    if judge_model and len(judge_verdicts) != len(completed_rows):
+        raise RuntimeError(
+            f"judge coverage incomplete for {model} × {variant}: "
+            f"{len(judge_verdicts)}/{len(completed_rows)} completed rows; "
+            f"checkpoint retained at {checkpoint_path}"
+        )
     manifest = RunManifest(
         run_id=(
             f"phase18_{slug}_{variant.casefold()}{budget_suffix}{decoding_suffix}_"
