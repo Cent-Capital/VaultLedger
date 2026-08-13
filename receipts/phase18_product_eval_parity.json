@@ -1,0 +1,26 @@
+{
+  "receipt": "phase18_product_eval_parity_v1",
+  "timestamp": "2026-08-13T02:25:58.504649+00:00",
+  "git_sha": "5fd95f99e3bf5d0f64e9b6c56022d7e25074fee5",
+  "config_hash": "069892922abca063e695d61ee11352f2015c0369e807c266ca98d958c348eadc",
+  "model": "ollama/qwen3:8b",
+  "endpoint": "/api/chat",
+  "messages": [
+    {
+      "role": "user",
+      "content_sha256": "9eadbdf5e329ce53412ed1566448e7fc3e857c293a6660e8ef286a1b26ebbff8"
+    }
+  ],
+  "options": {
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "seed": 42,
+    "num_ctx": 32768,
+    "think": false
+  },
+  "product_output_sha256": "c1f33eaf44913dcb7c88f4df37c46170143de0756f79c9095c7d99b1b56d3664",
+  "matrix_output_sha256": "c1f33eaf44913dcb7c88f4df37c46170143de0756f79c9095c7d99b1b56d3664",
+  "byte_identical": true,
+  "matrix_provider_input_tokens": 41,
+  "matrix_provider_output_tokens": 7
+}
