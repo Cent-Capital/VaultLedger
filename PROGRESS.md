@@ -2645,3 +2645,79 @@ check label coordinates against the SVG viewBox rather than pinning canvas pixel
 the same suite as 194 passes plus its one Ollama-dependent skip. The corpus hash
 remains exactly `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
 No full six-model cell or decoding-sweep cell ran during this review.
+
+### The six-model matrix has run — 2026-08-13
+
+**The bake-off is measured, and it did not displace `qwen3:8b`.** All six preregistered
+cells completed: 80 golden rows each, `B_hybrid`, guardrails on, seed 42, one identical
+decoding profile per candidate, fixed local `qwen3:8b` judge. **100% generation coverage
+on every cell and zero `TOOL_ERR` across all 480 rows.** Wall time 8,957 s (2.49 h).
+Cost `$0.00` — unpriced, not free. ADR-0016 records the decision; the decoding sweep has
+still not run.
+
+| model | judge | strict | citation | abstention | median | p95 |
+|---|---|---|---|---|---|---|
+| gemma3:12b | 72% | 54% | 68% | 72% | 31.9 s | 57.3 s |
+| **qwen3:8b** | **70%** | 44% | **71%** | **76%** | **7.2 s** | **13.3 s** |
+| qwen3:14b | 64% | 46% | 62% | 66% | 27.0 s | 46.8 s |
+| gemma3:4b | 56% | 41% | 56% | 61% | 4.6 s | 9.0 s |
+| qwen3:4b | 52% | 34% | 48% | 50% | 4.0 s | 9.9 s |
+| gemma3:1b | 26% | 8% | 20% | 24% | 1.9 s | 4.0 s |
+
+**Plain-English explainer of the trickiest piece — why that table is the wrong way to
+read the result.** Ranked by judge pass rate, `gemma3:12b` "wins" by two points. But
+every model answered *the same 80 questions*, which means the right question is not
+"what were the two totals" but "on which individual rows did they actually disagree, and
+which way did those rows fall". They disagreed on ten rows: `gemma3:12b` got six of them
+right where `qwen3:8b` failed, and `qwen3:8b` got four right where `gemma3:12b` failed.
+Six versus four out of ten is what a fair coin looks like. The exact paired test
+(McNemar) puts it at `p = 0.754` — no detectable difference. The two-point gap in the
+totals was never two points of quality; it was one and a half rows of noise, and the
+aggregate table hid the fact that only ten rows carried any information at all.
+
+Run against `qwen3:8b`, the paired verdicts are: gemma3:12b 6 wins / 4 losses
+(`p = 0.754`), qwen3:14b 3 / 8 (`p = 0.227`), gemma3:4b 2 / 13 (`p = 0.007`), qwen3:4b
+5 / 19 (`p = 0.007`), gemma3:1b 1 / 36 (`p < 0.001`). Five comparisons, so under a
+Bonferroni threshold of α = 0.01 the three significant losses hold and the two nulls are
+unaffected.
+
+**Two findings beyond the headline.** Scaling within a family did not help: `qwen3:14b`
+lost 8 rows and won 3 against `qwen3:8b`, nominally worse on every quality metric at
+3.75× the latency and 3.7 GB more resident memory. And `gemma3:1b` is unusable for this
+product at 26% judge / 8% strict — the one large, unambiguous effect in the run.
+
+**What is deliberately not claimed.** `p = 0.754` is absence of evidence, not evidence
+of equivalence; ten discordant pairs give low power and only a large effect would have
+surfaced. The judge remains weak evidence — its 20-label validation supports only an
+at-least-83%-accurate claim and a null classifier scores 19/20 on that set — and the
+paired test inherits any systematic bias in it. The strict-match column is confounded
+with verbosity: mean answer length and strict rate rise together across all six models
+(37 → 72 characters, 8% → 54%), and `strict_answer_match` is a literal-anchor scorer, so
+`gemma3:12b`'s 10-point strict lead is not a 10-point correctness lead. No latency
+ranking is claimed, and Phase 13's ~50% run-to-run p50 movement was **not** re-measured
+here — each cell ran exactly once, so that caveat stands on its prior evidence, not on
+anything observed today. What this run does show is large row-to-row spread inside a
+cell (`qwen3:14b` 188 s max against a 27 s median; `gemma3:12b` 185 s against 31.9 s)
+with no systematic drift across a cell — first-40 versus last-40 row means give ratios
+of 0.65–1.04. Because medians hide that tail, p95 travels beside median everywhere.
+
+**The most actionable result is not about models.** Of the ten rows separating the top
+two candidates, **five are `FALSE_ABSTAIN`**: the system declined to answer when the
+reference answer was available. That is consistent with the two known-open defects —
+abstention fires whenever zero citations survive, and `verify_citations` only confirms a
+snippet *exists*, never that it *supports* the answer. Model choice moved two points on
+this corpus. The abstention policy is plausibly worth more than that, and it needs its
+own pass rather than being folded into Phase 18.
+
+**Per-category winners differ, and the router was deliberately not refitted.**
+`gemma3:12b` leads `multi_hop` (50% vs 42%) and `adversarial` (50% vs 38%); `qwen3:8b`
+leads `single_doc` (89% vs 83%) and ties `cross_persona` at 100%. Category cells hold
+6–18 rows, so these are single-digit differences on tiny samples. Per the Phase 18
+kickoff brief this is noted and **not** used to fit ADR-0004's routing map — fitting a
+map to the same rows that produced it is not a held-out justification. Separately,
+`unanswerable` reads 100% for five of six models and should be treated as a floor:
+abstaining wins that category for free, which is why `gemma3:1b` scores 80% there while
+scoring 26% overall.
+
+**Next:** run the preregistered seven-profile `qwen3:8b` decoding comparison (~1–2 h) and
+apply the ADR-0014 rule, then re-run `make verify-track-a` and verify pushed CI.
