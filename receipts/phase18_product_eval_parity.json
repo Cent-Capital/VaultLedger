@@ -1,8 +1,8 @@
 {
   "receipt": "phase18_product_eval_parity_v1",
-  "timestamp": "2026-08-13T02:25:58.504649+00:00",
-  "git_sha": "5fd95f99e3bf5d0f64e9b6c56022d7e25074fee5",
-  "config_hash": "069892922abca063e695d61ee11352f2015c0369e807c266ca98d958c348eadc",
+  "timestamp": "2026-08-13T03:33:11.215969+00:00",
+  "git_sha": "61cc61f83d0fd425512837e8420df8111e848740",
+  "config_hash": "c2aa377380c8f055689ccb8fb3586e164d343aee0dfc2ae72b2f55f95a7eb5ff",
   "model": "ollama/qwen3:8b",
   "endpoint": "/api/chat",
   "messages": [
@@ -15,9 +15,11 @@
     "temperature": 0.0,
     "top_p": 0.95,
     "seed": 42,
-    "num_ctx": 32768,
+    "num_ctx": 8192,
+    "num_predict": 768,
     "think": false
   },
+  "request_timeout_seconds": 600,
   "product_output_sha256": "c1f33eaf44913dcb7c88f4df37c46170143de0756f79c9095c7d99b1b56d3664",
   "matrix_output_sha256": "c1f33eaf44913dcb7c88f4df37c46170143de0756f79c9095c7d99b1b56d3664",
   "byte_identical": true,
