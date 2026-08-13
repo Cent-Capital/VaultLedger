@@ -350,8 +350,8 @@ def test_matrix_report_recovers_legacy_context_only_from_matching_config(tmp_pat
     output = tmp_path / "model_matrix.md"
     write_matrix_report(paths, output)
     rows = [line for line in output.read_text().splitlines() if line.startswith("| `ollama")]
-    assert any("| `B_hybrid` | 6 |" in row for row in rows)
-    assert any("| `B_hybrid` | — |" in row for row in rows)
+    assert any("| `B_hybrid` | — | 6 |" in row for row in rows)
+    assert any("| `B_hybrid` | — | — |" in row for row in rows)
 
 
 def test_report_renders_categories_and_never_back_fills_a_missing_metric(tmp_path: Path):

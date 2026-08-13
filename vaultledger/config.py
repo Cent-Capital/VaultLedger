@@ -57,12 +57,7 @@ class ModelRegistry(BaseModel):
 
 
 class Matrix(BaseModel):
-    """Phase 11 local model-matrix defaults.
-
-    The full six-model lineup is deliberately pinned at Phase 18 kickoff. The
-    two models here prove the matrix machinery without claiming the deferred
-    bake-off has happened.
-    """
+    """Phase 18 local model-matrix and preregistered decoding defaults."""
 
     variants: list[str] = ["B_hybrid"]
     smoke_limit: int = Field(default=12, ge=0)

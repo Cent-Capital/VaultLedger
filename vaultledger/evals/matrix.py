@@ -13,11 +13,14 @@ from pathlib import Path
 from statistics import median
 from time import perf_counter
 from uuid import uuid4
+from xml.sax.saxutils import escape
 
 from vaultledger.config import CONFIG_PATH, Config, load_config
 from vaultledger.evals.golden import golden_hash, load_golden_set
+from vaultledger.evals.judge import JudgeItem, judge_item
 from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
 from vaultledger.generate import answer_question_agentic, answer_question_reliable
+from vaultledger.generate.ollama import ollama_model_metadata
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import assert_evaluation_corpus
@@ -28,7 +31,14 @@ from vaultledger.retrieve import (
     LightRAGRetriever,
     NaiveDenseRetriever,
 )
-from vaultledger.schemas import Answer, QAExample, RoutingDecision, RunManifest
+from vaultledger.schemas import (
+    Answer,
+    DecodingProfile,
+    MatrixJudgeVerdict,
+    QAExample,
+    RoutingDecision,
+    RunManifest,
+)
 
 _AMOUNT = re.compile(r"\$\s*\d[\d,]*(?:\.\d{2})?")
 _DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
@@ -59,6 +69,30 @@ def _git_sha() -> str:
 
 def _config_hash() -> str:
     return hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()
+
+
+def _float_slug(value: float) -> str:
+    return f"{value:g}".replace("-", "m").replace(".", "p")
+
+
+def _gib(value: int) -> str:
+    return f"{value / (1024 ** 3):.2f} GiB"
+
+
+def _decoding_text(manifest: RunManifest) -> str:
+    if manifest.decoding is None:
+        return "—"
+    return f"t={manifest.decoding.temperature:g}, p={manifest.decoding.top_p:g}"
+
+
+def _manifest_sort_key(manifest: RunManifest) -> tuple:
+    decoding = manifest.decoding
+    return (
+        manifest.model,
+        manifest.variant,
+        decoding.temperature if decoding else -1.0,
+        decoding.top_p if decoding else -1.0,
+    )
 
 
 def _canonical(text: str) -> str:
@@ -387,6 +421,30 @@ def _cell_metrics(
             and all(status == "unpriced" for status in pricing_statuses)
         ),
     }
+    judged = [row for row in completed if row.get("judge")]
+    if judged:
+        judge_calls = [row.get("judge_gateway", {}) for row in judged]
+        metrics.update(
+            {
+                "judge_coverage_rate": len(judged) / n if n else 0.0,
+                "judge_pass_rate": _rate(
+                    [row["judge"] for row in judged], "passed", n
+                ),
+                "judge_calls": float(
+                    sum(int(call.get("calls", 0)) for call in judge_calls)
+                ),
+                "judge_input_tokens": float(
+                    sum(int(call.get("input_tokens", 0)) for call in judge_calls)
+                ),
+                "judge_output_tokens": float(
+                    sum(int(call.get("output_tokens", 0)) for call in judge_calls)
+                ),
+                "judge_latency_ms": round(
+                    sum(float(call.get("latency_ms", 0.0)) for call in judge_calls),
+                    3,
+                ),
+            }
+        )
     agent_rows = [
         row
         for row in completed
@@ -441,12 +499,15 @@ def _run_cell(
     graph_answer_top_n: int | None = None,
     guardrail_toggles: GuardrailToggles | None = None,
     records_db: Path | None = None,
+    temperature: float,
+    top_p: float,
+    judge_model: str | None = None,
 ) -> tuple[Path, Path]:
     generator = LiteLLMGenerator(
         model,
         base_url=cfg.embedding.ollama_url,
-        temperature=cfg.generation.temperature,
-        top_p=cfg.generation.top_p,
+        temperature=temperature,
+        top_p=top_p,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
     )
@@ -461,9 +522,13 @@ def _run_cell(
         graph_answer_top_n=graph_answer_top_n,
     )
     budget_suffix = f"_k{answer_top_n}" if graph_answer_top_n is not None else ""
+    decoding_suffix = f"_t{_float_slug(temperature)}_p{_float_slug(top_p)}"
     checkpoint_path = (
         out_dir
-        / f".matrix_checkpoint_{slug}_{variant.casefold()}_{arm}{budget_suffix}.json"
+        / (
+            f".matrix_checkpoint_{slug}_{variant.casefold()}_{arm}"
+            f"{budget_suffix}{decoding_suffix}.json"
+        )
     )
     checkpoint_key = {
         "model": model,
@@ -474,6 +539,11 @@ def _run_cell(
         # resumed into an on-arm run, or the cell would mix two pipelines.
         "guardrails": arm,
         "retrieval_answer_top_n": answer_top_n,
+        "temperature": temperature,
+        "top_p": top_p,
+        "seed": cfg.seed,
+        "num_ctx": cfg.generation.num_ctx,
+        "judge_model": judge_model,
         "example_ids": [example.id for example in examples],
     }
     rows: list[dict] = []
@@ -498,7 +568,7 @@ def _run_cell(
             allowed_tiers=[tier],
             chosen_tier=tier,
             chosen_model=model,
-            reason="Phase 11 local matrix cell: model and tier pinned by the manifest",
+            reason="Phase 18 local matrix cell: model and decoding pinned by the manifest",
             est_cost_usd=0.0,
             actual_cost_usd=0.0,
         )
@@ -591,7 +661,7 @@ def _run_cell(
                     if _AMOUNT.search(example.expected_answer)
                     else "GEN_HALLUC"
                 ),
-                "note": f"strict deterministic scorer: {reason}; judge review deferred",
+                "note": f"strict deterministic scorer: {reason}",
             }
         elif not citation_hit:
             failure = {
@@ -639,6 +709,68 @@ def _run_cell(
             flush=True,
         )
 
+    # Capture the candidate's resident bytes while it is still the loaded model;
+    # judging happens as a second block to avoid alternating model loads on every
+    # row. The six-model run would otherwise spend most of its time thrashing
+    # qwen3:8b (judge) in and out between candidate calls.
+    model_metadata = ollama_model_metadata(
+        model,
+        base_url=cfg.embedding.ollama_url,
+    )
+
+    if judge_model:
+        judge_generator = LiteLLMGenerator(
+            judge_model,
+            base_url=cfg.embedding.ollama_url,
+            temperature=cfg.generation.temperature,
+            top_p=cfg.generation.top_p,
+            seed=cfg.seed,
+            num_ctx=cfg.generation.num_ctx,
+        )
+        if not judge_generator.is_available():
+            raise RuntimeError(f"matrix judge model {judge_model!r} is unavailable in Ollama")
+        examples_by_id = {example.id: example for example in examples}
+        for row in rows:
+            if row.get("error") or row.get("judge"):
+                continue
+            answer = Answer.model_validate(row["answer"])
+            evidence = "\n".join(
+                f"[{citation.doc_id} page {citation.page}] {citation.snippet}"
+                for citation in answer.citations
+            ) or "No candidate citations were supplied."
+            item = JudgeItem(
+                id=str(row["example_id"]),
+                question=examples_by_id[str(row["example_id"])].question,
+                reference_answer=str(row["expected_answer"]),
+                evidence=evidence,
+                candidate_answer=answer.answer_text,
+                human_pass=False,
+            )
+            before = judge_generator.snapshot()
+            try:
+                verdict = judge_item(judge_generator, item)
+            except Exception as exc:
+                row["judge_error"] = str(exc)
+                checkpoint_path.write_text(
+                    json.dumps({**checkpoint_key, "rows": rows}, indent=2)
+                )
+                continue
+            usage = judge_generator.snapshot().delta(before)
+            row["judge"] = {
+                "example_id": item.id,
+                **verdict.model_dump(),
+            }
+            row["judge_gateway"] = {
+                "calls": usage.calls,
+                "latency_ms": usage.latency_ms,
+                "input_tokens": usage.input_tokens,
+                "output_tokens": usage.output_tokens,
+                "cost_usd": usage.cost_usd,
+            }
+            checkpoint_path.write_text(
+                json.dumps({**checkpoint_key, "rows": rows}, indent=2)
+            )
+
     order = {example.id: index for index, example in enumerate(examples)}
     rows.sort(key=lambda row: order[str(row["example_id"])])
     totals = _totals_from_rows(rows)
@@ -648,9 +780,24 @@ def _run_cell(
     # on-arm and off-arm cells become silently incomparable in the matrix.
     metrics["guardrails_enabled"] = 1.0 if guardrail_toggles is not None else 0.0
     failures = [row["failure"] for row in rows if row.get("failure")]
+    failures.extend(
+        {
+            "example_id": row["example_id"],
+            "taxonomy_code": "TOOL_ERR",
+            "note": f"judge failed: {row['judge_error']}",
+        }
+        for row in rows
+        if row.get("judge_error")
+    )
+    judge_verdicts = [
+        MatrixJudgeVerdict.model_validate(row["judge"])
+        for row in rows
+        if row.get("judge")
+    ]
     manifest = RunManifest(
         run_id=(
-            f"phase11_{slug}_{variant.casefold()}{budget_suffix}_{uuid4().hex[:12]}"
+            f"phase18_{slug}_{variant.casefold()}{budget_suffix}{decoding_suffix}_"
+            f"{uuid4().hex[:12]}"
         ),
         timestamp=datetime.now(UTC).isoformat(),
         git_sha=_git_sha(),
@@ -662,6 +809,15 @@ def _run_cell(
         metrics=metrics,
         total_cost_usd=totals.cost_usd,
         failures=failures,
+        decoding=DecodingProfile(
+            temperature=temperature,
+            top_p=top_p,
+            seed=cfg.seed,
+            num_ctx=cfg.generation.num_ctx,
+        ),
+        model_metadata=model_metadata,
+        judge_model=judge_model,
+        judge_verdicts=judge_verdicts,
     )
     manifest_path = out_dir / f"{manifest.run_id}.json"
     answers_path = out_dir / f"{manifest.run_id}_answers.json"
@@ -671,7 +827,219 @@ def _run_cell(
     return manifest_path, answers_path
 
 
-def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
+def write_latency_quality_frontier(
+    manifest_paths: list[Path],
+    output_path: Path,
+) -> None:
+    """Generate the Phase 18 descriptive scatter directly from manifests.
+
+    Chart contract: model/decoding cell is the observation grain; x is median
+    completed-row wall latency, y is judge pass rate when present (otherwise the
+    literal-anchor rate), family is the two-color grouping, and bubble area
+    approximates Ollama resident bytes. Six canonical model points are below the
+    usual scatter-density threshold, but they are the complete decision set and
+    every point is intentionally labelled; a finer grain would answer a
+    different question.
+    """
+    manifests = [RunManifest.model_validate_json(path.read_text()) for path in manifest_paths]
+    if not manifests:
+        raise ValueError("cannot generate a latency-quality frontier without manifests")
+    points = []
+    for manifest in sorted(manifests, key=_manifest_sort_key):
+        metric = manifest.metrics
+        latency = float(metric.get("median_wall_latency_ms", 0.0))
+        quality_key = (
+            "judge_pass_rate"
+            if "judge_pass_rate" in metric
+            else "strict_answer_match_rate"
+        )
+        quality = float(metric[quality_key])
+        metadata = manifest.model_metadata
+        resident = metadata.resident_size_bytes if metadata else 0
+        family = metadata.family if metadata else manifest.model.split("/", 1)[-1].split(":")[0]
+        points.append((manifest, latency, quality, quality_key, resident, family))
+
+    width, height = 1040, 650
+    left, right, top, bottom = 90, 250, 95, 130
+    plot_width = width - left - right
+    plot_height = height - top - bottom
+    max_latency = max((point[1] for point in points), default=1.0) or 1.0
+    max_resident = max((point[4] for point in points), default=1) or 1
+
+    def x_pos(latency: float) -> float:
+        return left + (latency / (max_latency * 1.1)) * plot_width
+
+    def y_pos(quality: float) -> float:
+        return top + (1.0 - quality) * plot_height
+
+    def radius(resident: int) -> float:
+        return 7.0 + 11.0 * math.sqrt(resident / max_resident) if resident else 7.0
+
+    palette = {"qwen3": "#2563eb", "gemma3": "#d97706"}
+    svg = [
+        (
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" '
+            f'height="{height}" viewBox="0 0 {width} {height}">'
+        ),
+        '<rect width="100%" height="100%" fill="#ffffff"/>',
+        (
+            '<style>text{font-family:Inter,Arial,sans-serif;fill:#172033}'
+            '.mono{font-family:ui-monospace,SFMono-Regular,monospace}'
+            '.muted{fill:#667085}.grid{stroke:#e5e7eb;stroke-width:1}'
+            '.axis{stroke:#344054;stroke-width:1.3}</style>'
+        ),
+        (
+            '<text x="90" y="36" font-size="22" font-weight="700">'
+            'Local-model latency–quality frontier</text>'
+        ),
+        (
+            f'<text x="90" y="62" font-size="13" class="muted">{len(points)} '
+            'model × decoding cell(s) · bubble area ≈ resident bytes · '
+            'direct labels identify every point</text>'
+        ),
+    ]
+    for tick in (0.0, 0.25, 0.5, 0.75, 1.0):
+        y = y_pos(tick)
+        svg.extend(
+            [
+                (
+                    f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_width}" '
+                    f'y2="{y:.1f}" class="grid"/>'
+                ),
+                (
+                    f'<text x="{left - 14}" y="{y + 4:.1f}" font-size="12" '
+                    f'text-anchor="end" class="mono muted">{tick:.0%}</text>'
+                ),
+            ]
+        )
+    for index in range(5):
+        value = max_latency * 1.1 * index / 4
+        x = x_pos(value)
+        svg.extend(
+            [
+                (
+                    f'<line x1="{x:.1f}" y1="{top}" x2="{x:.1f}" '
+                    f'y2="{top + plot_height}" class="grid"/>'
+                ),
+                (
+                    f'<text x="{x:.1f}" y="{top + plot_height + 24}" font-size="12" '
+                    f'text-anchor="middle" class="mono muted">{value / 1000:.1f}s</text>'
+                ),
+            ]
+        )
+    svg.extend(
+        [
+            (
+                f'<line x1="{left}" y1="{top + plot_height}" '
+                f'x2="{left + plot_width}" y2="{top + plot_height}" class="axis"/>'
+            ),
+            f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" class="axis"/>',
+            (
+                f'<text x="{left + plot_width / 2:.1f}" '
+                f'y="{top + plot_height + 58}" font-size="13" text-anchor="middle">'
+                'Median wall latency per completed row</text>'
+            ),
+            (
+                f'<text x="25" y="{top + plot_height / 2:.1f}" font-size="13" '
+                f'text-anchor="middle" transform="rotate(-90 25 '
+                f'{top + plot_height / 2:.1f})">Quality rate</text>'
+            ),
+        ]
+    )
+    for index, (manifest, latency, quality, quality_key, resident, family) in enumerate(points):
+        x, y = x_pos(latency), y_pos(quality)
+        root = (
+            "qwen3"
+            if "qwen" in family.casefold()
+            else "gemma3"
+            if "gemma" in family.casefold()
+            else "other"
+        )
+        color = palette.get(root, "#667085")
+        r = radius(resident)
+        fill = color if root == "qwen3" else "#ffffff"
+        label = manifest.model.removeprefix("ollama/")
+        if len({item.model for item in manifests}) < len(manifests):
+            label += f" ({_decoding_text(manifest)})"
+        label_y = y + (4 if index % 2 == 0 else -8)
+        title = (
+            f"{manifest.model}; {quality_key}={quality:.1%}; "
+            f"median wall={latency:.0f} ms; resident={_gib(resident) if resident else 'unknown'}"
+        )
+        svg.extend(
+            [
+                (
+                    f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{fill}" '
+                    f'stroke="{color}" stroke-width="3"><title>{escape(title)}</title>'
+                    '</circle>'
+                ),
+                (
+                    f'<text x="{x + r + 7:.1f}" y="{label_y:.1f}" font-size="12" '
+                    f'font-weight="600">{escape(label)}</text>'
+                ),
+                (
+                    f'<text x="{x + r + 7:.1f}" y="{label_y + 16:.1f}" '
+                    f'font-size="11" class="mono muted">{quality:.1%} · '
+                    f'{latency / 1000:.1f}s</text>'
+                ),
+            ]
+        )
+    legend_x = left + plot_width + 50
+    svg.extend(
+        [
+            f'<text x="{legend_x}" y="{top + 8}" font-size="12" font-weight="700">Family</text>',
+            (
+                f'<circle cx="{legend_x + 7}" cy="{top + 32}" r="7" '
+                'fill="#2563eb" stroke="#2563eb" stroke-width="2"/>'
+            ),
+            f'<text x="{legend_x + 24}" y="{top + 36}" font-size="12">Qwen3</text>',
+            (
+                f'<circle cx="{legend_x + 7}" cy="{top + 58}" r="7" '
+                'fill="#ffffff" stroke="#d97706" stroke-width="3"/>'
+            ),
+            f'<text x="{legend_x + 24}" y="{top + 62}" font-size="12">Gemma 3</text>',
+            (
+                f'<text x="{legend_x}" y="{top + 105}" font-size="12" '
+                'font-weight="700">Size encoding</text>'
+            ),
+            (
+                f'<circle cx="{legend_x + 12}" cy="{top + 139}" r="12" '
+                'fill="#ffffff" stroke="#667085" stroke-width="2"/>'
+            ),
+            (
+                f'<text x="{legend_x + 34}" y="{top + 143}" font-size="11" '
+                'class="muted">larger bubble =</text>'
+            ),
+            (
+                f'<text x="{legend_x + 34}" y="{top + 158}" font-size="11" '
+                'class="muted">more resident bytes</text>'
+            ),
+            (
+                '<rect x="70" y="565" width="900" height="58" rx="8" '
+                'fill="#f8fafc" stroke="#d0d5dd"/>'
+            ),
+            (
+                '<text x="90" y="589" font-size="12" font-weight="700">'
+                'Descriptive only — not a latency ranking</text>'
+            ),
+            (
+                '<text x="90" y="609" font-size="11" class="muted">'
+                'Phase 13 saw ~50% p50 movement between runs with byte-identical answers. '
+                'Machine load can move points more than the apparent model gap.</text>'
+            ),
+            '</svg>',
+        ]
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text("\n".join(svg) + "\n")
+
+
+def write_matrix_report(
+    manifest_paths: list[Path],
+    output_path: Path,
+    *,
+    frontier_path: Path | None = None,
+) -> None:
     manifests = [RunManifest.model_validate_json(path.read_text()) for path in manifest_paths]
     if not manifests:
         raise ValueError("cannot generate a model matrix without manifests")
@@ -692,12 +1060,26 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
         f"Cells: **{len(manifests)}** across **{model_count} model(s)**",
         f"Total measured API spend: **${total_cost:.6f}** (local models are unpriced, not free)",
         "",
-        "| Model | Variant | Context k | N | Strict match | Numeric exact match | Citation hit | "
-        "Abstention accuracy | Wall p50 | Wall p95 | Gateway p50 | Gateway p95 | "
-        "Tokens in / out | Cost | Manifest |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| Model | Params | Quant | Resident | Variant | Decoding | Context k | N | Judge pass | "
+        "Strict match | Numeric exact match | Citation hit | Abstention accuracy | Wall p50 | "
+        "Wall p95 | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |",
+        "|---|---:|---|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
-    for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
+    if frontier_path is not None:
+        try:
+            frontier_ref = frontier_path.relative_to(output_path.parent)
+        except ValueError:
+            frontier_ref = frontier_path
+        lines[8:8] = [
+            "## Latency–quality frontier",
+            "",
+            "This harness-generated scatter is descriptive, not a latency ranking; the "
+            "Phase 13 instability caveat is embedded in the SVG.",
+            "",
+            f"![Latency–quality frontier]({frontier_ref})",
+            "",
+        ]
+    for manifest in sorted(manifests, key=_manifest_sort_key):
         metric = manifest.metrics
         # Manifests written before this metric existed are shown as "—" rather
         # than back-filled with a zero that would read as a measured failure.
@@ -715,10 +1097,21 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             current_config_hash,
         )
         context_top_n_text = str(context_top_n) if context_top_n is not None else "—"
+        metadata = manifest.model_metadata
+        params = metadata.parameter_count if metadata else "—"
+        quantization = metadata.quantization if metadata else "—"
+        resident = _gib(metadata.resident_size_bytes) if metadata else "—"
+        judge_pass = (
+            f"{metric['judge_pass_rate']:.1%}"
+            if "judge_pass_rate" in metric
+            else "—"
+        )
         lines.append(
             "| "
-            f"`{manifest.model}` | `{manifest.variant}` | {context_top_n_text} | "
+            f"`{manifest.model}` | {params} | `{quantization}` | {resident} | "
+            f"`{manifest.variant}` | {_decoding_text(manifest)} | {context_top_n_text} | "
             f"{int(metric['matrix_examples'])} | "
+            f"{judge_pass} | "
             f"{metric['strict_answer_match_rate']:.1%} | "
             f"{numeric} | "
             f"{metric['citation_doc_hit_rate']:.1%} | "
@@ -749,12 +1142,12 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                 "reference carries a numeric quantity; its `n` differs from the category `n` "
                 "for that reason, and a blank cell means no row in that category is in scope.",
                 "",
-                "| Model | Variant | Context k | Category | N | Strict match | "
+                "| Model | Variant | Decoding | Context k | Category | N | Strict match | "
                 "Numeric exact match | Citation hit | Abstention accuracy |",
-                "|---|---|---:|---|---:|---:|---:|---:|---:|",
+                "|---|---|---|---:|---|---:|---:|---:|---:|---:|",
             ]
         )
-        for manifest in sorted(manifests, key=lambda item: (item.model, item.variant)):
+        for manifest in sorted(manifests, key=_manifest_sort_key):
             metric = manifest.metrics
             context_top_n = _reported_context_top_n(
                 manifest,
@@ -774,13 +1167,88 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
                 )
                 lines.append(
                     "| "
-                    f"`{manifest.model}` | `{manifest.variant}` | {context_top_n_text} | "
+                    f"`{manifest.model}` | `{manifest.variant}` | "
+                    f"{_decoding_text(manifest)} | {context_top_n_text} | "
                     f"`{category}` | "
                     f"{int(count)} | "
                     f"{metric[f'strict_answer_match_rate__{category}']:.1%} | "
                     f"{numeric} | "
                     f"{metric[f'citation_doc_hit_rate__{category}']:.1%} | "
                     f"{metric[f'abstention_accuracy__{category}']:.1%} |"
+                )
+    metadata_by_model = {
+        manifest.model: manifest.model_metadata
+        for manifest in manifests
+        if manifest.model_metadata is not None
+    }
+    if metadata_by_model:
+        lines.extend(
+            [
+                "",
+                "## Model identity and size",
+                "",
+                "Parameter count and quantisation come from Ollama `show`; the digest and "
+                "artifact bytes come from installed tags; resident bytes come from Ollama "
+                "`ps` while that candidate was loaded. Tag numbers are never treated as "
+                "parameter counts.",
+                "",
+                "| Model | Family | Parameters | Quantisation | Digest | Artifact | "
+                "Resident | VRAM | Ollama |",
+                "|---|---|---:|---|---|---:|---:|---:|---|",
+            ]
+        )
+        for model, metadata in sorted(metadata_by_model.items()):
+            assert metadata is not None
+            lines.append(
+                f"| `{model}` | `{metadata.family}` | {metadata.parameter_count} | "
+                f"`{metadata.quantization}` | `{metadata.digest}` | "
+                f"{_gib(metadata.artifact_size_bytes)} | "
+                f"{_gib(metadata.resident_size_bytes)} | "
+                f"{_gib(metadata.resident_size_vram_bytes)} | "
+                f"`{metadata.ollama_version}` |"
+            )
+
+    judged_manifests = [manifest for manifest in manifests if manifest.judge_model]
+    if judged_manifests:
+        lines.extend(
+            [
+                "",
+                "## Judge verdicts and reasons",
+                "",
+                "The fixed local judge applies the versioned rubric to each candidate answer. "
+                "Every verdict, including its `reason`, is stored in the RunManifest. The "
+                "lists below surface every failed verdict plus up to three passing examples "
+                "per cell; they are explanations to inspect, not independent ground truth.",
+                "",
+                "The 20-label validation supports only an at-least-83% judge-accuracy claim, "
+                "and a null classifier scores 19/20 on that set. Judge pass rate is therefore "
+                "read conjunctively with deterministic metrics under ADR-0014, never alone.",
+            ]
+        )
+        for manifest in sorted(judged_manifests, key=_manifest_sort_key):
+            verdicts = manifest.judge_verdicts
+            failed = [verdict for verdict in verdicts if not verdict.passed]
+            passed = [verdict for verdict in verdicts if verdict.passed]
+            lines.extend(
+                [
+                    "",
+                    f"### `{manifest.model}` · `{manifest.variant}` · {_decoding_text(manifest)}",
+                    "",
+                    f"Judge: `{manifest.judge_model}` · coverage "
+                    f"{manifest.metrics.get('judge_coverage_rate', 0.0):.1%} · passes "
+                    f"{len(passed)}/{int(manifest.metrics['matrix_examples'])}.",
+                    "",
+                ]
+            )
+            surfaced = failed + passed[:3]
+            if not surfaced:
+                lines.append("- No judge verdict was recorded; this cell is incomplete.")
+            for verdict in surfaced:
+                label = "PASS" if verdict.passed else "FAIL"
+                reason = " ".join(verdict.reason.split())
+                lines.append(
+                    f"- `{verdict.example_id}` — **{label}** "
+                    f"(`{verdict.failure_code}`): {reason}"
                 )
     agent_manifests = [
         manifest
@@ -856,11 +1324,12 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "that field, it is recovered only when the receipt's config hash exactly matches the "
             "current config; otherwise the report shows an em dash.",
             "",
-            "`Strict match` is a deterministic lower-bound scorer: answerable rows must repeat "
-            "the reference's literal amounts, dates, and identifiers; other rows require a "
-            "normalized reference substring. It under-credits valid paraphrases and is not an "
-            "LLM-judge verdict. Per-example reasons and complete answers live beside each "
-            "manifest in its `_answers.json` receipt.",
+            "`Strict match` is a deterministic literal-anchor scorer, not a lower bound: "
+            "answerable rows must repeat the reference's amounts, dates, and identifiers; "
+            "other rows require a normalized reference substring. It under-credits valid "
+            "paraphrases, but can also over-credit a hedged answer that lists the right anchor "
+            "among several wrong candidates. Per-example reasons and complete answers live "
+            "beside each manifest in its `_answers.json` receipt.",
             "",
             "Wall latency covers the complete row, including retrieval, reranking, generation, "
             "repairs, and guardrails. Gateway latency covers completion calls only. Token counts "
@@ -876,6 +1345,11 @@ def write_matrix_report(manifest_paths: list[Path], output_path: Path) -> None:
             "understates its observed worst case. Read the latency columns against each arm's "
             "coverage, and at small N treat p95 as the slowest completed row rather than a "
             "distribution.",
+            "",
+            "Phase 13 observed roughly 50% p50 movement between runs that produced "
+            "byte-identical answers. This harness therefore cannot rank models by latency. "
+            "The latency-quality frontier is a descriptive picture, not a model ordering or "
+            "a tie-breaker.",
             "",
         ]
     )
@@ -1009,12 +1483,28 @@ def run_matrix(args: Namespace) -> int:
     cfg = load_config()
     models = args.models or [model.id for model in cfg.models.matrix]
     variants = args.variants or cfg.matrix.variants
+    decoding_sweep = bool(getattr(args, "decoding_sweep", False))
+    judge_model = str(getattr(args, "judge_model", "") or "") or None
+    decoding_profiles = [(cfg.generation.temperature, cfg.generation.top_p)]
+    if decoding_sweep:
+        if models != [cfg.matrix.decoding_sweep_model]:
+            raise ValueError(
+                "--decoding-sweep requires exactly the preregistered model "
+                f"{cfg.matrix.decoding_sweep_model!r}"
+            )
+        decoding_profiles = [
+            (temperature, top_p)
+            for temperature in cfg.matrix.decoding_temperatures
+            for top_p in cfg.matrix.decoding_top_ps
+        ]
     graph_answer_top_n = getattr(args, "graph_answer_top_n", None)
     limit = cfg.matrix.smoke_limit if args.limit is None else args.limit
     if len(set(models)) != len(models):
         raise ValueError("matrix model ids must be unique")
     if len(set(variants)) != len(variants):
         raise ValueError("matrix variants must be unique")
+    if len(set(decoding_profiles)) != len(decoding_profiles):
+        raise ValueError("matrix decoding profiles must be unique")
     if graph_answer_top_n is not None:
         if graph_answer_top_n < 1:
             raise ValueError("--graph-answer-top-n must be at least 1")
@@ -1051,22 +1541,26 @@ def run_matrix(args: Namespace) -> int:
     receipts: list[str] = []
     for model in models:
         for variant in variants:
-            manifest_path, answers_path = _run_cell(
-                cfg=cfg,
-                model=model,
-                variant=variant,
-                retriever=retrievers[variant],
-                examples=examples,
-                golden_set_hash=golden_hash(args.golden),
-                out_dir=out_dir,
-                graph_answer_top_n=(
-                    graph_answer_top_n if variant == "C_graph" else None
-                ),
-                guardrail_toggles=guardrail_toggles,
-                records_db=records_db,
-            )
-            paths.append(manifest_path)
-            receipts.append(str(answers_path))
+            for temperature, top_p in decoding_profiles:
+                manifest_path, answers_path = _run_cell(
+                    cfg=cfg,
+                    model=model,
+                    variant=variant,
+                    retriever=retrievers[variant],
+                    examples=examples,
+                    golden_set_hash=golden_hash(args.golden),
+                    out_dir=out_dir,
+                    graph_answer_top_n=(
+                        graph_answer_top_n if variant == "C_graph" else None
+                    ),
+                    guardrail_toggles=guardrail_toggles,
+                    records_db=records_db,
+                    temperature=temperature,
+                    top_p=top_p,
+                    judge_model=judge_model,
+                )
+                paths.append(manifest_path)
+                receipts.append(str(answers_path))
 
     total_cost = sum(
         RunManifest.model_validate_json(path.read_text()).total_cost_usd for path in paths
@@ -1077,15 +1571,28 @@ def run_matrix(args: Namespace) -> int:
         )
     report_path = Path(args.report)
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    write_matrix_report(paths, report_path)
+    frontier_arg = str(getattr(args, "frontier", "") or "")
+    frontier_path = (
+        Path(frontier_arg)
+        if frontier_arg
+        else report_path.with_name(f"{report_path.stem}_frontier.svg")
+    )
+    write_latency_quality_frontier(paths, frontier_path)
+    write_matrix_report(paths, report_path, frontier_path=frontier_path)
     print(
         json.dumps(
             {
                 "report": str(report_path),
+                "frontier": str(frontier_path),
                 "manifests": [str(path) for path in paths],
                 "answer_receipts": receipts,
                 "models": models,
                 "variants": variants,
+                "decoding_profiles": [
+                    {"temperature": temperature, "top_p": top_p}
+                    for temperature, top_p in decoding_profiles
+                ],
+                "judge_model": judge_model,
                 "graph_answer_top_n": graph_answer_top_n,
                 "examples_per_cell": len(examples),
                 "total_cost_usd": total_cost,
@@ -1106,5 +1613,6 @@ __all__ = [
     "score_answer",
     "strict_answer_match",
     "write_matrix_report",
+    "write_latency_quality_frontier",
     "write_rescore_report",
 ]

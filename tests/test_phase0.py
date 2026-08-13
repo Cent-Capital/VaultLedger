@@ -131,6 +131,10 @@ def test_config_loads_expected_values():
     assert [model.id for model in cfg.models.matrix] == [
         "ollama/qwen3:4b",
         "ollama/qwen3:8b",
+        "ollama/qwen3:14b",
+        "ollama/gemma3:1b",
+        "ollama/gemma3:4b",
+        "ollama/gemma3:12b",
     ]
     assert not hasattr(cfg.models, "T2")  # ADR-0003 retires paid hosted tiers
     assert cfg.matrix.variants == ["B_hybrid"]

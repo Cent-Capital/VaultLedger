@@ -643,6 +643,16 @@ def build_parser() -> argparse.ArgumentParser:
     matrix.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
     matrix.add_argument("--models", nargs="+", default=None)
     matrix.add_argument(
+        "--decoding-sweep",
+        action="store_true",
+        help="Use the preregistered qwen3:8b temperature x top_p grid from config",
+    )
+    matrix.add_argument(
+        "--judge-model",
+        default="",
+        help="Optional fixed local judge; its per-row verdict and reason enter the manifest",
+    )
+    matrix.add_argument(
         "--variants",
         nargs="+",
         choices=["A_naive", "B_hybrid", "C_graph", "D_agentic"],
@@ -691,6 +701,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     matrix.add_argument("--report", default="reports/model_matrix.md")
+    matrix.add_argument(
+        "--frontier",
+        default="",
+        help="Optional SVG path (default: beside --report with _frontier suffix)",
+    )
     matrix.set_defaults(func=run_model_matrix)
 
     rescore = sub.add_parser(

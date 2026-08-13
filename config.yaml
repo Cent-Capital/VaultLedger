@@ -2,9 +2,9 @@
 # Single source of runtime knobs: seed, budgets, loop caps, thresholds,
 # and the model registry / tier map. Code reads this via vaultledger.config.
 #
-# ADR-0003 retires paid hosted tiers. Phase 11 proves the local gateway and
-# matrix against the two models already pinned; Phase 18 pins the final 2x3
-# local lineup and records measured parameter/resident sizes.
+# ADR-0003 retires paid hosted tiers. Phase 18 pins the final two-family by
+# three-size local lineup; measured identity/resource fields belong to each
+# RunManifest rather than being inferred from these tags.
 
 seed: 42
 
@@ -36,6 +36,10 @@ models:
   matrix:
     - { id: "ollama/qwen3:4b" }
     - { id: "ollama/qwen3:8b" }
+    - { id: "ollama/qwen3:14b" }
+    - { id: "ollama/gemma3:1b" }
+    - { id: "ollama/gemma3:4b" }
+    - { id: "ollama/gemma3:12b" }
 
 matrix:
   variants: ["B_hybrid"]

@@ -131,6 +131,46 @@ class QAExample(BaseModel):  # one row of the golden set
     expected_tier: Tier | None = None  # hand label for router evals (Track B)
 
 
+class DecodingProfile(BaseModel):
+    """Self-describing local decoding settings for one measured run."""
+
+    temperature: float
+    top_p: float
+    seed: int
+    num_ctx: int
+    think: bool = False
+    transport: Literal["ollama_chat"] = "ollama_chat"
+
+
+class ModelMetadata(BaseModel):
+    """Ollama-reported identity and resource metadata for one model tag."""
+
+    parameter_count: str = Field(min_length=1)
+    quantization: str = Field(min_length=1)
+    digest: str = Field(min_length=1)
+    family: str = Field(min_length=1)
+    artifact_size_bytes: int = Field(gt=0)
+    resident_size_bytes: int = Field(gt=0)
+    resident_size_vram_bytes: int = Field(ge=0)
+    ollama_version: str = Field(min_length=1)
+
+
+class MatrixJudgeVerdict(BaseModel):
+    """One rubric verdict retained with its required human-readable reason."""
+
+    example_id: str
+    passed: bool
+    reason: str
+    failure_code: Literal[
+        "NONE",
+        "INCORRECT",
+        "UNSUPPORTED",
+        "FALSE_ABSTAIN",
+        "INJECTION",
+        "OTHER",
+    ]
+
+
 class RunManifest(BaseModel):  # one per eval run (SPEC 15.3)
     run_id: str
     timestamp: str
@@ -143,6 +183,10 @@ class RunManifest(BaseModel):  # one per eval run (SPEC 15.3)
     metrics: dict[str, float]
     total_cost_usd: float
     failures: list[dict]  # each: {example_id, taxonomy_code, note}
+    decoding: DecodingProfile | None = None
+    model_metadata: ModelMetadata | None = None
+    judge_model: str | None = None
+    judge_verdicts: list[MatrixJudgeVerdict] = Field(default_factory=list)
 
 
 __all__ = [
@@ -158,5 +202,8 @@ __all__ = [
     "AgentStep",
     "Answer",
     "QAExample",
+    "DecodingProfile",
+    "ModelMetadata",
+    "MatrixJudgeVerdict",
     "RunManifest",
 ]

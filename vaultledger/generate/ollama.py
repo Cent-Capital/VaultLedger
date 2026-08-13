@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import requests
 
+from vaultledger.schemas import ModelMetadata
+
 
 def ollama_chat_payload(
     *,
@@ -50,6 +52,72 @@ class GenerationError(RuntimeError):
 def ollama_model_name(model_id: str) -> str:
     """Convert config model ids like ``ollama/qwen3:8b`` to Ollama names."""
     return model_id.removeprefix("ollama/")
+
+
+def _same_ollama_tag(candidate: str, expected: str) -> bool:
+    return candidate == expected or (
+        ":" not in expected and candidate == f"{expected}:latest"
+    )
+
+
+def ollama_model_metadata(
+    model_id: str,
+    *,
+    base_url: str = "http://localhost:11434",
+) -> ModelMetadata:
+    """Read identity from show/tags and resident bytes from the loaded model."""
+    model = ollama_model_name(model_id)
+    root = base_url.rstrip("/")
+    try:
+        show_response = requests.post(
+            f"{root}/api/show", json={"model": model}, timeout=30
+        )
+        show_response.raise_for_status()
+        show = show_response.json()
+        tags_response = requests.get(f"{root}/api/tags", timeout=30)
+        tags_response.raise_for_status()
+        tags = tags_response.json().get("models", [])
+        ps_response = requests.get(f"{root}/api/ps", timeout=30)
+        ps_response.raise_for_status()
+        running = ps_response.json().get("models", [])
+        version_response = requests.get(f"{root}/api/version", timeout=30)
+        version_response.raise_for_status()
+    except (requests.RequestException, ValueError, TypeError) as exc:
+        raise GenerationError(f"could not inspect Ollama metadata for {model}: {exc}") from exc
+
+    tag = next(
+        (
+            item
+            for item in tags
+            if _same_ollama_tag(str(item.get("name") or item.get("model") or ""), model)
+        ),
+        None,
+    )
+    resident = next(
+        (
+            item
+            for item in running
+            if _same_ollama_tag(str(item.get("name") or item.get("model") or ""), model)
+        ),
+        None,
+    )
+    if tag is None:
+        raise GenerationError(f"Ollama tags response omitted installed model {model}")
+    if resident is None:
+        raise GenerationError(
+            f"Ollama ps response omitted {model}; run a generation before recording metadata"
+        )
+    details = show.get("details") or tag.get("details") or {}
+    return ModelMetadata(
+        parameter_count=str(details.get("parameter_size") or "").strip(),
+        quantization=str(details.get("quantization_level") or "").strip(),
+        digest=str(tag.get("digest") or "").strip(),
+        family=str(details.get("family") or "").strip(),
+        artifact_size_bytes=int(tag.get("size", 0) or 0),
+        resident_size_bytes=int(resident.get("size", 0) or 0),
+        resident_size_vram_bytes=int(resident.get("size_vram", 0) or 0),
+        ollama_version=str(version_response.json().get("version") or "").strip(),
+    )
 
 
 class OllamaGenerator:
@@ -133,5 +201,6 @@ __all__ = [
     "GenerationError",
     "OllamaGenerator",
     "ollama_chat_payload",
+    "ollama_model_metadata",
     "ollama_model_name",
 ]
