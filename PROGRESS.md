@@ -2597,8 +2597,9 @@ written. Its embedded caveat says it is descriptive, not a latency ranking, and
 warns that latency excludes failed rows so points below 100% coverage are not
 comparable on the x axis.
 
-**Kickoff verification.** `make test` reports **191 passed, 1 environment-dependent
-skip** and `make lint` is clean; the generated SVG parses as XML and was visually
+**Kickoff verification.** After the review fixes, sandboxed `make test` reports
+**194 passed, 1 environment-dependent skip** and `make lint` is clean; the generated
+SVG parses as XML and was visually
 checked after the label repair. The synthetic chunk corpus remains exactly
 `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`. Phase 17's
 deferred machine half was not performed or relabelled. The unrelated untracked
@@ -2608,3 +2609,39 @@ deferred machine half was not performed or relabelled. The unrelated untracked
 then run the seven-profile qwen3:8b baseline-plus-grid comparison and apply the
 preregistered rule. Only after those receipts exist should Phase 18 update the
 reader-facing model recommendation, run `make verify-track-a`, and verify pushed CI.
+
+### Phase 18 review corrections — 2026-08-13
+
+**Two masked code defects were reproduced and repaired.** Importing
+`vaultledger.retrieve` first closed a cycle through the generation package, and
+`LightRAGRetriever.from_config()` passed two arguments its constructor did not accept.
+The shared Ollama payload builder now lives in a dependency-free leaf module. The
+retriever accepts, stores, and forwards both the 768-token output cap and 600-second
+timeout to its live LightRAG binding. Fresh-interpreter import, config construction,
+and live-binding forwarding each have a regression test; Variant C no longer depends
+on import order to start.
+
+**The experiment contract was corrected before data collection.** ADR-0014 records
+why two greedy-temperature cells had no discriminating power and replaces them with
+`top_p=0.8` at temperatures 0.3 and 0.7. `top_k=20` is a fixed typed control in all
+product, matrix, judge, agent and graph requests and is present in new decoding
+profiles. The refreshed default receipt labels its byte comparison as confirmatory
+and records that the fail-loud `/api/show` checks observed `top_p=0.95` and
+`top_k=20`; the refreshed product/eval receipt retains identical output hashes with
+the new fixed control in both requests.
+
+**The frontier now exposes its second latency limitation.** Every point label and
+tooltip carries generation coverage. The embedded caveat states that latency is
+computed over completed rows only and that a point below 100% coverage is not
+comparable on the x axis. Tests count one structured labelled group per manifest and
+check label coordinates against the SVG viewBox rather than pinning canvas pixels.
+
+**Review verification.** The local `make verify-track-a` gate exited 0: Ruff clean;
+**195 passed** with Ollama available; golden validation green; Phase-7 manifest
+`phase7_94fa23ee07df`; guardrail manifest `phase13_guardrails_74041b883bb6`;
+20/20 judge validation in `phase9_judge_3b376d88632e`; dense retrieval manifest
+`phase3_d21af4c96a22`; B-hybrid manifest `phase4_9907de138ee3`; and regression
+`passed: true` against the distinct frozen baseline. Sandboxed `make test` records
+the same suite as 194 passes plus its one Ollama-dependent skip. The corpus hash
+remains exactly `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+No full six-model cell or decoding-sweep cell ran during this review.

@@ -1,8 +1,8 @@
 # Phase 4 retrieval comparison
 
 Golden set hash: `b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c`
-Phase-3 baseline: `phase3_b45ca825de1a`
-Phase-4 run: `phase4_e72bb7213548`
+Phase-3 baseline: `phase3_d21af4c96a22`
+Phase-4 run: `phase4_9907de138ee3`
 
 | Metric | Dense only | + BM25 / RRF | + rerank | Final delta vs dense |
 |---|---:|---:|---:|---:|
