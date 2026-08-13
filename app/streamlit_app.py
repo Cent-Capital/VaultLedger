@@ -346,6 +346,7 @@ with ask:
                     temperature=cfg.generation.temperature,
                     top_p=cfg.generation.top_p,
                     seed=cfg.seed,
+                    num_ctx=cfg.generation.num_ctx,
                 )
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")

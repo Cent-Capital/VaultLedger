@@ -488,7 +488,11 @@ def test_product_generator_disables_thinking_like_the_eval_gateway(monkeypatch):
 
         @staticmethod
         def json() -> dict:
-            return {"response": '{"tool":"finish","answer_text":"ok"}'}
+            return {
+                "message": {
+                    "content": '{"tool":"finish","answer_text":"ok"}'
+                }
+            }
 
     def fake_post(url: str, json: dict, timeout: int):  # noqa: A002
         sent.update(json)
@@ -502,6 +506,7 @@ def test_product_generator_disables_thinking_like_the_eval_gateway(monkeypatch):
     assert sent["options"]["temperature"] == 0.0
     assert sent["options"]["top_p"] == 0.95
     assert sent["options"]["seed"] == 42
+    assert sent["options"]["num_ctx"] == 32768
 
 
 def test_injection_score_separates_resisting_from_answering():

@@ -16,6 +16,7 @@ from vaultledger.evals.matrix import (
     write_matrix_report,
 )
 from vaultledger.gateway import LiteLLMGenerator
+from vaultledger.generate.ollama import OllamaGenerator
 from vaultledger.schemas import Answer, QAExample, RoutingDecision, RunManifest
 
 
@@ -70,6 +71,56 @@ def test_litellm_gateway_preserves_protocol_and_records_provider_usage():
     assert generator.snapshot().output_tokens == 9
     assert generator.calls[0].token_source == "provider_usage"
     assert generator.calls[0].pricing_status == "unpriced"
+
+
+def test_product_and_matrix_use_the_same_native_chat_payload(monkeypatch):
+    sent: list[tuple[str, dict]] = []
+
+    class _Response:
+        def raise_for_status(self) -> None: ...
+
+        @staticmethod
+        def json() -> dict:
+            return {
+                "message": {"content": '{"ok":true}'},
+                "prompt_eval_count": 7,
+                "eval_count": 3,
+            }
+
+    def fake_post(url: str, json: dict, timeout: int):  # noqa: A002
+        sent.append((url, json))
+        return _Response()
+
+    monkeypatch.setattr("vaultledger.generate.ollama.requests.post", fake_post)
+    settings = {
+        "temperature": 0.3,
+        "top_p": 0.9,
+        "seed": 42,
+        "num_ctx": 32768,
+    }
+    product = OllamaGenerator("ollama/qwen3:8b", **settings)
+    matrix = LiteLLMGenerator("ollama/qwen3:8b", **settings)
+
+    assert json.loads(product.generate_json("prompt", {"type": "object"})) == {
+        "ok": True
+    }
+    assert json.loads(matrix.generate_json("prompt", {"type": "object"})) == {
+        "ok": True
+    }
+    assert [url for url, _ in sent] == [
+        "http://localhost:11434/api/chat",
+        "http://localhost:11434/api/chat",
+    ]
+    assert sent[0][1] == sent[1][1]
+    assert sent[0][1]["messages"] == [{"role": "user", "content": "prompt"}]
+    assert sent[0][1]["options"] == {
+        "temperature": 0.3,
+        "top_p": 0.9,
+        "seed": 42,
+        "num_ctx": 32768,
+    }
+    assert matrix.snapshot().input_tokens == 7
+    assert matrix.snapshot().output_tokens == 3
 
 
 def test_strict_matrix_scorer_is_explicit_about_literal_matching():

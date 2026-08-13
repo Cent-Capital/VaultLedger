@@ -448,6 +448,7 @@ def _run_cell(
         temperature=cfg.generation.temperature,
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
+        num_ctx=cfg.generation.num_ctx,
     )
     if not generator.is_available():
         raise RuntimeError(f"matrix model {model!r} is unavailable in Ollama")

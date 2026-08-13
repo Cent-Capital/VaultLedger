@@ -74,6 +74,7 @@ class LightRAGRetriever:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
+        num_ctx: int = 32768,
         query_mode: GraphQueryMode = "global",
         query_data_fn: QueryDataFn | None = None,
         chunks: dict[str, Chunk] | None = None,
@@ -89,6 +90,7 @@ class LightRAGRetriever:
         self.temperature = temperature
         self.top_p = top_p
         self.seed = seed
+        self.num_ctx = num_ctx
         self.query_mode = query_mode
         self._query_data_fn = query_data_fn
         loaded = chunks if chunks is not None else {
@@ -121,6 +123,7 @@ class LightRAGRetriever:
             temperature=cfg.generation.temperature,
             top_p=cfg.generation.top_p,
             seed=cfg.seed,
+            num_ctx=cfg.generation.num_ctx,
             query_mode=query_mode or cfg.graph.query_mode_default,
         )
 
@@ -148,6 +151,7 @@ class LightRAGRetriever:
             temperature=self.temperature,
             top_p=self.top_p,
             seed=self.seed,
+            num_ctx=self.num_ctx,
         )
         rag = LightRAG(
             working_dir=str(self.working_dir),

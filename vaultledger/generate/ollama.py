@@ -1,8 +1,46 @@
-"""Minimal local generation wrapper for Phase 3."""
+"""Local Ollama chat generation shared by the product and eval gateway."""
 
 from __future__ import annotations
 
 import requests
+
+
+def ollama_chat_payload(
+    *,
+    model: str,
+    prompt: str,
+    temperature: float,
+    top_p: float,
+    seed: int,
+    num_ctx: int,
+    fmt: dict | str | None = None,
+    max_tokens: int | None = None,
+    system_prompt: str | None = None,
+    history_messages: list[dict[str, str]] | None = None,
+) -> dict:
+    """Build the one decoding payload every active Ollama generator uses."""
+    messages: list[dict[str, str]] = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.extend(history_messages or [])
+    messages.append({"role": "user", "content": prompt})
+    payload: dict = {
+        "model": ollama_model_name(model),
+        "messages": messages,
+        "stream": False,
+        "think": False,
+        "options": {
+            "temperature": temperature,
+            "top_p": top_p,
+            "seed": seed,
+            "num_ctx": num_ctx,
+        },
+    }
+    if fmt is not None:
+        payload["format"] = fmt
+    if max_tokens is not None:
+        payload["options"]["num_predict"] = max_tokens
+    return payload
 
 
 class GenerationError(RuntimeError):
@@ -23,12 +61,14 @@ class OllamaGenerator:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
+        num_ctx: int = 32768,
     ) -> None:
         self.model = ollama_model_name(model)
         self.base_url = base_url.rstrip("/")
         self.temperature = temperature
         self.top_p = top_p
         self.seed = seed
+        self.num_ctx = num_ctx
 
     def is_available(self) -> bool:
         try:
@@ -69,42 +109,29 @@ class OllamaGenerator:
         fmt: dict | None = None,
         max_tokens: int | None = None,
     ) -> str:
-        payload: dict = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            # Qwen 3 defaults to thinking in Ollama, and thinking tokens are
-            # charged against `num_predict` before any answer is emitted. The
-            # matrix gateway has disabled it since Phase 11; this path had not,
-            # so the product and the Phase 7/14 safety runner were measuring a
-            # different system from the one the matrix scored. Measured on
-            # qwen3:8b at num_predict=64: thinking on returns `response=""` with
-            # done_reason "length"; thinking off returns valid JSON and stops
-            # cleanly. Variant D's planner therefore received empty strings and
-            # recorded them as planner errors until its whole step budget was
-            # gone. Any generator the product uses must match the gateway's
-            # decoding settings or the evals measure something else (ADR-0007).
-            "think": False,
-            "options": {
-                "temperature": self.temperature if temperature is None else temperature,
-                "top_p": self.top_p,
-                # RunManifest.seed used to describe a knob that never reached
-                # inference. Phase 18 makes the recorded value operative.
-                "seed": self.seed,
-            },
-        }
-        if fmt is not None:
-            payload["format"] = fmt
-        if max_tokens is not None:
-            payload["options"]["num_predict"] = max_tokens
+        payload = ollama_chat_payload(
+            model=self.model,
+            prompt=prompt,
+            temperature=self.temperature if temperature is None else temperature,
+            top_p=self.top_p,
+            seed=self.seed,
+            num_ctx=self.num_ctx,
+            fmt=fmt,
+            max_tokens=max_tokens,
+        )
         try:
             resp = requests.post(
-                f"{self.base_url}/api/generate", json=payload, timeout=180
+                f"{self.base_url}/api/chat", json=payload, timeout=180
             )
             resp.raise_for_status()
         except requests.RequestException as exc:
             raise GenerationError(str(exc)) from exc
-        return str(resp.json().get("response", "")).strip()
+        return str(resp.json().get("message", {}).get("content", "")).strip()
 
 
-__all__ = ["GenerationError", "OllamaGenerator", "ollama_model_name"]
+__all__ = [
+    "GenerationError",
+    "OllamaGenerator",
+    "ollama_chat_payload",
+    "ollama_model_name",
+]

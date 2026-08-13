@@ -80,6 +80,7 @@ generation:                       # Phase 5 + Phase 18 typed decoding controls
   # qwen3:8b's installed Modelfile reports 0.95. Ollama's engine fallback is
   # 0.9, but it was not effective because the model overrides it.
   top_p: 0.95
+  num_ctx: 32768                 # one explicit context window on every generation path
   min_snippet_chars: 16           # shortest normalized snippet a citation may carry
   litm_reorder: true              # put highest-value evidence at context edges
   context_budget_chars: 12000     # hard character budget for assembled evidence

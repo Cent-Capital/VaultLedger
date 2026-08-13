@@ -335,6 +335,7 @@ def test_local_binding_disables_thinking_and_maps_json_mode():
         temperature=0.0,
         top_p=0.95,
         seed=42,
+        num_ctx=32768,
         max_tokens=512,
     )
     assert payload["model"] == "qwen3:8b"
@@ -344,6 +345,7 @@ def test_local_binding_disables_thinking_and_maps_json_mode():
     assert payload["options"]["temperature"] == 0.0
     assert payload["options"]["top_p"] == 0.95
     assert payload["options"]["seed"] == 42
+    assert payload["options"]["num_ctx"] == 32768
     assert [message["role"] for message in payload["messages"]] == [
         "system",
         "assistant",

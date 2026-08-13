@@ -15,6 +15,8 @@ from typing import Any
 import aiohttp
 import numpy as np
 
+from vaultledger.generate.ollama import ollama_chat_payload
+
 
 @dataclass(frozen=True)
 class LocalUsage:
@@ -37,32 +39,24 @@ def _chat_payload(
     temperature: float,
     top_p: float,
     seed: int,
+    num_ctx: int,
     max_tokens: int | None = None,
 ) -> dict[str, Any]:
-    messages: list[dict[str, str]] = []
-    if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.extend(history_messages)
-    messages.append({"role": "user", "content": prompt})
-    payload: dict[str, Any] = {
-        "model": model.removeprefix("ollama/"),
-        "messages": messages,
-        "stream": False,
-        "think": False,
-        "options": {
-            "temperature": temperature,
-            "top_p": top_p,
-            "seed": seed,
-            "num_ctx": 32768,
-        },
-    }
+    fmt = response_format
     if isinstance(response_format, dict) and response_format.get("type") == "json_object":
-        payload["format"] = "json"
-    elif response_format is not None:
-        payload["format"] = response_format
-    if max_tokens is not None:
-        payload["options"]["num_predict"] = max_tokens
-    return payload
+        fmt = "json"
+    return ollama_chat_payload(
+        model=model,
+        prompt=prompt,
+        system_prompt=system_prompt,
+        history_messages=history_messages,
+        temperature=temperature,
+        top_p=top_p,
+        seed=seed,
+        num_ctx=num_ctx,
+        fmt=fmt,
+        max_tokens=max_tokens,
+    )
 
 
 class LocalOllamaBinding:
@@ -77,6 +71,7 @@ class LocalOllamaBinding:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
+        num_ctx: int = 32768,
         timeout_seconds: int = 300,
     ) -> None:
         self.model = model
@@ -86,6 +81,7 @@ class LocalOllamaBinding:
         self.temperature = temperature
         self.top_p = top_p
         self.seed = seed
+        self.num_ctx = num_ctx
         self._completion_calls = 0
         self._embedding_calls = 0
         self._input_tokens = 0
@@ -108,6 +104,7 @@ class LocalOllamaBinding:
             temperature=self.temperature,
             top_p=self.top_p,
             seed=self.seed,
+            num_ctx=self.num_ctx,
             max_tokens=kwargs.get("max_tokens"),
         )
         timeout = aiohttp.ClientTimeout(total=self.timeout_seconds)

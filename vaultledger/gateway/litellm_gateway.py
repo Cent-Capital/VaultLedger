@@ -1,9 +1,8 @@
-"""LiteLLM-backed generation gateway with per-call usage receipts.
+"""Measured generation gateway with per-call usage receipts.
 
-The rest of VaultLedger depends only on ``generate_json``.  This adapter keeps
-that stable protocol while normalising provider response metadata for the
-Phase 11 matrix.  LiteLLM is imported lazily so deterministic tests and the
-local-only app do not probe a provider merely by importing the package.
+The production local path uses the same native Ollama chat payload and endpoint
+as the product. The Phase-11 class name remains for receipt/import compatibility;
+an injected LiteLLM-style completion function is still supported in tests.
 """
 
 from __future__ import annotations
@@ -15,7 +14,11 @@ from typing import Any
 
 import requests
 
-from vaultledger.generate.ollama import GenerationError, ollama_model_name
+from vaultledger.generate.ollama import (
+    GenerationError,
+    ollama_chat_payload,
+    ollama_model_name,
+)
 
 
 @dataclass(frozen=True)
@@ -76,6 +79,7 @@ class LiteLLMGenerator:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
+        num_ctx: int = 32768,
         completion_fn: Callable[..., Any] | None = None,
         cost_fn: Callable[..., float] | None = None,
     ) -> None:
@@ -85,6 +89,7 @@ class LiteLLMGenerator:
         self.temperature = temperature
         self.top_p = top_p
         self.seed = seed
+        self.num_ctx = num_ctx
         self._completion_fn = completion_fn
         self._cost_fn = cost_fn
         self.calls: list[GatewayCall] = []
@@ -130,53 +135,80 @@ class LiteLLMGenerator:
         temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> str:
-        completion_fn, cost_fn = self._functions()
         started = perf_counter()
-        try:
-            request = dict(
+        if self._completion_fn is None:
+            payload = ollama_chat_payload(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                api_base=self.base_url,
-                temperature=self.temperature if temperature is None else temperature,
+                prompt=prompt,
+                temperature=(
+                    self.temperature if temperature is None else temperature
+                ),
                 top_p=self.top_p,
                 seed=self.seed,
-                # Qwen 3 defaults to thinking in Ollama. With a constrained
-                # schema that can spend the entire output on hidden reasoning
-                # and return empty content, so matrix generation explicitly
-                # disables thinking for comparable answer budgets.
-                think=False,
-                timeout=self.timeout,
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": "vaultledger_answer",
-                        "schema": schema,
-                        "strict": True,
-                    },
-                },
+                num_ctx=self.num_ctx,
+                fmt=schema,
+                max_tokens=max_tokens,
             )
-            if max_tokens is not None:
-                request["max_tokens"] = max_tokens
-            response = completion_fn(**request)
-        except Exception as exc:
-            # LiteLLM exposes provider-specific exception classes.  The gateway
-            # deliberately translates all of them into the product's stable
-            # error so routing and matrix code remain provider-independent.
-            raise GenerationError(f"LiteLLM completion failed for {self.model}: {exc}") from exc
+            try:
+                raw_response = requests.post(
+                    f"{self.base_url}/api/chat",
+                    json=payload,
+                    timeout=self.timeout,
+                )
+                raw_response.raise_for_status()
+                response = raw_response.json()
+            except (requests.RequestException, ValueError, TypeError) as exc:
+                raise GenerationError(
+                    f"Ollama chat failed for {self.model}: {exc}"
+                ) from exc
+            input_tokens = int(response.get("prompt_eval_count", 0) or 0)
+            output_tokens = int(response.get("eval_count", 0) or 0)
+            content = str(response.get("message", {}).get("content", "")).strip()
+            raw_cost = None
+        else:
+            completion_fn, cost_fn = self._functions()
+            try:
+                request = dict(
+                    model=self.model,
+                    messages=[{"role": "user", "content": prompt}],
+                    api_base=self.base_url,
+                    temperature=(
+                        self.temperature if temperature is None else temperature
+                    ),
+                    top_p=self.top_p,
+                    seed=self.seed,
+                    think=False,
+                    timeout=self.timeout,
+                    response_format={
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": "vaultledger_answer",
+                            "schema": schema,
+                            "strict": True,
+                        },
+                    },
+                )
+                if max_tokens is not None:
+                    request["max_tokens"] = max_tokens
+                response = completion_fn(**request)
+            except Exception as exc:
+                raise GenerationError(
+                    f"LiteLLM completion failed for {self.model}: {exc}"
+                ) from exc
+            usage = _field(response, "usage", {}) or {}
+            input_tokens = int(_field(usage, "prompt_tokens", 0) or 0)
+            output_tokens = int(_field(usage, "completion_tokens", 0) or 0)
+            content = _content(response)
+            hidden = _field(response, "_hidden_params", {}) or {}
+            raw_cost = _field(hidden, "response_cost", None)
+            if raw_cost is None and cost_fn is not None:
+                try:
+                    raw_cost = cost_fn(completion_response=response)
+                except Exception:
+                    raw_cost = None
 
         latency_ms = round((perf_counter() - started) * 1000, 3)
-        usage = _field(response, "usage", {}) or {}
-        input_tokens = int(_field(usage, "prompt_tokens", 0) or 0)
-        output_tokens = int(_field(usage, "completion_tokens", 0) or 0)
         token_source = "provider_usage" if input_tokens or output_tokens else "unavailable"
-
-        hidden = _field(response, "_hidden_params", {}) or {}
-        raw_cost = _field(hidden, "response_cost", None)
-        if raw_cost is None and cost_fn is not None:
-            try:
-                raw_cost = cost_fn(completion_response=response)
-            except Exception:
-                raw_cost = None
         pricing_status = "priced" if raw_cost not in (None, 0, 0.0) else "unpriced"
         cost_usd = float(raw_cost or 0.0)
         self.calls.append(
@@ -190,7 +222,7 @@ class LiteLLMGenerator:
                 pricing_status=pricing_status,
             )
         )
-        return _content(response)
+        return content
 
 
 __all__ = ["GatewayCall", "GatewayTotals", "LiteLLMGenerator"]

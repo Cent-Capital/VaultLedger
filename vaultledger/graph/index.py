@@ -108,6 +108,7 @@ async def insert_lightrag_document(
         temperature=cfg.generation.temperature,
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
+        num_ctx=cfg.generation.num_ctx,
     )
     rag = LightRAG(
         working_dir=str(destination),
@@ -188,6 +189,7 @@ async def build_lightrag_index(
         temperature=cfg.generation.temperature,
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
+        num_ctx=cfg.generation.num_ctx,
     )
     embedding = EmbeddingFunc(
         embedding_dim=cfg.graph.embedding_dim,
