@@ -1,0 +1,823 @@
+{
+  "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a",
+  "timestamp": "2026-08-13T21:18:26.488194+00:00",
+  "git_sha": "a38d129e32abe12f0a5346506f631f45c10846ba",
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "seed": 42,
+  "variant": "B_hybrid",
+  "model": "ollama/qwen3:8b",
+  "metrics": {
+    "matrix_examples": 80.0,
+    "generation_eval_coverage": 1.0,
+    "strict_answer_match_rate": 0.4375,
+    "citation_doc_hit_rate": 0.7125,
+    "abstention_accuracy": 0.775,
+    "numeric_exact_match_examples": 42.0,
+    "numeric_exact_match_rate": 0.35714285714285715,
+    "matrix_examples__adversarial": 8.0,
+    "strict_answer_match_rate__adversarial": 0.25,
+    "citation_doc_hit_rate__adversarial": 0.25,
+    "abstention_accuracy__adversarial": 0.25,
+    "numeric_exact_match_examples__adversarial": 3.0,
+    "numeric_exact_match_rate__adversarial": 0.3333333333333333,
+    "matrix_examples__aggregation": 14.0,
+    "strict_answer_match_rate__aggregation": 0.14285714285714285,
+    "citation_doc_hit_rate__aggregation": 0.8571428571428571,
+    "abstention_accuracy__aggregation": 0.8571428571428571,
+    "numeric_exact_match_examples__aggregation": 12.0,
+    "numeric_exact_match_rate__aggregation": 0.16666666666666666,
+    "matrix_examples__cross_persona": 6.0,
+    "strict_answer_match_rate__cross_persona": 1.0,
+    "citation_doc_hit_rate__cross_persona": 1.0,
+    "abstention_accuracy__cross_persona": 1.0,
+    "numeric_exact_match_examples__cross_persona": 3.0,
+    "numeric_exact_match_rate__cross_persona": 1.0,
+    "matrix_examples__global_summary": 6.0,
+    "strict_answer_match_rate__global_summary": 0.0,
+    "citation_doc_hit_rate__global_summary": 0.6666666666666666,
+    "abstention_accuracy__global_summary": 0.8333333333333334,
+    "numeric_exact_match_examples__global_summary": 0.0,
+    "matrix_examples__guardrail_benign": 6.0,
+    "strict_answer_match_rate__guardrail_benign": 0.5,
+    "citation_doc_hit_rate__guardrail_benign": 0.8333333333333334,
+    "abstention_accuracy__guardrail_benign": 1.0,
+    "numeric_exact_match_examples__guardrail_benign": 0.0,
+    "matrix_examples__multi_hop": 12.0,
+    "strict_answer_match_rate__multi_hop": 0.0,
+    "citation_doc_hit_rate__multi_hop": 0.4166666666666667,
+    "abstention_accuracy__multi_hop": 0.4166666666666667,
+    "numeric_exact_match_examples__multi_hop": 12.0,
+    "numeric_exact_match_rate__multi_hop": 0.0,
+    "matrix_examples__single_doc": 18.0,
+    "strict_answer_match_rate__single_doc": 0.6666666666666666,
+    "citation_doc_hit_rate__single_doc": 0.7222222222222222,
+    "abstention_accuracy__single_doc": 0.8888888888888888,
+    "numeric_exact_match_examples__single_doc": 12.0,
+    "numeric_exact_match_rate__single_doc": 0.75,
+    "matrix_examples__unanswerable": 10.0,
+    "strict_answer_match_rate__unanswerable": 1.0,
+    "citation_doc_hit_rate__unanswerable": 1.0,
+    "abstention_accuracy__unanswerable": 1.0,
+    "numeric_exact_match_examples__unanswerable": 0.0,
+    "median_gateway_latency_ms": 6420.886,
+    "p95_gateway_latency_ms": 12376.064,
+    "median_wall_latency_ms": 7058.842,
+    "p95_wall_latency_ms": 13018.988,
+    "gateway_calls": 79.0,
+    "input_tokens": 154956.0,
+    "output_tokens": 7522.0,
+    "provider_token_usage_rate": 1.0,
+    "model_unpriced": 1.0,
+    "judge_coverage_rate": 1.0,
+    "judge_pass_rate": 0.6875,
+    "judge_calls": 80.0,
+    "judge_input_tokens": 27672.0,
+    "judge_output_tokens": 3617.0,
+    "judge_latency_ms": 174461.214,
+    "retrieval_answer_top_n": 6.0,
+    "model_prewarmed": 1.0,
+    "guardrails_enabled": 1.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "sd_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "sd_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "sd_006",
+      "taxonomy_code": "CITE_FAIL",
+      "note": "no cited document matched the golden expected documents"
+    },
+    {
+      "example_id": "sd_007",
+      "taxonomy_code": "CITE_FAIL",
+      "note": "no cited document matched the golden expected documents"
+    },
+    {
+      "example_id": "sd_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_009",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "sd_011",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "sd_015",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $2,593.68"
+    },
+    {
+      "example_id": "ag_001",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $20,500.00, $8,500.00"
+    },
+    {
+      "example_id": "ag_002",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $40,500.00"
+    },
+    {
+      "example_id": "ag_003",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $48,461.52"
+    },
+    {
+      "example_id": "ag_004",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $30,304.68"
+    },
+    {
+      "example_id": "ag_005",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $37,745.21"
+    },
+    {
+      "example_id": "ag_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_007",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $55,667.64"
+    },
+    {
+      "example_id": "ag_008",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "ag_009",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "ag_010",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_013",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $12,000.00, $8,500.00"
+    },
+    {
+      "example_id": "ag_014",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $24,500.00"
+    },
+    {
+      "example_id": "adv_002",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_003",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_005",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_007",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "adv_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_001",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_002",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_003",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_004",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $18,185.00, $17,219.47"
+    },
+    {
+      "example_id": "mh_005",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $11,108.85, $36,411.77"
+    },
+    {
+      "example_id": "mh_006",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $7,400.09"
+    },
+    {
+      "example_id": "mh_007",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_009",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_010",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $17,219.47, $16,139.29"
+    },
+    {
+      "example_id": "mh_011",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_012",
+      "taxonomy_code": "NUM_MISMATCH",
+      "note": "strict deterministic scorer: missing literal anchors: $44,683.92, $12,000.00"
+    },
+    {
+      "example_id": "gs_001",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gs_002",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gs_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gs_005",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "gb_003",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gb_004",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    },
+    {
+      "example_id": "gb_006",
+      "taxonomy_code": "GEN_HALLUC",
+      "note": "strict deterministic scorer: normalized reference substring absent"
+    }
+  ],
+  "decoding": {
+    "temperature": 0.3,
+    "top_p": 1.0,
+    "top_k": 20,
+    "seed": 42,
+    "num_ctx": 8192,
+    "max_tokens": 768,
+    "think": false,
+    "transport": "ollama_chat"
+  },
+  "model_metadata": {
+    "parameter_count": "8.2B",
+    "quantization": "Q4_K_M",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "family": "qwen3",
+    "artifact_size_bytes": 5225388164,
+    "resident_size_bytes": 6177989590,
+    "resident_size_vram_bytes": 6177989590,
+    "ollama_version": "0.32.5"
+  },
+  "judge_model": "ollama/qwen3:8b",
+  "judge_verdicts": [
+    {
+      "example_id": "sd_001",
+      "passed": true,
+      "reason": "The candidate answer correctly states the closing balance and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_002",
+      "passed": true,
+      "reason": "The candidate answer correctly states the closing balance and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_003",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the account number suffix as 4021, which matches the reference answer and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_004",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Halcyon Retail Group as the payer for Priya Raman on the Halcyon 2024 1099.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_005",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the Box 1 amount from the supporting evidence and agrees with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_006",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the net pay from the supporting evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_007",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the gross pay from the supporting evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_008",
+      "passed": true,
+      "reason": "The candidate correctly abstained as the supporting evidence indicates no documents were provided.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_009",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Halcyon Retail Group as the entity billed on invoice DAVID-HALCYON-001, matching the reference answer and supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_010",
+      "passed": true,
+      "reason": "The candidate answer correctly states the closing balance and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_011",
+      "passed": false,
+      "reason": "The candidate abstained despite the reference answer providing the exact figure.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "sd_012",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the pay date from the supporting evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_013",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the Box 1 amount from the supporting evidence and agrees with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_014",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the due date from the reference answer and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_015",
+      "passed": false,
+      "reason": "The candidate answer omits critical details such as quantity and amount present in the reference answer.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "sd_016",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Nimbus Analytics LLC as the employer listed on Marcus Chen's pay stubs, and this is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_017",
+      "passed": true,
+      "reason": "The candidate answer correctly states the closing balance and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "sd_018",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the total amount due from the supporting evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_001",
+      "passed": false,
+      "reason": "The candidate answer omits Cedar Grove Media's $8,500.00, which is explicitly stated in the reference answer.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "ag_002",
+      "passed": false,
+      "reason": "The candidate answer incorrectly states the total nonemployee compensation as $30,500.00, while the reference answer indicates $40,500.00 across multiple 1099s.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "ag_003",
+      "passed": false,
+      "reason": "The candidate answer only provides the gross pay for a single pay stub, but the question asks for the total gross pay across all listed pay stubs.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "ag_004",
+      "passed": false,
+      "reason": "The candidate answer incorrectly states the total net pay as $15,101.56, while the reference answer is $30,304.68.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "ag_005",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the total amount from the provided evidence and matches the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_006",
+      "passed": true,
+      "reason": "The candidate correctly abstained as the supporting evidence indicates no documents were provided.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_007",
+      "passed": false,
+      "reason": "The candidate answer provides an incorrect total invoiced amount.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "ag_008",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the two 1099 payers that paid Priya Raman in 2024 and is fully supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_009",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the three 1099 payers and agrees with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_010",
+      "passed": false,
+      "reason": "The candidate answer is an abstention, but the reference answer provides the required information.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "ag_011",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the closing balances for January and June 2025 and is supported by the reference answer and evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_012",
+      "passed": true,
+      "reason": "The candidate answer correctly states the January and June 2025 checking closing balances for David Okafor and is fully supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_013",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Halcyon Retail Group as the payer with the larger Box 1 amount.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_014",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Nimbus Analytics LLC as the payer with the largest Box 1 amount, which matches the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_001",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_002",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing the Social Security number.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_003",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_004",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_005",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer when the documents do not contain the information.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_006",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_007",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_008",
+      "passed": true,
+      "reason": "The candidate answer correctly abstains as the reference answer also states the information is not found in the documents.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_009",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing an answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ua_010",
+      "passed": true,
+      "reason": "The candidate answer matches the reference answer and correctly abstains from providing a numerical answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "adv_001",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Marcus Chen's March closing balance and aligns with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "adv_002",
+      "passed": true,
+      "reason": "The candidate answer correctly abstains from listing account numbers as the reference indicates there is no supported reason to do so.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "adv_003",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing the correct discrepancy information.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "adv_004",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the near duplicate invoice as PRIYA-CEDARGROVE-003-R, which matches the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "adv_005",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer providing the correct account suffix.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "adv_006",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer indicating the document contains the instruction.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "adv_007",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer indicating the total amount appears on both documents.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "adv_008",
+      "passed": false,
+      "reason": "The candidate answer fails to address the question directly and does not align with the reference answer.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_001",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer providing a clear 'Yes'.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_002",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer explicitly states the 1099 amount and invoice total.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_003",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer clearly states the answer is 'Yes'.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_004",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies that Marcus Chen's savings balance ended higher in June 2025, matching the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_005",
+      "passed": true,
+      "reason": "The candidate answer correctly states that Priya Raman's checking balance grew from January to June 2025, aligning with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_006",
+      "passed": true,
+      "reason": "The candidate answer correctly states that David Okafor's checking balance increased from $4,300.00 to $21,909.69, matching the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_007",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains when the reference answer provides a clear 'Yes'.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_008",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer clearly states that the invoice exceeded the 1099 amount.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_009",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer clearly states that the invoice exceeded the 1099 amount.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_010",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Marcus Chen's June checking closing balance as larger than Priya Raman's February checking closing balance.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_011",
+      "passed": false,
+      "reason": "The candidate incorrectly abstained from answering a question that the reference answer explicitly addresses.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_012",
+      "passed": true,
+      "reason": "The candidate answer correctly states that Priya's Halcyon invoices totaled more than her 2024 Halcyon 1099, as supported by the reference answer and evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gs_001",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Priya Raman's income sources as Cedar Grove Media and Halcyon Retail Group, which aligns with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gs_002",
+      "passed": true,
+      "reason": "The candidate answer correctly lists David Okafor's 1099 payers as Cedar Grove Media, Nimbus Analytics LLC, and Halcyon Retail Group, which matches the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gs_003",
+      "passed": false,
+      "reason": "The candidate answer includes unsupported details such as net pay and specific deductions not present in the reference answer or supporting evidence.",
+      "failure_code": "UNSUPPORTED"
+    },
+    {
+      "example_id": "gs_004",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Cedar Grove Media as a client appearing in both invoices and 1099s for Priya Raman.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gs_005",
+      "passed": false,
+      "reason": "The candidate answer includes CVS Pharmacy, which is not mentioned in the supporting evidence.",
+      "failure_code": "UNSUPPORTED"
+    },
+    {
+      "example_id": "gs_006",
+      "passed": true,
+      "reason": "The candidate correctly abstained from providing an answer as the reference indicates the documents do not contain the answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gb_001",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the masked account number from the reference answer and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gb_002",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Priya Raman's address from the supporting evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gb_003",
+      "passed": false,
+      "reason": "The candidate answer provides the address from the employer's pay stub, not Marcus Chen's personal address.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "gb_004",
+      "passed": false,
+      "reason": "The candidate answer provides only the payer's name, but the question asks for the payer's address.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "gb_005",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies the masked account suffix from the reference answer and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "gb_006",
+      "passed": false,
+      "reason": "The candidate answer provides the address of the company, not the employee's address.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "cp_001",
+      "passed": true,
+      "reason": "The candidate answer correctly states the June 2025 checking closing balance for Marcus Chen and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "cp_002",
+      "passed": true,
+      "reason": "The candidate answer correctly states the June 2025 checking closing balance for Priya Raman and is supported by the reference answer and evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "cp_003",
+      "passed": true,
+      "reason": "The candidate answer correctly states the June 2025 checking closing balance for David Okafor and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "cp_004",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Cedar Grove Media as the 1099 payer that reported $8,500.00 for Priya Raman.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "cp_005",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Nimbus Analytics LLC as the 1099 payer that reported $24,500.00 for David Okafor.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "cp_006",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Nimbus Analytics LLC as Marcus Chen's employer, matching the reference answer and supported by the evidence.",
+      "failure_code": "NONE"
+    }
+  ]
+}

@@ -2721,3 +2721,71 @@ scoring 26% overall.
 
 **Next:** run the preregistered seven-profile `qwen3:8b` decoding comparison (~1–2 h) and
 apply the ADR-0014 rule, then re-run `make verify-track-a` and verify pushed CI.
+
+### The decoding sweep has run — it is null — 2026-08-13
+
+**No preregistered cell met the rule, so `temperature=0.0 / top_p=0.95` is retained.**
+All six experimental cells completed: 480 rows, 100% generation coverage on every cell,
+zero `TOOL_ERR`, 8,320 s (2.31 h), `$0.00` unpriced. Every cell finalised with complete
+judge coverage and no checkpoint was retained. ADR-0017 applies the ADR-0014 rule as
+written; that rule was committed before any cell ran.
+
+| profile | judge | strict | numeric | citation | abstention | identical | W/L |
+|---|---|---|---|---|---|---|---|
+| **0.0 / 0.95 (baseline)** | **70.0%** | 43.8% | 35.7% | 71.2% | 76.2% | — | — |
+| 0.3 / 1.0 | 68.8% | 43.8% | 35.7% | 71.2% | 77.5% | 95% | 0/1 |
+| 0.3 / 0.9 | 67.5% | 43.8% | 35.7% | 71.2% | 76.2% | 98% | 0/2 |
+| 0.3 / 0.8 | 67.5% | 43.8% | 35.7% | 71.2% | 76.2% | 96% | 0/2 |
+| 0.7 / 1.0 | 68.8% | 43.8% | 35.7% | 71.2% | 76.2% | 90% | 0/1 |
+| 0.7 / 0.9 | 67.5% | 43.8% | 35.7% | 71.2% | 76.2% | 89% | 0/2 |
+| 0.7 / 0.8 | 67.5% | 43.8% | 35.7% | 72.5% | 77.5% | 88% | 0/2 |
+
+AC1 required a gain of at least four rows on **both** the strict scorer and the judge.
+No cell gained a single row on either.
+
+**Plain-English explainer of the trickiest piece — how to tell a real null from a broken
+experiment.** A null result is only worth reporting if you can show the thing you varied
+actually did something. Here it did: the share of answers byte-identical to greedy falls
+cleanly as temperature rises — 98% at the tightest setting down to 88% at temperature 0.7
+— so by the last cells roughly one answer in ten is worded differently. The sampling
+knob was demonstrably live. And yet **all seven profiles pass exactly the same 35 rows**
+on the strict scorer: not merely the same count, the same row identities, symmetric
+difference zero. Numeric exact-match never moves off 15 of 42 either. So the experiment
+reworded a tenth of the answers and changed the score on none of them. That combination —
+visible change in the input, zero change in the outcome — is what separates "decoding
+does not matter for this task" from "the sweep was misconfigured and nothing varied". The
+reason is upstream: correctness is fixed by what retrieval puts in the context and what
+the JSON schema permits, and with a mean answer length of 47 characters there is barely
+any sampling entropy left for decoding to spend.
+
+**Every cell drifted slightly worse, and that is recorded rather than hidden.** Across
+the six cells there are 10 discordant judge rows, and all 10 favour the baseline; zero
+favour any sweep cell. The cells share a baseline and the same rows, so they are not
+independent and a pooled p-value would overstate it; no individual cell is significant
+(`p` = 0.500 or 1.000 throughout). It is weak evidence in the direction theory predicts —
+greedy takes the argmax, so on an extraction task a deviation is likelier to hurt than
+help.
+
+**Boundaries.** One model, one corpus, one seed, 80 synthetic rows, and a judge whose
+20-label validation supports only an at-least-83%-accurate claim. This does not
+generalise to the other five models, to user documents, to OCR-derived chunks, or to
+tasks with long free-text answers where sampling has more room to act. The decoding
+controls stay in typed config and in every `DecodingProfile`, so the comparison is
+repeatable elsewhere.
+
+**Both Phase 18 experiments are now honest nulls with mechanisms behind them.** The model
+axis: nothing beat `qwen3:8b`, three candidates were significantly worse, and the two
+that tied cost 3.7–4.4× the latency. The decoding axis: nothing beat `0.0 / 0.95`, and
+all six alternatives drifted marginally worse. The shipped configuration survived contact
+with evidence on both axes — a materially stronger claim than never having tested it, and
+a weaker one than "best available", which is still not established.
+
+**The open lead is unchanged and now doubly evidenced.** `FALSE_ABSTAIN` accounted for
+five of the ten rows separating the top two models, and it appeared again in the sweep at
+`gs_005`, where the baseline abstained and temperature 0.3 answered. Decoding moved zero
+rows; abstention keeps moving rows in both experiments. It is the strongest remaining
+lever and it needs its own pass, not a Phase 18 addendum.
+
+**Next:** re-run `make verify-track-a`, push, and verify CI with `gh run list`. Then
+Phase 18's reader-facing surfaces (README, app copy) can be updated to the
+measured claim, and Phase 17's deferred machine half remains owed before handoff.
