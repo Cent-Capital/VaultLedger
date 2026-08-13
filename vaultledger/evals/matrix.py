@@ -914,8 +914,8 @@ def write_latency_quality_frontier(
         family = metadata.family if metadata else manifest.model.split("/", 1)[-1].split(":")[0]
         points.append((manifest, latency, quality, quality_key, resident, family))
 
-    width, height = 1040, 650
-    left, right, top, bottom = 90, 250, 95, 130
+    width, height = 1180, 720
+    left, right, top, bottom = 90, 260, 105, 180
     plot_width = width - left - right
     plot_height = height - top - bottom
     max_latency = max((point[1] for point in points), default=1.0) or 1.0
@@ -1001,6 +1001,15 @@ def write_latency_quality_frontier(
             ),
         ]
     )
+    quality_ranks: dict[tuple[float, int], int] = {}
+    for quality in sorted({point[2] for point in points}):
+        same_band = sorted(
+            ((index, point) for index, point in enumerate(points) if point[2] == quality),
+            key=lambda item: item[1][1],
+        )
+        for rank, (index, _) in enumerate(same_band):
+            quality_ranks[(quality, index)] = rank
+
     for index, (manifest, latency, quality, quality_key, resident, family) in enumerate(points):
         x, y = x_pos(latency), y_pos(quality)
         root = (
@@ -1016,7 +1025,18 @@ def write_latency_quality_frontier(
         label = manifest.model.removeprefix("ollama/")
         if len({item.model for item in manifests}) < len(manifests):
             label += f" ({_decoding_text(manifest)})"
-        label_y = y + (4 if index % 2 == 0 else -8)
+        label_rank = quality_ranks[(quality, index)]
+        label_row = label_rank % 2
+        if quality >= 0.75:
+            label_y = y + r + 18 + label_row * 34
+        elif quality <= 0.25:
+            label_y = y - r - 30 - label_row * 34
+        else:
+            label_y = y - r - 20 if label_row == 0 else y + r + 24
+        plot_right = left + plot_width
+        place_left = x > plot_right - 120
+        label_x = x - r - 8 if place_left else x + r + 8
+        label_anchor = ' text-anchor="end"' if place_left else ""
         title = (
             f"{manifest.model}; {quality_key}={quality:.1%}; "
             f"median wall={latency:.0f} ms; resident={_gib(resident) if resident else 'unknown'}"
@@ -1029,17 +1049,18 @@ def write_latency_quality_frontier(
                     '</circle>'
                 ),
                 (
-                    f'<text x="{x + r + 7:.1f}" y="{label_y:.1f}" font-size="12" '
-                    f'font-weight="600">{escape(label)}</text>'
+                    f'<text x="{label_x:.1f}" y="{label_y:.1f}" font-size="12" '
+                    f'font-weight="600"{label_anchor}>{escape(label)}</text>'
                 ),
                 (
-                    f'<text x="{x + r + 7:.1f}" y="{label_y + 16:.1f}" '
-                    f'font-size="11" class="mono muted">{quality:.1%} · '
+                    f'<text x="{label_x:.1f}" y="{label_y + 16:.1f}" '
+                    f'font-size="11" class="mono muted"{label_anchor}>{quality:.1%} · '
                     f'{latency / 1000:.1f}s</text>'
                 ),
             ]
         )
     legend_x = left + plot_width + 50
+    caveat_y = top + plot_height + 90
     svg.extend(
         [
             f'<text x="{legend_x}" y="{top + 8}" font-size="12" font-weight="700">Family</text>',
@@ -1070,15 +1091,15 @@ def write_latency_quality_frontier(
                 'class="muted">more resident bytes</text>'
             ),
             (
-                '<rect x="70" y="565" width="900" height="58" rx="8" '
+                f'<rect x="70" y="{caveat_y}" width="{width - 140}" height="65" rx="8" '
                 'fill="#f8fafc" stroke="#d0d5dd"/>'
             ),
             (
-                '<text x="90" y="589" font-size="12" font-weight="700">'
+                f'<text x="90" y="{caveat_y + 25}" font-size="12" font-weight="700">'
                 'Descriptive only — not a latency ranking</text>'
             ),
             (
-                '<text x="90" y="609" font-size="11" class="muted">'
+                f'<text x="90" y="{caveat_y + 47}" font-size="11" class="muted">'
                 'Phase 13 saw ~50% p50 movement between runs with byte-identical answers. '
                 'Machine load can move points more than the apparent model gap.</text>'
             ),

@@ -158,7 +158,7 @@ def _manifest() -> RunManifest:
             temperature=0.0,
             top_p=0.95,
             seed=42,
-        num_ctx=8192,
+            num_ctx=8192,
             max_tokens=768,
         ),
         model_metadata=ModelMetadata(
@@ -204,6 +204,8 @@ def test_phase18_report_and_frontier_are_manifest_generated(tmp_path: Path):
     markdown = report.read_text()
     assert "Descriptive only — not a latency ranking" in svg
     assert "bubble area ≈ resident bytes" in svg
+    assert 'width="1180" height="720"' in svg
+    assert '<rect x="70" y="630" width="1040" height="65"' in svg
     assert "sha256:full-digest" in markdown
     assert "8.2B" in markdown and "Q4_K_M" in markdown
     assert "The answer omits one required invoice amount." in markdown
