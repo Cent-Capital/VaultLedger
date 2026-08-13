@@ -15,9 +15,20 @@ def ollama_model_name(model_id: str) -> str:
 
 
 class OllamaGenerator:
-    def __init__(self, model: str, base_url: str = "http://localhost:11434") -> None:
+    def __init__(
+        self,
+        model: str,
+        base_url: str = "http://localhost:11434",
+        *,
+        temperature: float = 0.0,
+        top_p: float = 0.95,
+        seed: int = 42,
+    ) -> None:
         self.model = ollama_model_name(model)
         self.base_url = base_url.rstrip("/")
+        self.temperature = temperature
+        self.top_p = top_p
+        self.seed = seed
 
     def is_available(self) -> bool:
         try:
@@ -28,7 +39,7 @@ class OllamaGenerator:
         except requests.RequestException:
             return False
 
-    def generate(self, prompt: str, *, temperature: float = 0.0) -> str:
+    def generate(self, prompt: str, *, temperature: float | None = None) -> str:
         return self._generate(prompt, temperature=temperature)
 
     def generate_json(
@@ -36,7 +47,7 @@ class OllamaGenerator:
         prompt: str,
         schema: dict,
         *,
-        temperature: float = 0.0,
+        temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> str:
         """Generate with Ollama's constrained JSON decoding (``format`` = schema).
@@ -54,7 +65,7 @@ class OllamaGenerator:
         self,
         prompt: str,
         *,
-        temperature: float = 0.0,
+        temperature: float | None = None,
         fmt: dict | None = None,
         max_tokens: int | None = None,
     ) -> str:
@@ -74,7 +85,13 @@ class OllamaGenerator:
             # gone. Any generator the product uses must match the gateway's
             # decoding settings or the evals measure something else (ADR-0007).
             "think": False,
-            "options": {"temperature": temperature},
+            "options": {
+                "temperature": self.temperature if temperature is None else temperature,
+                "top_p": self.top_p,
+                # RunManifest.seed used to describe a knob that never reached
+                # inference. Phase 18 makes the recorded value operative.
+                "seed": self.seed,
+            },
         }
         if fmt is not None:
             payload["format"] = fmt

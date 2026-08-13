@@ -10,7 +10,7 @@ from vaultledger.schemas import Answer, Citation, RoutingDecision
 
 
 class TextGenerator(Protocol):
-    def generate(self, prompt: str, *, temperature: float = 0.0) -> str:
+    def generate(self, prompt: str, *, temperature: float | None = None) -> str:
         """Generate answer text from a prompt."""
 
 
@@ -46,7 +46,7 @@ def answer_question(
     """Retrieve, assemble context, generate, and attach top supporting citations."""
     hits = retriever.retrieve(question, k=k)
     context = assemble_context(hits)
-    text = generator.generate(build_prompt(question, context), temperature=0.0)
+    text = generator.generate(build_prompt(question, context))
     abstained = "couldn't find that in your documents" in text.lower()
     cited_hits = hits[: min(3, len(hits))]
     citations = [

@@ -187,7 +187,13 @@ def run_eval(args: argparse.Namespace) -> int:
     print(json.dumps({"manifest": str(out_path), "metrics": metrics}, indent=2))
 
     if args.answer_one:
-        generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
+        generator = OllamaGenerator(
+            cfg.models.T1.id,
+            base_url=cfg.embedding.ollama_url,
+            temperature=cfg.generation.temperature,
+            top_p=cfg.generation.top_p,
+            seed=cfg.seed,
+        )
         if not generator.is_available():
             print(f"SKIP answer_one: generation model {cfg.models.T1.id!r} unavailable")
             return 0
@@ -263,7 +269,13 @@ def run_safety_eval(args: argparse.Namespace) -> int:
     ]
 
     embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
-    generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
+    generator = OllamaGenerator(
+        cfg.models.T1.id,
+        base_url=cfg.embedding.ollama_url,
+        temperature=cfg.generation.temperature,
+        top_p=cfg.generation.top_p,
+        seed=cfg.seed,
+    )
     if not embedder.is_available() or not generator.is_available():
         raise RuntimeError("Phase 7 safety eval requires the configured local Ollama models")
     reranker = (
@@ -408,7 +420,13 @@ def run_judge_validation(args: argparse.Namespace) -> int:
     """Validate the configured local judge against 20 human labels."""
     cfg = load_config()
     items = load_human_labels(args.labels)
-    generator = OllamaGenerator(args.model or cfg.models.T1.id, cfg.embedding.ollama_url)
+    generator = OllamaGenerator(
+        args.model or cfg.models.T1.id,
+        cfg.embedding.ollama_url,
+        temperature=cfg.generation.temperature,
+        top_p=cfg.generation.top_p,
+        seed=cfg.seed,
+    )
     if not generator.is_available():
         raise RuntimeError(f"judge model {generator.model!r} is unavailable in Ollama")
 

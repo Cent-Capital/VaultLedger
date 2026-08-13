@@ -69,7 +69,7 @@ class StructuredGenerator(Protocol):
     """A generator that returns a JSON string constrained to a schema."""
 
     def generate_json(
-        self, prompt: str, schema: dict, *, temperature: float = 0.0
+        self, prompt: str, schema: dict, *, temperature: float | None = None
     ) -> str:
         """Return a JSON string that should validate against ``schema``."""
 

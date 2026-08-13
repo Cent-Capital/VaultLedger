@@ -62,6 +62,9 @@ def test_litellm_gateway_preserves_protocol_and_records_provider_usage():
     assert json.loads(raw) == {"ok": True}
     assert seen["model"] == "ollama/qwen3:4b"
     assert seen["think"] is False
+    assert seen["temperature"] == 0.0
+    assert seen["top_p"] == 0.95
+    assert seen["seed"] == 42
     assert seen["response_format"]["type"] == "json_schema"
     assert generator.snapshot().input_tokens == 123
     assert generator.snapshot().output_tokens == 9

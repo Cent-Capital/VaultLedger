@@ -34,6 +34,9 @@ def _chat_payload(
     system_prompt: str | None,
     history_messages: list[dict[str, str]],
     response_format: Any | None,
+    temperature: float,
+    top_p: float,
+    seed: int,
     max_tokens: int | None = None,
 ) -> dict[str, Any]:
     messages: list[dict[str, str]] = []
@@ -46,7 +49,12 @@ def _chat_payload(
         "messages": messages,
         "stream": False,
         "think": False,
-        "options": {"temperature": 0.0, "num_ctx": 32768},
+        "options": {
+            "temperature": temperature,
+            "top_p": top_p,
+            "seed": seed,
+            "num_ctx": 32768,
+        },
     }
     if isinstance(response_format, dict) and response_format.get("type") == "json_object":
         payload["format"] = "json"
@@ -66,12 +74,18 @@ class LocalOllamaBinding:
         model: str,
         embedding_model: str,
         base_url: str,
+        temperature: float = 0.0,
+        top_p: float = 0.95,
+        seed: int = 42,
         timeout_seconds: int = 300,
     ) -> None:
         self.model = model
         self.embedding_model = embedding_model
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        self.temperature = temperature
+        self.top_p = top_p
+        self.seed = seed
         self._completion_calls = 0
         self._embedding_calls = 0
         self._input_tokens = 0
@@ -91,6 +105,9 @@ class LocalOllamaBinding:
             system_prompt=system_prompt,
             history_messages=history_messages or [],
             response_format=kwargs.get("response_format"),
+            temperature=self.temperature,
+            top_p=self.top_p,
+            seed=self.seed,
             max_tokens=kwargs.get("max_tokens"),
         )
         timeout = aiohttp.ClientTimeout(total=self.timeout_seconds)

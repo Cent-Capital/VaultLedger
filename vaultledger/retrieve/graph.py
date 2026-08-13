@@ -71,6 +71,9 @@ class LightRAGRetriever:
         embedding_model: str,
         embedding_dim: int,
         base_url: str,
+        temperature: float = 0.0,
+        top_p: float = 0.95,
+        seed: int = 42,
         query_mode: GraphQueryMode = "global",
         query_data_fn: QueryDataFn | None = None,
         chunks: dict[str, Chunk] | None = None,
@@ -83,6 +86,9 @@ class LightRAGRetriever:
         self.embedding_model = embedding_model
         self.embedding_dim = embedding_dim
         self.base_url = base_url.rstrip("/")
+        self.temperature = temperature
+        self.top_p = top_p
+        self.seed = seed
         self.query_mode = query_mode
         self._query_data_fn = query_data_fn
         loaded = chunks if chunks is not None else {
@@ -112,6 +118,9 @@ class LightRAGRetriever:
             embedding_model=cfg.embedding.model,
             embedding_dim=cfg.graph.embedding_dim,
             base_url=cfg.embedding.ollama_url,
+            temperature=cfg.generation.temperature,
+            top_p=cfg.generation.top_p,
+            seed=cfg.seed,
             query_mode=query_mode or cfg.graph.query_mode_default,
         )
 
@@ -136,6 +145,9 @@ class LightRAGRetriever:
             model=self.model,
             embedding_model=self.embedding_model,
             base_url=self.base_url,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            seed=self.seed,
         )
         rag = LightRAG(
             working_dir=str(self.working_dir),

@@ -442,7 +442,13 @@ def _run_cell(
     guardrail_toggles: GuardrailToggles | None = None,
     records_db: Path | None = None,
 ) -> tuple[Path, Path]:
-    generator = LiteLLMGenerator(model, base_url=cfg.embedding.ollama_url)
+    generator = LiteLLMGenerator(
+        model,
+        base_url=cfg.embedding.ollama_url,
+        temperature=cfg.generation.temperature,
+        top_p=cfg.generation.top_p,
+        seed=cfg.seed,
+    )
     if not generator.is_available():
         raise RuntimeError(f"matrix model {model!r} is unavailable in Ollama")
 

@@ -39,7 +39,7 @@ class JudgeVerdict(BaseModel):
 
 class JudgeGenerator(Protocol):
     def generate_json(
-        self, prompt: str, schema: dict, *, temperature: float = 0.0
+        self, prompt: str, schema: dict, *, temperature: float | None = None
     ) -> str: ...
 
 
@@ -90,7 +90,6 @@ def judge_item(
     raw = generator.generate_json(
         build_judge_prompt(item, rubric),
         JudgeVerdict.model_json_schema(),
-        temperature=0.0,
     )
     start, end = raw.find("{"), raw.rfind("}")
     if start < 0 or end < start:

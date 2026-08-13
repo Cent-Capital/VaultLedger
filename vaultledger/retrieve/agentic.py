@@ -70,7 +70,7 @@ class AgentPlanner(Protocol):
         prompt: str,
         schema: dict,
         *,
-        temperature: float = 0.0,
+        temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> str: ...
 
@@ -424,7 +424,6 @@ def run_agent_loop(
             raw = planner.generate_json(
                 prompt,
                 AGENT_ACTION_SCHEMA,
-                temperature=0.0,
                 max_tokens=output_cap,
             )
             visible_raw = raw[: output_cap * 4]

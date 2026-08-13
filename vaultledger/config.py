@@ -66,6 +66,9 @@ class Matrix(BaseModel):
 
     variants: list[str] = ["B_hybrid"]
     smoke_limit: int = Field(default=12, ge=0)
+    decoding_sweep_model: str = "ollama/qwen3:8b"
+    decoding_temperatures: list[float] = [0.0, 0.3, 0.7]
+    decoding_top_ps: list[float] = [1.0, 0.9]
 
 
 class Router(BaseModel):
@@ -106,6 +109,11 @@ class Retrieval(BaseModel):
 class Generation(BaseModel):
     """Phase 5 structured-output + citation-verification knobs."""
 
+    # Phase 18 promotes the previously implicit decoding profile to typed
+    # config. qwen3:8b's installed Ollama Modelfile reports top_p=0.95, so
+    # making that value explicit preserves the pre-Phase-18 effective value.
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    top_p: float = Field(default=0.95, gt=0.0, le=1.0)
     # Minimum normalized snippet length a citation must carry to be verifiable.
     min_snippet_chars: int = 16
     litm_reorder: bool = True

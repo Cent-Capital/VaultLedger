@@ -40,6 +40,11 @@ models:
 matrix:
   variants: ["B_hybrid"]
   smoke_limit: 12             # 0 = full golden set; full six-model sweep is Phase 18
+  # Phase 18 pre-registered sweep. The current default (0.0, 0.95) is the
+  # canonical qwen3:8b matrix cell and serves as the seventh/baseline cell.
+  decoding_sweep_model: "ollama/qwen3:8b"
+  decoding_temperatures: [0.0, 0.3, 0.7]
+  decoding_top_ps: [1.0, 0.9]
 
 router:                        # Phase 12 deterministic initial-routing policy (ADR-0004)
   t0_categories: ["single_doc", "guardrail_benign"]
@@ -70,7 +75,11 @@ retrieval:
   rrf_constant: 60                # SPEC 9.6 reciprocal-rank-fusion constant
   answer_top_n: 6                 # final context chunks for generation
 
-generation:                       # Phase 5 structured output + citation verify
+generation:                       # Phase 5 + Phase 18 typed decoding controls
+  temperature: 0.0               # pre-Phase-18 explicit value
+  # qwen3:8b's installed Modelfile reports 0.95. Ollama's engine fallback is
+  # 0.9, but it was not effective because the model overrides it.
+  top_p: 0.95
   min_snippet_chars: 16           # shortest normalized snippet a citation may carry
   litm_reorder: true              # put highest-value evidence at context edges
   context_budget_chars: 12000     # hard character budget for assembled evidence

@@ -73,12 +73,18 @@ class LiteLLMGenerator:
         *,
         base_url: str = "http://localhost:11434",
         timeout: int = 180,
+        temperature: float = 0.0,
+        top_p: float = 0.95,
+        seed: int = 42,
         completion_fn: Callable[..., Any] | None = None,
         cost_fn: Callable[..., float] | None = None,
     ) -> None:
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.temperature = temperature
+        self.top_p = top_p
+        self.seed = seed
         self._completion_fn = completion_fn
         self._cost_fn = cost_fn
         self.calls: list[GatewayCall] = []
@@ -121,7 +127,7 @@ class LiteLLMGenerator:
         prompt: str,
         schema: dict,
         *,
-        temperature: float = 0.0,
+        temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> str:
         completion_fn, cost_fn = self._functions()
@@ -131,7 +137,9 @@ class LiteLLMGenerator:
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 api_base=self.base_url,
-                temperature=temperature,
+                temperature=self.temperature if temperature is None else temperature,
+                top_p=self.top_p,
+                seed=self.seed,
                 # Qwen 3 defaults to thinking in Ollama. With a constrained
                 # schema that can spend the entire output on hidden reasoning
                 # and return empty content, so matrix generation explicitly

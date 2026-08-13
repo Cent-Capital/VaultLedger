@@ -332,12 +332,18 @@ def test_local_binding_disables_thinking_and_maps_json_mode():
         system_prompt="system",
         history_messages=[{"role": "assistant", "content": "prior"}],
         response_format={"type": "json_object"},
+        temperature=0.0,
+        top_p=0.95,
+        seed=42,
         max_tokens=512,
     )
     assert payload["model"] == "qwen3:8b"
     assert payload["think"] is False
     assert payload["format"] == "json"
     assert payload["options"]["num_predict"] == 512
+    assert payload["options"]["temperature"] == 0.0
+    assert payload["options"]["top_p"] == 0.95
+    assert payload["options"]["seed"] == 42
     assert [message["role"] for message in payload["messages"]] == [
         "system",
         "assistant",

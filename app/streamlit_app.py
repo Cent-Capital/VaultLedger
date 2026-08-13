@@ -340,7 +340,13 @@ with ask:
                     retriever = LightRAGRetriever.from_config(cfg, live=is_live_answer)
                 else:
                     retriever = hybrid
-                generator = OllamaGenerator(cfg.models.T1.id, base_url=cfg.embedding.ollama_url)
+                generator = OllamaGenerator(
+                    cfg.models.T1.id,
+                    base_url=cfg.embedding.ollama_url,
+                    temperature=cfg.generation.temperature,
+                    top_p=cfg.generation.top_p,
+                    seed=cfg.seed,
+                )
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
                 else:
