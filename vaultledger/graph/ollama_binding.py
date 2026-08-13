@@ -15,7 +15,7 @@ from typing import Any
 import aiohttp
 import numpy as np
 
-from vaultledger.generate.ollama import ollama_chat_payload
+from vaultledger.ollama_payload import ollama_chat_payload
 
 
 @dataclass(frozen=True)

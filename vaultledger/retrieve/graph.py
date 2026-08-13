@@ -75,6 +75,8 @@ class LightRAGRetriever:
         top_p: float = 0.95,
         seed: int = 42,
         num_ctx: int = 8192,
+        max_tokens: int | None = None,
+        timeout_seconds: int = 300,
         query_mode: GraphQueryMode = "global",
         query_data_fn: QueryDataFn | None = None,
         chunks: dict[str, Chunk] | None = None,
@@ -91,6 +93,8 @@ class LightRAGRetriever:
         self.top_p = top_p
         self.seed = seed
         self.num_ctx = num_ctx
+        self.max_tokens = max_tokens
+        self.timeout_seconds = timeout_seconds
         self.query_mode = query_mode
         self._query_data_fn = query_data_fn
         loaded = chunks if chunks is not None else {
@@ -154,6 +158,8 @@ class LightRAGRetriever:
             top_p=self.top_p,
             seed=self.seed,
             num_ctx=self.num_ctx,
+            max_tokens=self.max_tokens,
+            timeout_seconds=self.timeout_seconds,
         )
         rag = LightRAG(
             working_dir=str(self.working_dir),

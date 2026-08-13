@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
+import subprocess
+import sys
+from types import ModuleType
+
 import networkx as nx
 import pytest
 
@@ -42,6 +47,71 @@ def test_graph_config_pins_local_extractor_and_acceptance_threshold():
     assert cfg.graph.query_mode_default == "global"
     assert cfg.graph.answer_top_n == 12
     assert cfg.graph.entity_recall_min == 0.80
+
+
+def test_lightrag_retriever_from_config_forwards_generation_controls():
+    cfg = load_config()
+    retriever = LightRAGRetriever.from_config(cfg)
+
+    assert retriever.max_tokens == cfg.generation.output_tokens_max
+    assert retriever.timeout_seconds == cfg.generation.request_timeout_seconds
+
+
+def test_retrieve_package_imports_first_in_fresh_interpreter():
+    subprocess.run(
+        [sys.executable, "-c", "import vaultledger.retrieve"],
+        check=True,
+    )
+
+
+def test_lightrag_query_forwards_output_cap_and_timeout(monkeypatch, tmp_path):
+    captured = {}
+
+    class FakeBinding:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        async def complete(self): ...
+
+        async def embed(self): ...
+
+    class FakeRag:
+        def __init__(self, **kwargs): ...
+
+        async def initialize_storages(self): ...
+
+        async def aquery_data(self, query, params):
+            return {"status": "success", "data": {}}
+
+        async def finalize_storages(self): ...
+
+    class FakeKwargs:
+        def __init__(self, **kwargs): ...
+
+    lightrag = ModuleType("lightrag")
+    lightrag.LightRAG = FakeRag
+    lightrag.QueryParam = FakeKwargs
+    lightrag_utils = ModuleType("lightrag.utils")
+    lightrag_utils.EmbeddingFunc = FakeKwargs
+    monkeypatch.setitem(sys.modules, "lightrag", lightrag)
+    monkeypatch.setitem(sys.modules, "lightrag.utils", lightrag_utils)
+    monkeypatch.setattr("vaultledger.retrieve.graph.LocalOllamaBinding", FakeBinding)
+
+    retriever = LightRAGRetriever(
+        index_dir=tmp_path,
+        working_dir=tmp_path,
+        model="ollama/qwen3:8b",
+        embedding_model="nomic-embed-text",
+        embedding_dim=768,
+        base_url="http://localhost:11434",
+        max_tokens=768,
+        timeout_seconds=600,
+        chunks={},
+    )
+    asyncio.run(retriever._query_data_async("question", "global", 6))
+
+    assert captured["max_tokens"] == 768
+    assert captured["timeout_seconds"] == 600
 
 
 def test_ground_truth_denominator_is_explicit_and_relations_keep_evidence():
