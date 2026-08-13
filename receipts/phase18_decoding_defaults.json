@@ -1,0 +1,24 @@
+{
+  "receipt": "phase18_decoding_config_promotion_v1",
+  "timestamp": "2026-08-13T02:22:01.744814+00:00",
+  "git_sha": "ddb7ecb7adf4158e5d30a94125314d9a3ce92138",
+  "config_hash": "16df138a70ea6ab0e62a02a30ed89af1863f67ada8ef7059b5258ffebb66ef37",
+  "model": "ollama/qwen3:8b",
+  "ollama_version": "0.32.5",
+  "transport": "/api/generate",
+  "scope": "temperature/top_p promotion plus seed plumbing only; the later generate-to-chat parity correction is outside this proof",
+  "implicit_top_p_source": "installed model parameters from Ollama /api/show",
+  "implicit_top_p": 0.95,
+  "legacy_options": {
+    "temperature": 0.0
+  },
+  "promoted_options": {
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "seed": 42
+  },
+  "prompt_sha256": "364a162fa1c6d1fcbe924da67cca95b2b1de5488e64a3dc021a5b4cb5a6faeb7",
+  "legacy_output_sha256": "b226be22d7d5d5c6c76c72a8a94432dc993d804376e29ffb2597246855196c4a",
+  "promoted_output_sha256": "b226be22d7d5d5c6c76c72a8a94432dc993d804376e29ffb2597246855196c4a",
+  "byte_identical": true
+}
