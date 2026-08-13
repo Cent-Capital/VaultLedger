@@ -33,8 +33,17 @@ answering a different product question.
   grid cell. The comparison therefore has seven unique decoding profiles: the
   baseline plus six experimental cells.
 - Seed: `42` in every candidate and judge call. Thinking is disabled. The
-  context budget and all non-decoding configuration remain fixed.
+  actual context window is `8192`, structured output is capped at `768` tokens,
+  and request timeout is `600` seconds in every product and eval call. Those are
+  fixed controls, not sweep dimensions. The retrieval context budget and all
+  other non-decoding configuration remain fixed.
 - Cost: local inference only; manifests record `$0.0` as unpriced, not free.
+
+The context value was selected before the experimental sweep after a mechanics-only
+smoke exposed that `qwen3:14b` could not complete even one row within 600 seconds
+at `32768`. VaultLedger assembles at most 12,000 context characters, so `8192`
+retains headroom for the prompt and output while avoiding a host-infeasible KV
+allocation. Every model receives the same value; the large model gets no exception.
 
 The grid in `config.yaml` and this decision record must be committed before any
 sweep cell runs. A smoke test of runner mechanics is not an experimental cell

@@ -75,11 +75,12 @@ class LiteLLMGenerator:
         model: str,
         *,
         base_url: str = "http://localhost:11434",
-        timeout: int = 180,
+        timeout: int = 600,
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
-        num_ctx: int = 32768,
+        num_ctx: int = 8192,
+        max_tokens: int | None = None,
         completion_fn: Callable[..., Any] | None = None,
         cost_fn: Callable[..., float] | None = None,
     ) -> None:
@@ -90,6 +91,7 @@ class LiteLLMGenerator:
         self.top_p = top_p
         self.seed = seed
         self.num_ctx = num_ctx
+        self.max_tokens = max_tokens
         self._completion_fn = completion_fn
         self._cost_fn = cost_fn
         self.calls: list[GatewayCall] = []
@@ -147,7 +149,7 @@ class LiteLLMGenerator:
                 seed=self.seed,
                 num_ctx=self.num_ctx,
                 fmt=schema,
-                max_tokens=max_tokens,
+                max_tokens=self.max_tokens if max_tokens is None else max_tokens,
             )
             try:
                 raw_response = requests.post(
@@ -188,8 +190,9 @@ class LiteLLMGenerator:
                         },
                     },
                 )
-                if max_tokens is not None:
-                    request["max_tokens"] = max_tokens
+                effective_max_tokens = self.max_tokens if max_tokens is None else max_tokens
+                if effective_max_tokens is not None:
+                    request["max_tokens"] = effective_max_tokens
                 response = completion_fn(**request)
             except Exception as exc:
                 raise GenerationError(

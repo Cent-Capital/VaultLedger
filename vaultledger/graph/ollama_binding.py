@@ -71,7 +71,8 @@ class LocalOllamaBinding:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
-        num_ctx: int = 32768,
+        num_ctx: int = 8192,
+        max_tokens: int | None = None,
         timeout_seconds: int = 300,
     ) -> None:
         self.model = model
@@ -82,6 +83,7 @@ class LocalOllamaBinding:
         self.top_p = top_p
         self.seed = seed
         self.num_ctx = num_ctx
+        self.max_tokens = max_tokens
         self._completion_calls = 0
         self._embedding_calls = 0
         self._input_tokens = 0
@@ -105,7 +107,7 @@ class LocalOllamaBinding:
             top_p=self.top_p,
             seed=self.seed,
             num_ctx=self.num_ctx,
-            max_tokens=kwargs.get("max_tokens"),
+            max_tokens=kwargs.get("max_tokens", self.max_tokens),
         )
         timeout = aiohttp.ClientTimeout(total=self.timeout_seconds)
         async with aiohttp.ClientSession(timeout=timeout) as session:

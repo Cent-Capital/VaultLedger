@@ -83,6 +83,48 @@ def test_ollama_metadata_uses_show_tags_and_loaded_resident_bytes(monkeypatch):
     assert metadata.resident_size_vram_bytes == 6_000_000_000
 
 
+def test_matrix_warmup_loads_without_generating_and_pins_context(monkeypatch):
+    sent = {}
+
+    def fake_post(url: str, json: dict, timeout: int):  # noqa: A002
+        sent.update({"url": url, "payload": json, "timeout": timeout})
+        return _Response({"done": True})
+
+    monkeypatch.setattr(ollama_module.requests, "post", fake_post)
+    ollama_module.ollama_warm_model("ollama/qwen3:14b")
+
+    assert sent["url"].endswith("/api/generate")
+    assert sent["payload"]["prompt"] == ""
+    assert sent["payload"]["keep_alive"] == "10m"
+    assert sent["payload"]["options"] == {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "seed": 42,
+        "num_ctx": 8192,
+    }
+    assert sent["timeout"] == 600
+
+
+def test_generation_timeout_is_typed_and_shared():
+    from vaultledger.config import load_config
+    from vaultledger.gateway import LiteLLMGenerator
+    from vaultledger.generate.ollama import OllamaGenerator
+
+    cfg = load_config()
+    settings = {
+        "temperature": cfg.generation.temperature,
+        "top_p": cfg.generation.top_p,
+        "seed": cfg.seed,
+        "num_ctx": cfg.generation.num_ctx,
+        "max_tokens": cfg.generation.output_tokens_max,
+        "timeout": cfg.generation.request_timeout_seconds,
+    }
+    assert OllamaGenerator("ollama/qwen3:8b", **settings).timeout == 600
+    assert LiteLLMGenerator("ollama/qwen3:8b", **settings).timeout == 600
+    assert OllamaGenerator("ollama/qwen3:8b", **settings).max_tokens == 768
+    assert LiteLLMGenerator("ollama/qwen3:8b", **settings).max_tokens == 768
+
+
 def _manifest() -> RunManifest:
     return RunManifest(
         run_id="phase18_qwen8",
@@ -116,7 +158,8 @@ def _manifest() -> RunManifest:
             temperature=0.0,
             top_p=0.95,
             seed=42,
-            num_ctx=32768,
+        num_ctx=8192,
+            max_tokens=768,
         ),
         model_metadata=ModelMetadata(
             parameter_count="8.2B",

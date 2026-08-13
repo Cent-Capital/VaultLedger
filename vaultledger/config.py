@@ -109,7 +109,9 @@ class Generation(BaseModel):
     # making that value explicit preserves the pre-Phase-18 effective value.
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     top_p: float = Field(default=0.95, gt=0.0, le=1.0)
-    num_ctx: int = Field(default=32768, ge=1)
+    num_ctx: int = Field(default=8192, ge=1)
+    output_tokens_max: int = Field(default=768, ge=1)
+    request_timeout_seconds: int = Field(default=600, ge=1)
     # Minimum normalized snippet length a citation must carry to be verifiable.
     min_snippet_chars: int = 16
     litm_reorder: bool = True

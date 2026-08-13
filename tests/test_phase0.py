@@ -147,7 +147,9 @@ def test_config_loads_expected_values():
     assert cfg.retrieval.answer_top_n == 6
     assert cfg.generation.temperature == 0.0
     assert cfg.generation.top_p == 0.95
-    assert cfg.generation.num_ctx == 32768
+    assert cfg.generation.num_ctx == 8192
+    assert cfg.generation.output_tokens_max == 768
+    assert cfg.generation.request_timeout_seconds == 600
 
 
 # --- SPEC 15.2: no unbounded loops in the package ----------------------------

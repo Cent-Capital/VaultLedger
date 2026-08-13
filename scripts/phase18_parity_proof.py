@@ -48,6 +48,8 @@ def run(output: Path) -> bool:
         "top_p": cfg.generation.top_p,
         "seed": cfg.seed,
         "num_ctx": cfg.generation.num_ctx,
+        "max_tokens": cfg.generation.output_tokens_max,
+        "timeout": cfg.generation.request_timeout_seconds,
     }
     product = OllamaGenerator(cfg.models.T1.id, **kwargs)
     matrix = LiteLLMGenerator(cfg.models.T1.id, **kwargs)
@@ -67,8 +69,10 @@ def run(output: Path) -> bool:
             "top_p": cfg.generation.top_p,
             "seed": cfg.seed,
             "num_ctx": cfg.generation.num_ctx,
+            "num_predict": cfg.generation.output_tokens_max,
             "think": False,
         },
+        "request_timeout_seconds": cfg.generation.request_timeout_seconds,
         "product_output_sha256": _sha256(product_output),
         "matrix_output_sha256": _sha256(matrix_output),
         "byte_identical": identical,

@@ -20,7 +20,7 @@ from vaultledger.evals.golden import golden_hash, load_golden_set
 from vaultledger.evals.judge import JudgeItem, judge_item
 from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
 from vaultledger.generate import answer_question_agentic, answer_question_reliable
-from vaultledger.generate.ollama import ollama_model_metadata
+from vaultledger.generate.ollama import ollama_model_metadata, ollama_warm_model
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import assert_evaluation_corpus
@@ -83,7 +83,8 @@ def _gib(value: int) -> str:
 def _decoding_text(manifest: RunManifest) -> str:
     if manifest.decoding is None:
         return "—"
-    return f"t={manifest.decoding.temperature:g}, p={manifest.decoding.top_p:g}"
+    cap = f", max={manifest.decoding.max_tokens}" if manifest.decoding.max_tokens else ""
+    return f"t={manifest.decoding.temperature:g}, p={manifest.decoding.top_p:g}{cap}"
 
 
 def _manifest_sort_key(manifest: RunManifest) -> tuple:
@@ -511,9 +512,20 @@ def _run_cell(
         top_p=top_p,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
+        max_tokens=cfg.generation.output_tokens_max,
+        timeout=cfg.generation.request_timeout_seconds,
     )
     if not generator.is_available():
         raise RuntimeError(f"matrix model {model!r} is unavailable in Ollama")
+    ollama_warm_model(
+        model,
+        base_url=cfg.embedding.ollama_url,
+        temperature=temperature,
+        top_p=top_p,
+        seed=cfg.seed,
+        num_ctx=cfg.generation.num_ctx,
+        timeout=cfg.generation.request_timeout_seconds,
+    )
 
     slug = re.sub(r"[^a-z0-9]+", "_", model.casefold()).strip("_")
     arm = "on" if guardrail_toggles is not None else "off"
@@ -544,6 +556,7 @@ def _run_cell(
         "top_p": top_p,
         "seed": cfg.seed,
         "num_ctx": cfg.generation.num_ctx,
+        "max_tokens": cfg.generation.output_tokens_max,
         "judge_model": judge_model,
         "example_ids": [example.id for example in examples],
     }
@@ -743,6 +756,8 @@ def _run_cell(
             top_p=cfg.generation.top_p,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
+            max_tokens=cfg.generation.output_tokens_max,
+            timeout=cfg.generation.request_timeout_seconds,
         )
         if not judge_generator.is_available():
             raise RuntimeError(f"matrix judge model {judge_model!r} is unavailable in Ollama")
@@ -807,6 +822,7 @@ def _run_cell(
     totals = _totals_from_rows(rows)
     metrics = _cell_metrics(examples, rows, totals)
     metrics["retrieval_answer_top_n"] = float(answer_top_n)
+    metrics["model_prewarmed"] = 1.0
     # Self-describing arm: a manifest must say which guard stack produced it, or
     # on-arm and off-arm cells become silently incomparable in the matrix.
     metrics["guardrails_enabled"] = 1.0 if guardrail_toggles is not None else 0.0
@@ -852,6 +868,7 @@ def _run_cell(
             top_p=top_p,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
+            max_tokens=cfg.generation.output_tokens_max,
         ),
         model_metadata=model_metadata,
         judge_model=judge_model,
@@ -1375,6 +1392,14 @@ def write_matrix_report(
             "or keyword-extraction calls. Every displayed value is loaded from the RunManifests "
             "above, except the explicitly described config-hash recovery for historical context "
             "k; this file is generated, never hand-edited.",
+            "",
+            "Phase 18 candidate models are pre-warmed with `keep_alive=10m` before their cell. "
+            "Warm-up time is outside row latency, preventing a one-time model load from becoming "
+            "a quality timeout; judge-load time is likewise excluded from candidate latency.",
+            "",
+            "Every structured completion is capped at the manifest's `max` token count (768 in "
+            "the preregistered run), and a 600-second request overrun remains an explicit "
+            "`TOOL_ERR`. The cap and timeout are fixed controls, not swept settings.",
             "",
             "Unlike the rates above, median and p95 latency are computed over completed rows "
             "only: a row that failed to produce an answer is excluded from those statistics "

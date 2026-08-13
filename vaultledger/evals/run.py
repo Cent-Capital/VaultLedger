@@ -194,6 +194,8 @@ def run_eval(args: argparse.Namespace) -> int:
             top_p=cfg.generation.top_p,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
+            max_tokens=cfg.generation.output_tokens_max,
+            timeout=cfg.generation.request_timeout_seconds,
         )
         if not generator.is_available():
             print(f"SKIP answer_one: generation model {cfg.models.T1.id!r} unavailable")
@@ -277,6 +279,8 @@ def run_safety_eval(args: argparse.Namespace) -> int:
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
+        max_tokens=cfg.generation.output_tokens_max,
+        timeout=cfg.generation.request_timeout_seconds,
     )
     if not embedder.is_available() or not generator.is_available():
         raise RuntimeError("Phase 7 safety eval requires the configured local Ollama models")
@@ -429,6 +433,8 @@ def run_judge_validation(args: argparse.Namespace) -> int:
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
+        max_tokens=cfg.generation.output_tokens_max,
+        timeout=cfg.generation.request_timeout_seconds,
     )
     if not generator.is_available():
         raise RuntimeError(f"judge model {generator.model!r} is unavailable in Ollama")

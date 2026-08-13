@@ -109,6 +109,8 @@ async def insert_lightrag_document(
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
+        max_tokens=cfg.generation.output_tokens_max,
+        timeout_seconds=cfg.generation.request_timeout_seconds,
     )
     rag = LightRAG(
         working_dir=str(destination),
@@ -190,6 +192,8 @@ async def build_lightrag_index(
         top_p=cfg.generation.top_p,
         seed=cfg.seed,
         num_ctx=cfg.generation.num_ctx,
+        max_tokens=cfg.generation.output_tokens_max,
+        timeout_seconds=cfg.generation.request_timeout_seconds,
     )
     embedding = EmbeddingFunc(
         embedding_dim=cfg.graph.embedding_dim,

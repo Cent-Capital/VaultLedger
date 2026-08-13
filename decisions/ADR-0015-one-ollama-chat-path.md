@@ -24,8 +24,9 @@ Ollama's native `/api/chat` endpoint. The builder owns messages, JSON schema,
 The product wrapper, measured matrix gateway, agent planner, judge, and
 LightRAG binding all receive the typed settings from `config.yaml`.
 
-`generation.num_ctx` is explicit at `32768`, preserving the already intentional
-LightRAG budget and applying it to reliable and agentic paths. Matrix receipts
+`generation.num_ctx` is explicit at `8192`, covering the bounded 12,000-character
+retrieval context plus prompt/output headroom on this host and applying the same
+window to reliable, agentic, and LightRAG paths. Matrix receipts
 must record the complete decoding profile; model comparisons without it are not
 self-describing.
 

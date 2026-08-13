@@ -54,6 +54,43 @@ def ollama_model_name(model_id: str) -> str:
     return model_id.removeprefix("ollama/")
 
 
+def ollama_warm_model(
+    model_id: str,
+    *,
+    base_url: str = "http://localhost:11434",
+    temperature: float = 0.0,
+    top_p: float = 0.95,
+    seed: int = 42,
+    num_ctx: int = 8192,
+    keep_alive: str = "10m",
+    timeout: int = 600,
+) -> None:
+    """Load a candidate without generating, so cold load is not a scored failure."""
+    payload = {
+        "model": ollama_model_name(model_id),
+        "prompt": "",
+        "stream": False,
+        "keep_alive": keep_alive,
+        "options": {
+            "temperature": temperature,
+            "top_p": top_p,
+            "seed": seed,
+            "num_ctx": num_ctx,
+        },
+    }
+    try:
+        response = requests.post(
+            f"{base_url.rstrip('/')}/api/generate",
+            json=payload,
+            timeout=timeout,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise GenerationError(
+            f"could not pre-warm Ollama model {ollama_model_name(model_id)}: {exc}"
+        ) from exc
+
+
 def _same_ollama_tag(candidate: str, expected: str) -> bool:
     return candidate == expected or (
         ":" not in expected and candidate == f"{expected}:latest"
@@ -129,7 +166,9 @@ class OllamaGenerator:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
-        num_ctx: int = 32768,
+        num_ctx: int = 8192,
+        max_tokens: int | None = None,
+        timeout: int = 600,
     ) -> None:
         self.model = ollama_model_name(model)
         self.base_url = base_url.rstrip("/")
@@ -137,6 +176,8 @@ class OllamaGenerator:
         self.top_p = top_p
         self.seed = seed
         self.num_ctx = num_ctx
+        self.max_tokens = max_tokens
+        self.timeout = timeout
 
     def is_available(self) -> bool:
         try:
@@ -185,11 +226,11 @@ class OllamaGenerator:
             seed=self.seed,
             num_ctx=self.num_ctx,
             fmt=fmt,
-            max_tokens=max_tokens,
+            max_tokens=self.max_tokens if max_tokens is None else max_tokens,
         )
         try:
             resp = requests.post(
-                f"{self.base_url}/api/chat", json=payload, timeout=180
+                f"{self.base_url}/api/chat", json=payload, timeout=self.timeout
             )
             resp.raise_for_status()
         except requests.RequestException as exc:
@@ -203,4 +244,5 @@ __all__ = [
     "ollama_chat_payload",
     "ollama_model_metadata",
     "ollama_model_name",
+    "ollama_warm_model",
 ]

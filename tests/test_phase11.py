@@ -87,8 +87,11 @@ def test_product_and_matrix_use_the_same_native_chat_payload(monkeypatch):
                 "eval_count": 3,
             }
 
+    timeouts = []
+
     def fake_post(url: str, json: dict, timeout: int):  # noqa: A002
         sent.append((url, json))
+        timeouts.append(timeout)
         return _Response()
 
     monkeypatch.setattr("vaultledger.generate.ollama.requests.post", fake_post)
@@ -96,7 +99,9 @@ def test_product_and_matrix_use_the_same_native_chat_payload(monkeypatch):
         "temperature": 0.3,
         "top_p": 0.9,
         "seed": 42,
-        "num_ctx": 32768,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "timeout": 600,
     }
     product = OllamaGenerator("ollama/qwen3:8b", **settings)
     matrix = LiteLLMGenerator("ollama/qwen3:8b", **settings)
@@ -111,13 +116,15 @@ def test_product_and_matrix_use_the_same_native_chat_payload(monkeypatch):
         "http://localhost:11434/api/chat",
         "http://localhost:11434/api/chat",
     ]
+    assert timeouts == [600, 600]
     assert sent[0][1] == sent[1][1]
     assert sent[0][1]["messages"] == [{"role": "user", "content": "prompt"}]
     assert sent[0][1]["options"] == {
         "temperature": 0.3,
         "top_p": 0.9,
         "seed": 42,
-        "num_ctx": 32768,
+        "num_ctx": 8192,
+        "num_predict": 768,
     }
     assert matrix.snapshot().input_tokens == 7
     assert matrix.snapshot().output_tokens == 3

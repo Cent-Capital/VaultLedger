@@ -138,6 +138,7 @@ class DecodingProfile(BaseModel):
     top_p: float
     seed: int
     num_ctx: int
+    max_tokens: int | None = Field(default=None, ge=1)
     think: bool = False
     transport: Literal["ollama_chat"] = "ollama_chat"
 

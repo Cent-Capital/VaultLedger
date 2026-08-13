@@ -74,7 +74,7 @@ class LightRAGRetriever:
         temperature: float = 0.0,
         top_p: float = 0.95,
         seed: int = 42,
-        num_ctx: int = 32768,
+        num_ctx: int = 8192,
         query_mode: GraphQueryMode = "global",
         query_data_fn: QueryDataFn | None = None,
         chunks: dict[str, Chunk] | None = None,
@@ -124,6 +124,8 @@ class LightRAGRetriever:
             top_p=cfg.generation.top_p,
             seed=cfg.seed,
             num_ctx=cfg.generation.num_ctx,
+            max_tokens=cfg.generation.output_tokens_max,
+            timeout_seconds=cfg.generation.request_timeout_seconds,
             query_mode=query_mode or cfg.graph.query_mode_default,
         )
 

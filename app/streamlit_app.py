@@ -347,6 +347,8 @@ with ask:
                     top_p=cfg.generation.top_p,
                     seed=cfg.seed,
                     num_ctx=cfg.generation.num_ctx,
+                    max_tokens=cfg.generation.output_tokens_max,
+                    timeout=cfg.generation.request_timeout_seconds,
                 )
                 if not generator.is_available():
                     st.error(f"Generation model `{cfg.models.T1.id}` is not available in Ollama.")
