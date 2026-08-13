@@ -2521,3 +2521,73 @@ expectation is reasoning, not a measurement.
 **Status line that is accurate:** phases 0–16 closed; **phase 17 closed on a waiver
 with named deferred work**. Any summary reading "phases 0–17 closed" without naming
 ADR-0013 overstates it. Phase 18 opens next (`PHASE18_KICKOFF_BRIEF.md`).
+
+## Phase 18 — Local-model bake-off and decoding sweep (opened 2026-08-12; in progress)
+
+**The experiment is preregistered, but it has not been run.** ADR-0014 fixes the
+six-model product matrix at `B_hybrid`, all 80 golden rows, guardrails on, seed 42,
+and a fixed local `qwen3:8b` judge. It separately fixes the qwen3:8b factorial grid
+at temperatures `{0.0, 0.3, 0.7}` × top-p `{1.0, 0.9}`, with the current
+`0.0 / 0.95` cell as the baseline and a conjunctive decision rule. Smoke rows are
+explicitly excluded from the finding. No sweep cell or canonical full matrix has
+run, and no model winner, decoding winner, null result, or latency ordering is
+claimed here.
+
+**The decoding promotion has the narrow proof it requires.** Commit `ddb7ecb`
+promoted temperature, top-p, seed, and context into typed configuration before any
+experimental sweep. `receipts/phase18_decoding_defaults.json` compares the old
+implicit qwen3:8b profile with explicit `temperature=0.0`, `top_p=0.95`, and
+`seed=42` on the same pre-parity `/api/generate` path. Both outputs hash to
+`b226be22d7d5d5c6c76c72a8a94432dc993d804376e29ffb2597246855196c4a` and are
+byte-identical. That receipt does not claim the later transport change is neutral.
+
+**Product and evaluation now call one actual system.** ADR-0015 and the shared
+native `/api/chat` payload remove the old product `/api/generate` versus eval-chat
+split. Product, matrix, judge, agent, and graph paths receive the same temperature,
+top-p, seed, `think=false`, context, and structured-output cap. The refreshed live
+parity receipt at `61cc61f` records `num_ctx=8192`, `num_predict=768`, and a
+600-second request ceiling; product and eval outputs are again byte-identical at
+`c1f33eaf44913dcb7c88f4df37c46170143de0756f79c9095c7d99b1b56d3664`, with
+native provider counts of 41 input and 7 output tokens.
+
+**A mechanics smoke changed the fixed capacity control before the experiment.** At
+`num_ctx=32768`, qwen3:14b could not finish the first structured row within the
+bounded request even after model pre-warming; those attempts remain temporary
+diagnostic receipts and are not scored as quality failures. The assembled retrieval
+context is capped at 12,000 characters, so ADR-0014 now fixes `num_ctx=8192` for
+every model rather than granting the 14B model an exception. Under that common
+window the same qwen3:14b row completed, and a fresh six-model N=1 smoke completed
+all six candidate rows plus all six judge calls. The smoke's four pass and two fail
+judge labels are discarded as experiment evidence; they establish runner mechanics
+only. Candidate pre-warm time is outside row latency, installed identity is read
+from Ollama `show`/`tags`, and resident/VRAM bytes are captured from `ps` while the
+candidate is loaded.
+
+**The six exact tags are installed.** The pinned lineup is qwen3 4B/8B/14B and
+gemma3 1B/4B/12B. Ollama reports `Q4_K_M` for each, parameter labels of 4.0B, 8.2B,
+14.8B, 999.89M, 4.3B, and 12.2B respectively, and distinct installed digests. The
+harness refuses missing identity/resource fields rather than substituting tag names
+for parameter counts.
+
+**Generated evidence is now the only reporting path.** Each cell writes its decoding
+profile, model metadata, candidate usage, fixed-judge verdict and human-readable
+reason into its RunManifest. Resumable checkpoints include the full population and
+decoding key; incomplete judge coverage retains the checkpoint and fails loudly.
+The report surfaces all failed reasons plus representative passes, calls the judge's
+20-label validation weak evidence, and describes strict matching as a literal-anchor
+scorer rather than a lower bound. The manifest-generated frontier uses latency,
+judge/strict quality, resident-byte bubble area, family styling, and direct labels;
+visual QA caught and fixed axis/label collisions before any canonical artifact was
+written. Its embedded caveat says it is descriptive, not a latency ranking.
+
+**Kickoff verification.** `make test` reports **191 passed, 1 environment-dependent
+skip** and `make lint` is clean; the generated SVG parses as XML and was visually
+checked after the label repair. The synthetic chunk corpus remains exactly
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`. Phase 17's
+deferred machine half was not performed or relabelled. The unrelated untracked
+`Untitled` file was not touched.
+
+**Next:** run the committed full 6 × 80 model matrix, inspect failed judge reasons,
+then run the seven-profile qwen3:8b baseline-plus-grid comparison and apply the
+preregistered rule. Only after those receipts exist should Phase 18 update the
+reader-facing model recommendation, run `make verify-track-a`, and verify pushed CI.
