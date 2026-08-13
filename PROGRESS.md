@@ -2466,3 +2466,58 @@ and `Ollama.app` remain system-wide gaps, the Standard-user path remains unteste
 and no independent non-technical cold read occurred. Checklist A5–A7 are explicitly
 post-run findings and were not pulled forward. Phase 17 therefore remains **open**;
 Phase 18 is not opened.
+
+### Phase 17 close — on a waiver (ADR-0013), 2026-08-12
+
+**Closed, not complete.** ADR-0013 records the owner's decision to close Phase 17
+with its machine half deferred in full — including the ten-minute Gatekeeper smoke
+test — to a single validation pass immediately before the product is shown to its
+intended recipient. Checklist items A5–A7 travel with it.
+
+**This is the weaker of the two waivers this project has taken, and the entry above
+must not be read as equivalent to ADR-0010.** ADR-0010 waived a gate that was
+*measured and missed*: Phase 15's entity recall was 73.3% against an 80% threshold,
+and the number exists and is reported everywhere. ADR-0013 waives a gate that
+**has not been attempted**. There is no observation to report, only an absence.
+
+**What the phase did deliver, verified at close.** Bare `pytest` and `make test` both
+**186 passed**; `make lint` clean; `make doctor` 7/7 required and 1/1 optional;
+`make verify-track-a` exit 0 in 150.0s at `b69499a`; **CI green** at `cc212f0`; corpus
+hash `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405` unchanged.
+Demo video committed and confirmed to show both a verified citation trail and a real
+abstention. Launcher acceptance repairs, the four stale reader-facing claims corrected
+at their generators, and the context-budget defect fixed with a regression test.
+
+**One late repair, after the code half was reported complete.** The context budget had
+been promoted out of a literal into `generation.context_budget_chars`, but bound at
+*import* time, so `retrieve/context.py` read and parsed `config.yaml` as a side effect
+of being imported and silently ignored any alternate config — measured: a config
+carrying `context_budget_chars: 999` still assembled against 12000. Resolved on first
+use instead (`71f5079`), `lru_cache`d because `load_config()` is uncached file I/O at
+~2.3 ms on a per-query path. Importing the module now performs zero reads of
+`config.yaml`, verified by spying on `builtins.open`. No fallback literal was added:
+swallowing a config error would contradict this repo's own fail-loud rule.
+
+**What is owed before handoff, and is not evidence yet.** No fresh macOS
+Administrator-account install has been run. `receipts/phase17_machine_half.md` does
+not exist. The clean-virtualenv receipt is **not** relabelled as that evidence, and
+its own Homebrew gap is wider than it states — the "clean" venv was built from
+Homebrew's Python (`/opt/homebrew/opt/python@3.14/bin`), while `/usr/bin/python3` on
+this machine is 3.9.6, below the launcher's own ≥3.11 gate. The launcher's python.org
+branch has therefore never executed. Homebrew and `/Applications/Ollama.app` remain
+system-wide and uncovered by any same-machine account test. The Standard-user path is
+untested. Checklist A5–A7 remain open. **No independent non-technical reader has
+performed the five-minute README cold read**; neither the owner nor any agent
+substitutes for it, and `README.md:56-62` continues to say so.
+
+**The accepted risk, stated rather than minimised.** If Gatekeeper blocks the
+documented ZIP → double-click path for a non-technical user, ADR-0011's browser-UI-
+plus-launcher distribution decision reopens at handoff with no schedule remaining, and
+its deferred alternative needs code signing and a paid Apple Developer account.
+`README.md:33` and the launcher troubleshooting already document the one-time
+right-click → Open path, so the expected failure mode is a documented extra step. That
+expectation is reasoning, not a measurement.
+
+**Status line that is accurate:** phases 0–16 closed; **phase 17 closed on a waiver
+with named deferred work**. Any summary reading "phases 0–17 closed" without naming
+ADR-0013 overstates it. Phase 18 opens next (`PHASE18_KICKOFF_BRIEF.md`).

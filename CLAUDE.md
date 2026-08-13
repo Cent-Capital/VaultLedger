@@ -62,13 +62,21 @@ recruiter or the Cent Capital lead reads it, it's PM-OS.
 - `make run` — launch the Streamlit app.
 
 ## Status
-Phases 0–16 are closed. Phase 17 is open: its code half (Gatekeeper instructions,
-first-run corpus bootstrap, cancellation/error handling, service-first Ollama
-detection, regression/report corrections, and context-budget fix) has landed and
-`make verify-track-a` is green at `b69499a`, but the owner-only fresh macOS
-Administrator-account install and `receipts/phase17_machine_half.md` do not exist
-yet. Do not describe the development-account or clean-virtualenv receipt as that
-machine half, and do not open Phase 18 until the Phase-17 close checklist is met.
+Phases 0–16 are closed. **Phase 17 is closed on a waiver (ADR-0013)** — say it that
+way; "phases 0–17 closed" on its own overstates it. Its code half landed and is
+verified (Gatekeeper instructions, first-run corpus bootstrap, cancellation/error
+handling, service-first Ollama detection, regression/report corrections, the
+context-budget fix and its lazy config resolution); 186 tests, lint, `make doctor`,
+`make verify-track-a` and CI are all green.
+
+Its **machine half was deferred in full, not met**: no fresh macOS
+Administrator-account install has been run and `receipts/phase17_machine_half.md`
+does not exist. Never describe the development-account or clean-virtualenv receipt as
+that machine half, and never write "installs cleanly on a fresh Mac". Note ADR-0013
+waives an *unattempted* gate, which is weaker than ADR-0010's waiver of a *measured
+and missed* one. Owed before handoff: the fresh-account run and its receipt, checklist
+items A5–A7, and an independent non-technical five-minute cold read — which no agent
+and not the owner can substitute for. **Phase 18 is open** (`PHASE18_KICKOFF_BRIEF.md`).
 
 Phase 16 (ADR-0011/ADR-0012) delivered the external
 live-document path: inbox outside the repo, real OCR via `ocrmypdf --skip-text`,
