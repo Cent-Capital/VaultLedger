@@ -17,7 +17,7 @@ from typing import Any
 
 from vaultledger.config import CONFIG_PATH, REPO_ROOT
 from vaultledger.evals.golden import DEFAULT_GOLDEN_PATH, golden_hash, load_golden_set
-from vaultledger.generate.reliable import unsupported_named_entities
+from vaultledger.guardrails.support import unsupported_named_entities
 from vaultledger.schemas import Citation, QAExample
 
 DEFAULT_OUTPUT = REPO_ROOT / "receipts" / "support_coverage_replay.json"

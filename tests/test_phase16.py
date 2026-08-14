@@ -93,7 +93,6 @@ def test_ocr_provenance_is_derived_from_verified_chunk_not_model_claim():
     verified = verify_citations(
         draft,
         [ScoredChunk(chunk=chunk, score=1.0, rank=1, source="test")],
-        "What was the scanned statement closing balance?",
     )
     assert verified.citations[0].corpus == "user"
     assert verified.citations[0].ocr_derived is True

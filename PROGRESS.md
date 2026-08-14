@@ -2961,3 +2961,49 @@ artifact remain. There is no second prompt candidate. Because the product did no
 a new prompt, Phase 18's model and decoding findings remain current rather than becoming
 historical. Phase 19 remains open for its variant matrix, Pareto, ADR index, demo v2,
 narrative artifacts, and final DoD work.
+
+### Phase 19 support-aware citation verifier — replay gate failed, rejected (2026-08-14)
+
+**Fixed rule before measurement.** Commit `8348e7b` implemented ADR-0020's deterministic
+capitalised-span extractor, committed stoplist, question-inclusive support set, and
+whole-answer citation downgrade. Amounts, dates, and quantities stayed outside the rule;
+the aggregation regression confirms that a computed total absent from every snippet is
+not itself grounds for downgrade. No run artifacts entered that commit.
+
+**Primary replay, zero generation.** Commit `c7831ab` added
+`make support-coverage-replay` and the source-hashed
+`receipts/support_coverage_replay.json`. It read 13 committed Phase 18 `B_hybrid`
+answer receipts, 80 rows each: **1,040 historical rows and zero generation calls**. Every
+source answers file and companion manifest is named and SHA-256 hashed in the receipt;
+duplicate, missing, extra, category-mismatched, or untyped rows fail loudly.
+
+The rule predicted **96 downgrades**. Gate 1 failed because **28 row-manifest pairs**
+currently pass both the stored judge verdict and strict scorer. The affected example ids
+are `cp_004` (11 receipts), `cp_005` (11), `ag_001` (1), `ag_013` (2), `ag_014` (1),
+`gb_003` (1), and `mh_007` (1). ADR-0021 and the receipt enumerate their source runs and
+unsupported-entity lists. This is the binding false-positive definition fixed in
+ADR-0020; it is not replaced by an aggregate quality or abstention count.
+
+Gate 2 passed: candidate `gs_005` downgraded. The support set lacked `Verizon Wireless`,
+`CVS Pharmacy`, `Blue Bottle Coffee`, `Con Edison`, and `Whole Foods Market`. That row
+motivated the rule, so this remains a contaminated sanity check rather than evidence of
+generalisation, exactly as ADR-0020 preregistered.
+
+**Stopped before live generation.** No live 80-row cell ran and no Track-A run followed;
+the binding replay failure made both prohibited and unnecessary. The stoplist and
+extractor were not tuned after the result. Judge pass and strict counts were never used
+as improvement targets, and the expected rise in abstentions was not treated as a
+failure. The failure was solely the retraction of 28 rows that passed both signals.
+
+**Shipped outcome.** The support downgrade and question threading are removed from
+`verify_citations`, restoring the previous product behavior exactly. The unchanged rule
+is retained in `vaultledger/guardrails/support.py` only so the replay and negative result
+remain reproducible. Because no behavior changed, Phase 18's model/decoding findings and
+reader-facing abstention/citation metrics remain current. Phase 19 returns to its variant
+matrix, Pareto, ADR index, demo v2, narrative artifacts, and final DoD work.
+
+**Delivery verification.** After the rejection rollback, `make test` reported **213
+passed**, `make lint` was clean, `git diff --check` was clean, and the previous product
+verifier/call-site files diffed identically against entry commit `3011349`. The synthetic
+corpus hash remained `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+CI is checked after the result commit is pushed and is not inferred here.

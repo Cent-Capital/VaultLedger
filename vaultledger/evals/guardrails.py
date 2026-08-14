@@ -169,7 +169,6 @@ def evaluate_guardrails(*, records_db: Path, out_dir: Path) -> tuple[dict, dict,
             ],
         ),
         [hit],
-        "What was the verified balance?",
     )
     citation_bad = verify_citations(
         AnswerDraft(
@@ -177,7 +176,6 @@ def evaluate_guardrails(*, records_db: Path, out_dir: Path) -> tuple[dict, dict,
             citations=[DraftCitation(chunk_id="invented", snippet="not in evidence")],
         ),
         [hit],
-        "What was the balance?",
     )
     phase7_run_id, phase7_rate = _phase7_source(out_dir)
 

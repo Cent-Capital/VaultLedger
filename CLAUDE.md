@@ -110,8 +110,14 @@ the top 12 for 17. ADR-0018 preregistered one evidence-first prompt candidate. A
 rejects it: abstentions improved 19→15 and judge false-abstains 15→11, but paired judge
 movement was only 2 wins / 0 losses (net +2, exact `p=0.500`) against the fixed +4 gate.
 Three of four newly answered rows merely changed from `FALSE_ABSTAIN` to `INCORRECT`.
-The original prompt is restored; no second candidate is allowed. The inherited Phase 19
-portfolio scope remains owed.
+The original prompt is restored; no second candidate is allowed. ADR-0020 then
+preregistered a support-aware entity-coverage citation guard. ADR-0021 rejects it before
+any live cell: replay over 13 committed `B_hybrid` receipts / 1,040 rows predicted 96
+downgrades, including 28 rows that already passed both judge and strict. Candidate
+`gs_005` was caught, but the binding zero-false-positive gate failed. The unchanged
+extractor remains replay-only and the product verifier is restored; do not tune it on
+those rows or describe it as shipped. The inherited Phase 19 portfolio scope remains
+owed.
 
 Phase 16 (ADR-0011/ADR-0012) delivered the external
 live-document path: inbox outside the repo, real OCR via `ocrmypdf --skip-text`,

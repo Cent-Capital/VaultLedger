@@ -164,10 +164,10 @@ into “every original SPEC criterion passed.”
 - [x] ADR-0020 support-check semantics and adoption rule committed before any
       implementation or replay exists (`c7f7b32`), with the implementation brief at
       `d2cf81f`.
-- [ ] Support-coverage replay run over the committed `B_hybrid` population, receipt tied
+- [x] Support-coverage replay run over the committed `B_hybrid` population, receipt tied
       to each source answers file by hash; ADR-0020 gate 1 (zero false positives)
       reported as measured, not asserted.
-- [ ] ADR-0020 rule applied without post-result tuning of the stoplist or extractor;
+- [x] ADR-0020 rule applied without post-result tuning of the stoplist or extractor;
       ADR-0021 records adoption or rejection, and a rejected guard is reverted out of the
       product path rather than left shipped.
 - [ ] `reports/variant_matrix.md` harness-generated with population boundaries visible.

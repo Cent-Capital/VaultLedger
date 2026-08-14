@@ -1,11 +1,15 @@
-"""ADR-0020 support-aware citation-verification acceptance tests."""
+"""ADR-0020's fixed replay rule and rejection rollback tests."""
 
 from __future__ import annotations
 
-from vaultledger.generate.reliable import extract_named_entities, verify_citations
+from vaultledger.generate.reliable import verify_citations
 from vaultledger.generate.schema import AnswerDraft, DraftCitation
+from vaultledger.guardrails.support import (
+    extract_named_entities,
+    unsupported_named_entities,
+)
 from vaultledger.retrieve.types import ScoredChunk
-from vaultledger.schemas import Chunk
+from vaultledger.schemas import Chunk, Citation
 
 
 def _hit(text: str) -> ScoredChunk:
@@ -27,56 +31,57 @@ def _draft(answer_text: str, snippet: str) -> AnswerDraft:
     )
 
 
-def test_unsupported_entity_downgrades_and_names_entity():
+def _citation(snippet: str) -> Citation:
+    return Citation(
+        chunk_id="support#c0",
+        doc_id="support",
+        page=1,
+        snippet=snippet,
+    )
+
+
+def test_fixed_rule_flags_unsupported_entity_by_name():
     snippet = "Halcyon Retail Group appears on every monthly statement."
-    result = verify_citations(
-        _draft("Halcyon Retail Group and CVS Pharmacy recur monthly.", snippet),
-        [_hit(snippet)],
+    unsupported = unsupported_named_entities(
+        "Halcyon Retail Group and CVS Pharmacy recur monthly.",
         "Which merchants recur monthly?",
+        [_citation(snippet)],
     )
 
-    assert result.downgrade_to_abstain and result.citations == []
-    assert any(
-        event.action == "downgrade_to_abstain"
-        and event.guard == "citation_verify"
-        and "CVS Pharmacy" in event.details
-        and "CITE_FAIL" in event.details
-        for event in result.events
-    )
+    assert unsupported == ["CVS Pharmacy"]
 
 
-def test_entities_in_surviving_snippets_do_not_downgrade():
+def test_entities_in_surviving_snippets_are_supported():
     snippet = "Halcyon Retail Group and CVS Pharmacy recur monthly."
-    result = verify_citations(
-        _draft("Halcyon Retail Group and CVS Pharmacy recur monthly.", snippet),
-        [_hit(snippet.lower())],
+    unsupported = unsupported_named_entities(
+        "Halcyon Retail Group and CVS Pharmacy recur monthly.",
         "Which merchants recur monthly?",
+        [_citation(snippet.lower())],
     )
 
-    assert not result.downgrade_to_abstain
-    assert len(result.citations) == 1
+    assert unsupported == []
 
 
-def test_entity_supported_only_by_question_does_not_downgrade():
+def test_entity_present_only_in_question_is_supported():
     snippet = "The closing balance was $4,207.55."
-    result = verify_citations(
-        _draft("Marcus Chen had a closing balance of $4,207.55.", snippet),
-        [_hit(snippet)],
+    unsupported = unsupported_named_entities(
+        "Marcus Chen had a closing balance of $4,207.55.",
         "What was Marcus Chen's closing balance?",
+        [_citation(snippet)],
     )
 
-    assert not result.downgrade_to_abstain
+    assert unsupported == []
 
 
-def test_computed_total_absent_from_snippets_does_not_downgrade():
+def test_computed_total_absent_from_snippets_is_out_of_scope():
     snippet = "The two payments were $12,000.00 and $8,500.00."
-    result = verify_citations(
-        _draft("The computed total was $20,500.00.", snippet),
-        [_hit(snippet)],
+    unsupported = unsupported_named_entities(
+        "The computed total was $20,500.00.",
         "What was the computed total?",
+        [_citation(snippet)],
     )
 
-    assert not result.downgrade_to_abstain
+    assert unsupported == []
 
 
 def test_stoplist_and_sentence_initial_common_word_are_not_entities():
@@ -85,3 +90,14 @@ def test_stoplist_and_sentence_initial_common_word_are_not_entities():
     )
 
     assert entities == ["Netflix"]
+
+
+def test_failed_rule_is_not_shipped_in_product_verifier():
+    snippet = "Halcyon Retail Group appears on every monthly statement."
+    result = verify_citations(
+        _draft("Halcyon Retail Group and CVS Pharmacy recur monthly.", snippet),
+        [_hit(snippet)],
+    )
+
+    assert not result.downgrade_to_abstain
+    assert len(result.citations) == 1

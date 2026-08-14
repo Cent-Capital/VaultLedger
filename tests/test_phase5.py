@@ -152,7 +152,7 @@ def test_verify_keeps_supported_citation():
         answer_text="$4,207.55",
         citations=[DraftCitation(chunk_id="c0", snippet="March closing balance was $4,207.55")],
     )
-    res = verify_citations(draft, _hits(), "What was the closing balance?")
+    res = verify_citations(draft, _hits())
     assert not res.downgrade_to_abstain
     assert len(res.citations) == 1 and res.citations[0].doc_id == "doc1"
 
@@ -163,7 +163,7 @@ def test_verify_recovers_wrong_chunk_id_from_verbatim_snippet():
         answer_text="$4,207.55",
         citations=[DraftCitation(chunk_id="c99", snippet="March closing balance was $4,207.55")],
     )
-    res = verify_citations(draft, _hits(), "What was the closing balance?")
+    res = verify_citations(draft, _hits())
     assert not res.downgrade_to_abstain
     assert len(res.citations) == 1 and res.citations[0].chunk_id == "c0"
     assert any("recovered citation" in e.details for e in res.events)
@@ -174,7 +174,7 @@ def test_verify_drops_unknown_chunk_id_when_snippet_matches_nothing():
         answer_text="$4,207.55",
         citations=[DraftCitation(chunk_id="c99", snippet="a sentence in no retrieved chunk")],
     )
-    res = verify_citations(draft, _hits(), "What was the closing balance?")
+    res = verify_citations(draft, _hits())
     assert res.downgrade_to_abstain and not res.citations
     assert any("dropped citation" in e.details for e in res.events)
 
@@ -184,21 +184,21 @@ def test_verify_drops_snippet_not_in_chunk():
         answer_text="$9,999.99",
         citations=[DraftCitation(chunk_id="c0", snippet="a totally fabricated sentence here")],
     )
-    res = verify_citations(draft, _hits(), "What was the closing balance?")
+    res = verify_citations(draft, _hits())
     assert res.downgrade_to_abstain
     assert any("not found verbatim" in e.details for e in res.events)
 
 
 def test_verify_downgrades_facts_without_citation_tags_cite_fail():
     draft = AnswerDraft(answer_text="It was $4,207.55", citations=[])
-    res = verify_citations(draft, _hits(), "What was the closing balance?")
+    res = verify_citations(draft, _hits())
     assert res.downgrade_to_abstain
     assert any("CITE_FAIL" in e.details for e in res.events)
 
 
 def test_verify_allows_genuine_abstention_without_citations():
     draft = AnswerDraft(answer_text=ABSTAIN_SENTENCE, abstained=True, citations=[])
-    res = verify_citations(draft, _hits(), "What was the closing balance?")
+    res = verify_citations(draft, _hits())
     assert not res.downgrade_to_abstain and not res.citations
 
 
@@ -207,7 +207,7 @@ def test_verify_allows_genuine_abstention_without_citations():
 
 def test_answer_reliable_grounded_path():
     ans = answer_question_reliable(
-        "What was Marcus Chen's March closing balance?",
+        "What was Marcus's March closing balance?",
         _FakeRetriever(_hits()),
         _ScriptedGenerator([_good_json()]),
         model_id="ollama/qwen3:8b",
