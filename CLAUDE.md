@@ -102,6 +102,14 @@ abstention policy — which fires whenever zero citations survive, on a verifier
 confirms a snippet *exists* rather than *supports* — is the largest known remaining
 lever. It needs its own phase, not a Phase 18 addendum.
 
+**Phase 19 is open.** Its kickoff audit corrected the mechanism without changing the
+finding: 15 of `qwen3:8b`'s 19 answerable abstentions were model-declared, three were
+output-guard downgrades, and one was a deliberate query block. All 19 retrieval top
+scores exceeded `rerank_tau`; expected documents were already in the top six for 14 and
+the top 12 for 17. ADR-0018 therefore preregisters one evidence-first prompt candidate,
+with safety/quality gates fixed before it runs. No candidate result or improvement is
+claimed yet. The inherited Phase 19 portfolio scope remains owed after that experiment.
+
 Phase 16 (ADR-0011/ADR-0012) delivered the external
 live-document path: inbox outside the repo, real OCR via `ocrmypdf --skip-text`,
 provenance carried to the citation, incremental indexes and a bounded watcher. Its

@@ -1,0 +1,320 @@
+{
+  "receipt": "phase19_abstention_baseline_v1",
+  "timestamp": "2026-08-14T01:44:25.177926+00:00",
+  "git_sha": "43800c81264556b7d924192410defb2034831fe0",
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "source_manifest": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f",
+  "source_manifest_sha256": "8999d2c2010753f6740fb1bd51805677ffb72495482dd42780a99b1c704ab2ff",
+  "source_answers_sha256": "fb5330eef846724bf3e0365d33b1c87a88bf7650944712951c822be9521769b7",
+  "baseline": {
+    "rows": 80,
+    "answerable_rows": 70,
+    "unanswerable_rows": 10,
+    "answerable_abstentions": 19,
+    "rightly_abstained_unanswerable": 10,
+    "answered_unanswerable": 0,
+    "judge_false_abstain": 15,
+    "answerable_abstention_sources": {
+      "guard_downgrade": 3,
+      "model_declared": 15,
+      "query_block": 1
+    },
+    "guard_downgrade_breakdown": {
+      "citation_verify": 1,
+      "numeric_verify": 2
+    }
+  },
+  "retrieval_replay": {
+    "rows_replayed": 19,
+    "rerank_tau": 0.35,
+    "answer_top_n": 6,
+    "doubled_top_n": 12,
+    "below_rerank_tau": 0,
+    "expected_doc_in_top_n": 14,
+    "expected_doc_in_doubled_top_n": 17
+  },
+  "rows": [
+    {
+      "example_id": "sd_008",
+      "category": "single_doc",
+      "source": "guard_downgrade",
+      "downgrade_guards": [
+        "citation_verify"
+      ],
+      "judge_failure_code": "NONE",
+      "top_rerank_score": 0.730152,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "sd_011",
+      "category": "single_doc",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.72594,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        7
+      ],
+      "expected_doc_in_top_n": false,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "ag_006",
+      "category": "aggregation",
+      "source": "guard_downgrade",
+      "downgrade_guards": [
+        "numeric_verify"
+      ],
+      "judge_failure_code": "NONE",
+      "top_rerank_score": 0.730622,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "ag_010",
+      "category": "aggregation",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.729929,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        7,
+        10
+      ],
+      "expected_doc_in_top_n": false,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "adv_002",
+      "category": "adversarial",
+      "source": "query_block",
+      "downgrade_guards": [],
+      "judge_failure_code": "NONE",
+      "top_rerank_score": 0.508155,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "adv_003",
+      "category": "adversarial",
+      "source": "guard_downgrade",
+      "downgrade_guards": [
+        "numeric_verify"
+      ],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.549555,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "adv_005",
+      "category": "adversarial",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.604567,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "adv_006",
+      "category": "adversarial",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.707651,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "adv_007",
+      "category": "adversarial",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.536864,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        2,
+        3
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "adv_008",
+      "category": "adversarial",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.500221,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_001",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.666685,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        7,
+        8
+      ],
+      "expected_doc_in_top_n": false,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_002",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.676845,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1,
+        4
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_003",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.526152,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        2,
+        8
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_007",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.646639,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        3
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_008",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.567297,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1,
+        4
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_009",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.572001,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        1,
+        6
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "mh_011",
+      "category": "multi_hop",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.503383,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [],
+      "expected_doc_in_top_n": false,
+      "expected_doc_in_doubled_top_n": false
+    },
+    {
+      "example_id": "gs_005",
+      "category": "global_summary",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "FALSE_ABSTAIN",
+      "top_rerank_score": 0.500021,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [
+        2
+      ],
+      "expected_doc_in_top_n": true,
+      "expected_doc_in_doubled_top_n": true
+    },
+    {
+      "example_id": "gs_006",
+      "category": "global_summary",
+      "source": "model_declared",
+      "downgrade_guards": [],
+      "judge_failure_code": "NONE",
+      "top_rerank_score": 0.50001,
+      "below_rerank_tau": false,
+      "expected_doc_ranks": [],
+      "expected_doc_in_top_n": false,
+      "expected_doc_in_doubled_top_n": false
+    }
+  ],
+  "interpretation_boundary": "This is a causal audit of an existing Phase 18 receipt plus a retrieval replay. It makes no claim that a changed abstention policy improves quality."
+}

@@ -2838,3 +2838,55 @@ citations survive, on a verifier that only confirms a snippet *exists* rather th
 *supports* the answer — so the system can retrieve the right page, fail to verify support,
 and refuse a question it had already answered correctly. That is the largest known
 remaining lever and the strongest candidate for Phase 19.
+
+## Phase 19 — Final comparison, portfolio, and abstention pass (opened 2026-08-13; in progress)
+
+**Entry gate.** Before Phase 19 edits, `make test` reported **195 passed**, `make lint`
+was clean, and `data/index/chunks.jsonl` still hashed to
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`. Local
+`main` was `5da26ea`, one commit ahead of `origin/main`; the last observed CI evidence
+remains the green `03f96e5` run, not an inferred result for the unpushed close commit.
+Eight pre-existing untracked eval receipts were left untouched. Phase 17's waived machine
+half and human cold read remain owed exactly as recorded above.
+
+**The first causal audit corrected Phase 18's mechanism hypothesis.** The new
+`make abstention-audit` target joins the canonical Phase 18 `qwen3:8b` answer receipt to
+the golden set, classifies the layer that finalized every answerable abstention, and
+replays retrieval without making a generation call. The generated receipt is
+`receipts/phase19_abstention_baseline.json`, tied to source manifest
+`phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f`, its answer-file hash,
+config hash `f8f9b3e473cf…`, and golden hash `b59ee2659a17…`.
+
+Of 70 answerable rows, 19 finalized as abstentions: **15 were model-declared, three were
+output-guard downgrades, and one was a deliberate query-injection block**. The guard
+downgrades split into one citation-verification event and two numeric-verification
+events. The judge called 15 rows `FALSE_ABSTAIN`. All 10 unanswerable rows abstained and
+none was answered.
+
+The retrieval-only replay is the key discriminator. **Zero of the 19** top rerank scores
+fell below configured `rerank_tau=0.35`, so SPEC's existing low-confidence L2 retry would
+not fire on any of them. An expected document was already in the six supplied chunks for
+14/19 rows and entered by a doubled top 12 for 17/19. This does not prove a prompt change
+will help. It does rule out “the citation verifier caused most of them” and “implement the
+existing low-confidence trigger” as evidence-matched first interventions.
+
+**ADR-0018 preregisters one candidate before any candidate output exists.** The candidate
+adds one exact evidence-first decision block to the reliable-generation prompt and leaves
+retrieval, exact-snippet citation verification, numeric verification, injection handling,
+model, decoding, context, and loop budgets fixed. It must reduce deterministic and judged
+false abstentions by at least four, produce paired judge net wins of at least four, keep
+all 10 unanswerable rows abstained, preserve injection safety, citation hit ≥57/80 and
+strict match ≥35/80, complete 80/80 rows with zero `TOOL_ERR`, and leave Track-A/CI/corpus
+gates green. There is no second tuned prompt if it fails.
+
+The inherited portfolio scope is not displaced: Phase 19 still owes the harness-generated
+variant matrix, honest Pareto sequence or non-comparability finding, ADR index, demo v2,
+PM-OS report/blog artifacts, and final regression/DoD truth table. If the prompt is
+adopted, Phase 18's old-prompt matrices become historical and must be rerun or explicitly
+narrowed before the final claims ship.
+
+**Verification so far.** The audit generator completed against local Ollama retrieval;
+its model-independent unit slice is **4 passed**. The complete kickoff slice is
+**199 passed**, `make lint` is clean, `git diff --check` is clean, and the corpus hash is
+unchanged. No Phase 19 generation candidate has run, no improvement is claimed, and the
+phase is open.
