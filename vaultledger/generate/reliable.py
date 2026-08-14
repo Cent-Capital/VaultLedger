@@ -19,7 +19,7 @@ Two design commitments from SPEC 15.2 make this defensible in review:
 
 Failure taxonomy tags (SPEC 15.4) are written into ``GuardrailEvent.details``:
 ``GEN_FORMAT`` (schema failed after repairs) and ``CITE_FAIL`` (no verifiable
-citation survived).
+citation survived or a named entity lacked support).
 """
 
 from __future__ import annotations
@@ -56,6 +56,88 @@ from vaultledger.schemas import Answer, Chunk, Citation, GuardrailEvent, Routing
 # Minimum normalized snippet length we bother verifying; shorter "snippets" are
 # too generic to confirm support, so a citation must carry at least this much.
 MIN_SNIPPET_CHARS = 16
+
+# ADR-0020 fixes these lexical exclusions before replaying the support check.
+# Numeric tokens never enter the extractor, so amounts and dates remain owned by
+# numeric_verify rather than citation entity coverage.
+ENTITY_STOPLIST = frozenset(
+    {
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+        "i",
+        "couldn't",
+        "find",
+        "that",
+        "in",
+        "your",
+        "documents",
+    }
+)
+_SENTENCE_INITIAL_COMMON_WORDS = frozenset(
+    {
+        "a",
+        "according",
+        "an",
+        "and",
+        "as",
+        "at",
+        "based",
+        "because",
+        "but",
+        "by",
+        "for",
+        "from",
+        "here",
+        "however",
+        "if",
+        "in",
+        "it",
+        "its",
+        "no",
+        "of",
+        "on",
+        "or",
+        "so",
+        "that",
+        "the",
+        "there",
+        "these",
+        "they",
+        "this",
+        "those",
+        "to",
+        "we",
+        "when",
+        "where",
+        "which",
+        "while",
+        "with",
+        "yes",
+        "you",
+    }
+)
+_CAPITALIZED_TOKEN = r"[A-Z][A-Za-z]*(?:['’][A-Za-z]+)?"
+_CAPITALIZED_TOKEN_RE = re.compile(_CAPITALIZED_TOKEN)
+_ENTITY_SPAN = re.compile(
+    rf"(?<![A-Za-z0-9_]){_CAPITALIZED_TOKEN}(?:\s+{_CAPITALIZED_TOKEN})*"
+)
 _INJECTION_LINE = re.compile(
     r"(?im)^.*\b(?:system\s*:|ignore\s+(?:all\s+)?(?:prior|previous)\s+instructions?|"
     r"reveal|dump|list\s+all)\b.*$"
@@ -228,6 +310,75 @@ def _normalize(text: str) -> str:
     return " ".join(text.split()).lower()
 
 
+def _is_sentence_initial(text: str, start: int) -> bool:
+    """Return whether ``start`` follows a sentence or list-item boundary."""
+    prefix = text[:start]
+    line_prefix = prefix[prefix.rfind("\n") + 1 :]
+    if not line_prefix.strip(" \t-*•"):
+        return True
+    stripped = prefix.rstrip().rstrip('"\'“”‘’([{')
+    return not stripped or stripped[-1] in ".!?"
+
+
+def extract_named_entities(text: str) -> list[str]:
+    """Extract deterministic ADR-0020 named-entity claim units from ``text``.
+
+    Entities are maximal spans of capitalised, non-numeric tokens. The committed
+    stoplist removes months, weekdays, and the abstention vocabulary. A lone
+    common word at sentence-initial position is also excluded.
+    """
+    entities: list[str] = []
+    seen: set[str] = set()
+    candidates: list[tuple[str, int]] = []
+    for span in _ENTITY_SPAN.finditer(text):
+        current: list[str] = []
+        current_start = span.start()
+        for token in _CAPITALIZED_TOKEN_RE.finditer(span.group(0)):
+            token_text = token.group(0)
+            token_key = _normalize(token_text)
+            if token_key in ENTITY_STOPLIST:
+                if current:
+                    candidates.append((" ".join(current), current_start))
+                    current = []
+                continue
+            if not current:
+                current_start = span.start() + token.start()
+            if token_text.lower().endswith(("'s", "’s")):
+                token_text = token_text[:-2]
+            current.append(token_text)
+        if current:
+            candidates.append((" ".join(current), current_start))
+
+    for entity, start in candidates:
+        key = _normalize(entity)
+        if not key:
+            continue
+        if (
+            " " not in entity
+            and key in _SENTENCE_INITIAL_COMMON_WORDS
+            and _is_sentence_initial(text, start)
+        ):
+            continue
+        if key not in seen:
+            entities.append(entity)
+            seen.add(key)
+    return entities
+
+
+def unsupported_named_entities(
+    answer_text: str,
+    question: str,
+    citations: list[Citation],
+) -> list[str]:
+    """Return answer entities absent from all surviving snippets and the question."""
+    support = _normalize(" ".join([question, *(citation.snippet for citation in citations)]))
+    return [
+        entity
+        for entity in extract_named_entities(answer_text)
+        if _normalize(entity) not in support
+    ]
+
+
 def _snippet_supported(snippet: str, chunk_text: str, min_chars: int) -> bool:
     """True if a long-enough normalized snippet is a substring of the chunk."""
     norm_snip = _normalize(snippet)
@@ -239,6 +390,7 @@ def _snippet_supported(snippet: str, chunk_text: str, min_chars: int) -> bool:
 def verify_citations(
     draft: AnswerDraft,
     hits: list[ScoredChunk],
+    question: str,
     *,
     min_snippet_chars: int = MIN_SNIPPET_CHARS,
 ) -> VerifyResult:
@@ -256,7 +408,9 @@ def verify_citations(
     - snippet matches zero or multiple retrieved chunks → drop as unverifiable.
 
     If the answer asserts facts (not abstained, non-empty) and nothing survives,
-    downgrade to an honest abstention and tag ``CITE_FAIL``.
+    downgrade to an honest abstention and tag ``CITE_FAIL``. If citations do
+    survive, every named entity in the answer must occur in their snippets or
+    the question; otherwise the whole answer is downgraded under the same tag.
     """
     by_id = {h.chunk.chunk_id: h.chunk for h in hits}
     events: list[GuardrailEvent] = []
@@ -329,6 +483,21 @@ def verify_citations(
             )
         )
         return VerifyResult(citations=[], events=events, downgrade_to_abstain=True)
+    if asserts_facts:
+        unsupported = unsupported_named_entities(draft.answer_text, question, surviving)
+        if unsupported:
+            events.append(
+                GuardrailEvent(
+                    stage="output",
+                    guard="citation_verify",
+                    action="downgrade_to_abstain",
+                    details=(
+                        "unsupported named entities: "
+                        f"{', '.join(unsupported)}; downgraded to abstain [CITE_FAIL]"
+                    ),
+                )
+            )
+            return VerifyResult(citations=[], events=events, downgrade_to_abstain=True)
     return VerifyResult(citations=surviving, events=events)
 
 
@@ -512,9 +681,13 @@ def answer_question_reliable(
     if citation_enabled:
         if trace_recorder:
             with trace_recorder.span("guards_out"):
-                verify = verify_citations(draft, hits, min_snippet_chars=min_snippet_chars)
+                verify = verify_citations(
+                    draft, hits, question, min_snippet_chars=min_snippet_chars
+                )
         else:
-            verify = verify_citations(draft, hits, min_snippet_chars=min_snippet_chars)
+            verify = verify_citations(
+                draft, hits, question, min_snippet_chars=min_snippet_chars
+            )
     else:
         by_id = {hit.chunk.chunk_id: hit.chunk for hit in hits}
         citations = [

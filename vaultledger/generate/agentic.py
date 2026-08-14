@@ -188,7 +188,9 @@ def answer_question_agentic(
     )
     citation_enabled = guardrail_toggles is None or guardrail_toggles.citation_verify
     verify = (
-        verify_citations(draft, loop.hits, min_snippet_chars=min_snippet_chars)
+        verify_citations(
+            draft, loop.hits, question, min_snippet_chars=min_snippet_chars
+        )
         if citation_enabled
         else VerifyResult(
             citations=[
@@ -208,7 +210,7 @@ def answer_question_agentic(
     )
     events.extend(verify.events)
     if verify.downgrade_to_abstain:
-        loop.steps[-1].failure = "finish rejected: no verifiable citation survived"
+        loop.steps[-1].failure = "finish rejected: citation verification failed"
         return finish_trace(abstain(steps=loop.steps))
     if follows_injected_instruction(action.answer_text):
         events.append(
