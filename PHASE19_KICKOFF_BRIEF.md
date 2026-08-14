@@ -30,6 +30,24 @@ parts:
 This is not permission for iterative prompt tuning. ADR-0018 permits one candidate
 prompt on the frozen 80 rows and fixes the decision rule before it runs.
 
+### Amendment 2026-08-14 — a third part, inserted ahead of the portfolio
+
+ADR-0020 adds **one bounded support-aware citation-verification experiment**, ordered
+*before* work packages 3–5. It is not a second abstention tweak — ADR-0019 closed the
+door on another *prompt* candidate, and this tightens a guard rather than loosening one.
+
+Two reasons it is inserted rather than deferred. Phase 19's rejected candidate turned a
+long-abstract defect into a demonstrated harm: on `gs_005` a fabricated merchant reached
+the output behind citations that passed verification because their snippets were
+genuinely verbatim. And sequencing forces it — a verifier that changes answer behaviour
+makes Phase 18's matrices historical, so freezing the portfolio first would invalidate it
+immediately.
+
+It stays inside Phase 19 rather than opening Phase 20 because `CLAUDE.md`'s phase gate
+forbids starting a phase before the prior one's acceptance criteria pass, and Phase 19's
+are outstanding. Its preregistration is ADR-0020 and its implementation brief is
+`ADR0020_IMPLEMENTATION_BRIEF.md`.
+
 ## Work package 1 — diagnose before changing policy
 
 The kickoff audit is implemented by `make abstention-audit` and written to
@@ -143,6 +161,15 @@ into “every original SPEC criterion passed.”
 - [x] ADR-0018 rule applied without post-result threshold changes; finding written even
       if null or mixed.
 - [x] Candidate rejected and original prompt restored; Phase 18 revalidation not triggered.
+- [x] ADR-0020 support-check semantics and adoption rule committed before any
+      implementation or replay exists (`c7f7b32`), with the implementation brief at
+      `d2cf81f`.
+- [ ] Support-coverage replay run over the committed `B_hybrid` population, receipt tied
+      to each source answers file by hash; ADR-0020 gate 1 (zero false positives)
+      reported as measured, not asserted.
+- [ ] ADR-0020 rule applied without post-result tuning of the stoplist or extractor;
+      ADR-0021 records adoption or rejection, and a rejected guard is reverted out of the
+      product path rather than left shipped.
 - [ ] `reports/variant_matrix.md` harness-generated with population boundaries visible.
 - [ ] Pareto sequence or honest non-comparability artifact harness-generated.
 - [ ] ADR index generated; ≥8 numbered decisions remain traceable.
