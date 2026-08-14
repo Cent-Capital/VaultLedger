@@ -132,9 +132,13 @@ default context.
 
 - **No paid APIs, ever** (ADR-0003). Local Ollama only. Cost fields report `0.0` —
   "unpriced, not free", never "free".
-- **Do not change any Phase 15 recorded result** (ADR-0010, ADR-0011). The 73.3% entity
-  recall, the 18.5% precision, the underpowered B-vs-C comparison and the inconclusive
-  context arm travel forward as they are.
+- **Do not change any Phase 15 recorded result** (ADR-0010, ADR-0011). The strict
+  73.3% entity recall and 13.6% precision, the alias-aware secondary's 100% recall and
+  18.5% precision, the underpowered B-vs-C comparison and the inconclusive context arm
+  travel forward as they are. *(Corrected 2026-08-14: this line previously paired the
+  strict 73.3% recall with the alias-aware 18.5% precision — one number from each of two
+  scoring schemes, which flatters the result. The recorded results themselves are
+  unchanged; only this citation of them was wrong. ADR-0010 §62–63 is authoritative.)*
 - **The synthetic corpus hash must stay `ba7148a112191bc8…`.** Check before and after.
 - **Evals stay synthetic.** `assert_evaluation_corpus` keeps refusing user and
   OCR-derived chunks.
