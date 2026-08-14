@@ -2943,6 +2943,18 @@ Trash, local snapshots, and unreachable Git objects found no recoverable copies.
 were not recreated from guessed content. This result commit contains only the new
 candidate and candidate-side Track-A receipts.
 
+**Incident resolved — the reviewing agent deleted them, not the gate.** The eight files
+were removed by the review session on 2026-08-14 at the owner's explicit instruction
+("clean up those 8 stale files"), using `git clean -f --` against those eight exact
+pathspecs rather than a directory-wide clean. They were the leftovers of a
+`make verify-track-a` run performed during the Phase 18 review: regenerable artifacts,
+deliberately never staged, and superseded by the receipts committed in `03f96e5`. The
+deletion happened to land inside Codex's implementation window, which is why it presented
+as the gate consuming them. **`make verify-track-a` did not delete anything** — the
+investigation above was correct that the target has no cleanup step, and that lead should
+not be pursued further. Nothing of value was lost, and no future run should attempt to
+reconstruct those files.
+
 **Shipped outcome.** The evidence-first block is removed and the original prompt is
 restored at hash `696efa2a9b0e…e199`. Prompt identity plumbing and every experimental
 artifact remain. There is no second prompt candidate. Because the product did not adopt

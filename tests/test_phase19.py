@@ -8,6 +8,7 @@ import re
 import pytest
 
 from scripts.phase19_abstention_audit import abstention_source, audit_rows
+from vaultledger.evals.matrix import cell_run_id
 from vaultledger.generate import reliable as reliable_module
 from vaultledger.generate.schema import ABSTAIN_SENTENCE
 from vaultledger.schemas import QAExample, RunManifest
@@ -166,6 +167,30 @@ def test_a_real_query_block_outranks_document_sanitization():
 def test_abstention_audit_fails_loud_on_bad_population(rows: list[dict], match: str):
     with pytest.raises(ValueError, match=match):
         audit_rows(rows, [_example("a", "single_doc")])
+
+
+def test_cell_run_id_is_phase_neutral_and_prompt_distinguishing():
+    """The Phase 19 candidate shipped as `phase18_..._t0_p0p95_d5c5f885d0c9`.
+
+    That id made two misleading claims: it labelled a Phase 19 candidate as Phase
+    18 work, and it differed from the frozen baseline only by uuid even though the
+    two cells ran different prompts. Pin both fixes.
+    """
+    common = {
+        "slug": "ollama_qwen3_8b",
+        "variant": "B_hybrid",
+        "budget_suffix": "",
+        "decoding_suffix": "_t0_p0p95",
+        "unique": "d5c5f885d0c9",
+    }
+    baseline = cell_run_id(**common, prompt_suffix="")
+    candidate = cell_run_id(**common, prompt_suffix="_pr74e412c4")
+
+    assert not baseline.startswith("phase")
+    assert baseline.startswith("matrix_ollama_qwen3_8b_b_hybrid")
+    # Same cell and same uuid, different prompt: the ids must not collide.
+    assert baseline != candidate
+    assert candidate.endswith("_pr74e412c4_d5c5f885d0c9")
 
 
 def test_rejected_candidate_prompt_is_not_shipped_and_safety_contract_remains():

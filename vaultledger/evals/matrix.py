@@ -93,6 +93,30 @@ def _prompt_hash_text(manifest: RunManifest) -> str:
     return f"`{manifest.prompt_sha256}`" if manifest.prompt_sha256 else "—"
 
 
+def cell_run_id(
+    *,
+    slug: str,
+    variant: str,
+    budget_suffix: str,
+    decoding_suffix: str,
+    prompt_suffix: str,
+    unique: str,
+) -> str:
+    """Build a phase-neutral, self-distinguishing id for one matrix cell.
+
+    Two rules the Phase 19 candidate run violated. First, the prefix carries no
+    phase number: this runner outlives any phase, and a cell labelled ``phase18``
+    while testing a Phase 19 prompt is a false claim in a filename. Second, every
+    dimension that changes what the cell measures — context budget, decoding, and
+    prompt — appears in the id, so two cells that differ only by prompt cannot be
+    told apart solely by a uuid and a field buried inside the manifest.
+    """
+    return (
+        f"matrix_{slug}_{variant.casefold()}{budget_suffix}{decoding_suffix}"
+        f"{prompt_suffix}_{unique}"
+    )
+
+
 def _manifest_sort_key(manifest: RunManifest) -> tuple:
     decoding = manifest.decoding
     return (
@@ -545,11 +569,15 @@ def _run_cell(
     budget_suffix = f"_k{answer_top_n}" if graph_answer_top_n is not None else ""
     decoding_suffix = f"_t{_float_slug(temperature)}_p{_float_slug(top_p)}"
     prompt_sha256 = PROMPT_SHA256 if variant != "D_agentic" else None
+    # Two cells that differ only by prompt must not share a filename. Phase 19's
+    # candidate was distinguishable from its baseline only by uuid and a field
+    # inside the manifest, which is not visible when reading a directory listing.
+    prompt_suffix = f"_pr{prompt_sha256[:8]}" if prompt_sha256 else ""
     checkpoint_path = (
         out_dir
         / (
             f".matrix_checkpoint_{slug}_{variant.casefold()}_{arm}"
-            f"{budget_suffix}{decoding_suffix}.json"
+            f"{budget_suffix}{decoding_suffix}{prompt_suffix}.json"
         )
     )
     checkpoint_key = {
@@ -861,9 +889,13 @@ def _run_cell(
             f"checkpoint retained at {checkpoint_path}"
         )
     manifest = RunManifest(
-        run_id=(
-            f"phase18_{slug}_{variant.casefold()}{budget_suffix}{decoding_suffix}_"
-            f"{uuid4().hex[:12]}"
+        run_id=cell_run_id(
+            slug=slug,
+            variant=variant,
+            budget_suffix=budget_suffix,
+            decoding_suffix=decoding_suffix,
+            prompt_suffix=prompt_suffix,
+            unique=uuid4().hex[:12],
         ),
         timestamp=datetime.now(UTC).isoformat(),
         git_sha=_git_sha(),
