@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -71,6 +71,9 @@ decoding-proof:  ## Phase 18: prove explicit defaults preserve output bytes
 
 decoding-parity-proof:  ## Phase 18: prove product/eval chat paths match
 	$(PYTHON) -m scripts.phase18_parity_proof
+
+abstention-audit:  ## Phase 19: classify false-abstention causes and replay retrieval
+	$(PYTHON) -m scripts.phase19_abstention_audit
 
 router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontier
 	$(PYTHON) -m vaultledger.evals router-eval \
