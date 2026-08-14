@@ -101,6 +101,56 @@ def test_abstention_source_returns_none_for_an_answer():
     assert abstention_source(_row("ok", "single_doc", abstained=False)) is None
 
 
+def test_document_sanitization_is_not_a_query_block():
+    """`action="block"` means two different things depending on the guard.
+
+    `prompt_injection` reports `block` when it strips an instruction-like line
+    out of a *document* — generation still runs and the model still decides.
+    Only `query_injection_guard` refuses the request outright. Eight of the
+    eighty Phase 18 rows carry a `prompt_injection` block, so collapsing the two
+    into `any(action == "block")` would move them out of `model_declared` and
+    turn the audit's 15/3/1 split into 7/3/9 — inverting the finding that
+    ADR-0018 preregisters against. Pin the distinction.
+    """
+    sanitized = _row(
+        "sanitized",
+        "adversarial",
+        abstained=True,
+        events=[
+            {
+                "guard": "prompt_injection",
+                "action": "block",
+                "details": "instruction-like document line removed before generation",
+            }
+        ],
+    )
+
+    assert abstention_source(sanitized) == "model_declared"
+
+
+def test_a_real_query_block_outranks_document_sanitization():
+    """A row can carry both; the request-level refusal is the causal layer."""
+    both = _row(
+        "both",
+        "adversarial",
+        abstained=True,
+        events=[
+            {
+                "guard": "prompt_injection",
+                "action": "block",
+                "details": "instruction-like document line removed before generation",
+            },
+            {
+                "guard": "query_injection_guard",
+                "action": "block",
+                "details": "direct instruction-override attempt blocked",
+            },
+        ],
+    )
+
+    assert abstention_source(both) == "query_block"
+
+
 @pytest.mark.parametrize(
     ("rows", "match"),
     [
