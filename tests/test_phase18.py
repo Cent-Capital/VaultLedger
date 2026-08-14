@@ -166,6 +166,7 @@ def _manifest() -> RunManifest:
             num_ctx=8192,
             max_tokens=768,
         ),
+        prompt_sha256="a" * 64,
         model_metadata=ModelMetadata(
             parameter_count="8.2B",
             quantization="Q4_K_M",
@@ -222,6 +223,7 @@ def test_phase18_report_and_frontier_are_manifest_generated(tmp_path: Path):
         assert 0 <= float(label.attrib["y"]) <= height
     assert "sha256:full-digest" in markdown
     assert "8.2B" in markdown and "Q4_K_M" in markdown
+    assert "a" * 64 in markdown
     assert "The answer omits one required invoice amount." in markdown
     assert "deterministic literal-anchor scorer, not a lower bound" in markdown
     assert "![Latency–quality frontier](model_frontier.svg)" in markdown

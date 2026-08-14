@@ -186,6 +186,7 @@ class RunManifest(BaseModel):  # one per eval run (SPEC 15.3)
     total_cost_usd: float
     failures: list[dict]  # each: {example_id, taxonomy_code, note}
     decoding: DecodingProfile | None = None
+    prompt_sha256: str | None = None
     model_metadata: ModelMetadata | None = None
     judge_model: str | None = None
     judge_verdicts: list[MatrixJudgeVerdict] = Field(default_factory=list)

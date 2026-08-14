@@ -24,6 +24,7 @@ citation survived).
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -90,6 +91,13 @@ CITATIONS ARE MANDATORY when you answer. For every fact you state:
 If the context does not contain the answer, set "abstained" to true, set
 "answer_text" to exactly "{ABSTAIN_SENTENCE}", and return an empty "citations".
 
+EVIDENCE-FIRST DECISION: Inspect every supplied chunk before deciding to abstain.
+A comparison, total, or summary may be supported by different chunks; no single
+snippet has to support the whole answer. When the chunks contain the requested facts,
+answer and attach one verbatim snippet for each fact. Abstain only when the supplied
+chunks do not contain enough evidence. Never infer a missing fact or relax the
+verbatim-snippet rule.
+
 Return ONLY a JSON object with keys "answer_text" (string), "abstained"
 (boolean), and "citations" (list of objects with "chunk_id" and "snippet").
 No prose, no markdown fences. Format example only (illustrative ids/values, not
@@ -97,6 +105,8 @@ from your context):
 {{"answer_text": "<your answer>", "abstained": false,
 "citations": [{{"chunk_id": "<exact chunk_id from a header>",
 "snippet": "<verbatim text copied from that chunk>"}}]}}"""
+
+PROMPT_SHA256 = hashlib.sha256(_SYSTEM.encode("utf-8")).hexdigest()
 
 
 def build_prompt(question: str, context: str, *, repair_note: str = "") -> str:
@@ -604,6 +614,7 @@ __all__ = [
     "verify_citations",
     "answer_question_reliable",
     "build_prompt",
+    "PROMPT_SHA256",
     "MIN_SNIPPET_CHARS",
     "sanitize_context",
     "follows_injected_instruction",

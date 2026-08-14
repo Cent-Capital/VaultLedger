@@ -21,6 +21,7 @@ from vaultledger.evals.judge import JudgeItem, judge_item
 from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
 from vaultledger.generate import answer_question_agentic, answer_question_reliable
 from vaultledger.generate.ollama import ollama_model_metadata, ollama_warm_model
+from vaultledger.generate.reliable import PROMPT_SHA256
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import assert_evaluation_corpus
@@ -86,6 +87,10 @@ def _decoding_text(manifest: RunManifest) -> str:
     cap = f", max={manifest.decoding.max_tokens}" if manifest.decoding.max_tokens else ""
     top_k = f", k={manifest.decoding.top_k}" if manifest.decoding.top_k else ""
     return f"t={manifest.decoding.temperature:g}, p={manifest.decoding.top_p:g}{top_k}{cap}"
+
+
+def _prompt_hash_text(manifest: RunManifest) -> str:
+    return f"`{manifest.prompt_sha256}`" if manifest.prompt_sha256 else "—"
 
 
 def _manifest_sort_key(manifest: RunManifest) -> tuple:
@@ -539,6 +544,7 @@ def _run_cell(
     )
     budget_suffix = f"_k{answer_top_n}" if graph_answer_top_n is not None else ""
     decoding_suffix = f"_t{_float_slug(temperature)}_p{_float_slug(top_p)}"
+    prompt_sha256 = PROMPT_SHA256 if variant != "D_agentic" else None
     checkpoint_path = (
         out_dir
         / (
@@ -561,6 +567,7 @@ def _run_cell(
         "seed": cfg.seed,
         "num_ctx": cfg.generation.num_ctx,
         "max_tokens": cfg.generation.output_tokens_max,
+        "prompt_sha256": prompt_sha256,
         "judge_model": judge_model,
         "example_ids": [example.id for example in examples],
     }
@@ -876,6 +883,7 @@ def _run_cell(
             num_ctx=cfg.generation.num_ctx,
             max_tokens=cfg.generation.output_tokens_max,
         ),
+        prompt_sha256=prompt_sha256,
         model_metadata=model_metadata,
         judge_model=judge_model,
         judge_verdicts=judge_verdicts,
@@ -1159,10 +1167,13 @@ def write_matrix_report(
         f"Cells: **{len(manifests)}** across **{model_count} model(s)**",
         f"Total measured API spend: **${total_cost:.6f}** (local models are unpriced, not free)",
         "",
-        "| Model | Params | Quant | Resident | Variant | Decoding | Context k | N | Judge pass | "
-        "Strict match | Numeric exact match | Citation hit | Abstention accuracy | Wall p50 | "
-        "Wall p95 | Gateway p50 | Gateway p95 | Tokens in / out | Cost | Manifest |",
-        "|---|---:|---|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        (
+            "| Model | Params | Quant | Resident | Variant | Decoding | Prompt SHA-256 | "
+            "Context k | N | Judge pass | Strict match | Numeric exact match | Citation hit | "
+            "Abstention accuracy | Wall p50 | Wall p95 | Gateway p50 | Gateway p95 | "
+            "Tokens in / out | Cost | Manifest |"
+        ),
+        "|---|---:|---|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     if frontier_path is not None:
         try:
@@ -1208,7 +1219,8 @@ def write_matrix_report(
         lines.append(
             "| "
             f"`{manifest.model}` | {params} | `{quantization}` | {resident} | "
-            f"`{manifest.variant}` | {_decoding_text(manifest)} | {context_top_n_text} | "
+            f"`{manifest.variant}` | {_decoding_text(manifest)} | "
+            f"{_prompt_hash_text(manifest)} | {context_top_n_text} | "
             f"{int(metric['matrix_examples'])} | "
             f"{judge_pass} | "
             f"{metric['strict_answer_match_rate']:.1%} | "
@@ -1241,9 +1253,12 @@ def write_matrix_report(
                 "reference carries a numeric quantity; its `n` differs from the category `n` "
                 "for that reason, and a blank cell means no row in that category is in scope.",
                 "",
-                "| Model | Variant | Decoding | Context k | Category | N | Strict match | "
-                "Numeric exact match | Citation hit | Abstention accuracy |",
-                "|---|---|---|---:|---|---:|---:|---:|---:|---:|",
+                (
+                    "| Model | Variant | Decoding | Prompt SHA-256 | Context k | Category | "
+                    "N | Strict match | Numeric exact match | Citation hit | "
+                    "Abstention accuracy |"
+                ),
+                "|---|---|---|---|---:|---|---:|---:|---:|---:|---:|",
             ]
         )
         for manifest in sorted(manifests, key=_manifest_sort_key):
@@ -1267,7 +1282,8 @@ def write_matrix_report(
                 lines.append(
                     "| "
                     f"`{manifest.model}` | `{manifest.variant}` | "
-                    f"{_decoding_text(manifest)} | {context_top_n_text} | "
+                    f"{_decoding_text(manifest)} | {_prompt_hash_text(manifest)} | "
+                    f"{context_top_n_text} | "
                     f"`{category}` | "
                     f"{int(count)} | "
                     f"{metric[f'strict_answer_match_rate__{category}']:.1%} | "
@@ -1422,6 +1438,10 @@ def write_matrix_report(
             "`Context k` is read from the manifest when recorded. For older receipts predating "
             "that field, it is recovered only when the receipt's config hash exactly matches the "
             "current config; otherwise the report shows an em dash.",
+            "",
+            "`Prompt SHA-256` hashes the invariant reliable-generation system instruction, not "
+            "the question-specific assembled prompt. Historical manifests written before this "
+            "field show an em dash rather than being assigned an identity they never recorded.",
             "",
             "`Strict match` is a deterministic literal-anchor scorer, not a lower bound: "
             "answerable rows must repeat the reference's amounts, dates, and identifiers; "

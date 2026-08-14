@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit abstention-candidate router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -74,6 +74,12 @@ decoding-parity-proof:  ## Phase 18: prove product/eval chat paths match
 
 abstention-audit:  ## Phase 19: classify false-abstention causes and replay retrieval
 	$(PYTHON) -m scripts.phase19_abstention_audit
+
+abstention-candidate:  ## Phase 19: one evidence-first candidate cell vs the frozen baseline
+	$(PYTHON) -m vaultledger.evals matrix --models ollama/qwen3:8b \
+		--limit 0 --guardrails on --judge-model ollama/qwen3:8b \
+		--report reports/phase19_candidate_matrix.md \
+		--frontier reports/phase19_candidate_frontier.svg
 
 router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontier
 	$(PYTHON) -m vaultledger.evals router-eval \
