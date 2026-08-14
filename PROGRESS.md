@@ -2789,3 +2789,52 @@ lever and it needs its own pass, not a Phase 18 addendum.
 **Next:** re-run `make verify-track-a`, push, and verify CI with `gh run list`. Then
 Phase 18's reader-facing surfaces (README, app copy) can be updated to the
 measured claim, and Phase 17's deferred machine half remains owed before handoff.
+
+## Phase 18 close — 2026-08-13
+
+**Phase 18 is closed with every acceptance criterion met, and no waiver.** Two of the
+last three phases needed one — ADR-0010 waived a measured-and-missed gate for Phase 15,
+ADR-0013 waived an unattempted one for Phase 17. Phase 18 needed neither, and neither
+did Phase 16.
+
+All ten criteria from `PHASE18_KICKOFF_BRIEF.md`: six models pulled with `ollama show`
+parameter count, quantisation and digest recorded per manifest; `temperature`/`top_p`
+promoted to typed config with the promotion's evidentiary strength honestly restated;
+`seed` reaching the generator; product and eval sharing one decoding path (ADR-0015);
+the grid and decision rule committed before any sweep cell, and amended before data
+collection when two cells were found degenerate; one `RunManifest` per cell with
+harness-generated report and frontier; judge verdicts surfaced with `reason`; a written
+finding including the nulls; and green gates.
+
+**Verification.** `make verify-track-a` exit 0 at `5fd731c`: Ruff clean, 195 tests,
+golden set ok at `b59ee2659a17`, safety `phase7_0491e01a7f51`, guardrails
+`phase13_guardrails_1891b24f977b`, judge validation 20/20 in `phase9_judge_354978c78787`,
+dense `phase3_9fd669484144`, hybrid `phase4_48b5719b6f30`, regression passed against a
+*distinct* frozen baseline. **CI green on `03f96e5`** — run 31756788417, checked with
+`gh run list`, not inferred. Corpus hash unchanged at
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405` throughout.
+
+**What the phase actually bought.** Two preregistered experiments, roughly 4.8 hours of
+local inference, 960 scored rows, zero `TOOL_ERR`, and two null results with mechanisms
+behind them. The model axis is flat around the incumbent; the decoding axis is flat
+outright. ADR-0011's prohibition is discharged to exactly the strength of the evidence.
+
+**Status line that is accurate:** phases 0–16 closed; **phase 17 closed on a waiver with
+named deferred work (ADR-0013)**; **phase 18 closed, both experiments null, no waiver**.
+The model claim is *"measured against five alternatives; none beat it"* — never *"the
+best available local model"*.
+
+**What did not change and is still owed.** Phase 17's machine half was not performed or
+relabelled: no fresh macOS Administrator-account install, `receipts/phase17_machine_half.md`
+still does not exist, checklist items A5–A7 and the independent non-technical cold read
+are still outstanding before handoff. Phase 15's recorded results travel forward
+untouched, though ADR-0015's common `num_ctx=8192` means current Variant-C code no longer
+matches the system that produced them.
+
+**The next phase writes itself.** Decoding moved zero rows and model choice moved two,
+neither significantly. `FALSE_ABSTAIN` accounted for five of the ten rows separating the
+top two models and appeared again in the sweep. The abstention policy fires whenever zero
+citations survive, on a verifier that only confirms a snippet *exists* rather than that it
+*supports* the answer — so the system can retrieve the right page, fail to verify support,
+and refuse a question it had already answered correctly. That is the largest known
+remaining lever and the strongest candidate for Phase 19.

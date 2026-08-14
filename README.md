@@ -93,12 +93,28 @@ deviations and measured boundaries, is [PROGRESS.md](PROGRESS.md).
 ## Tracks B/C status
 
 The local LiteLLM gateway, matrix runner, and deterministic Phase-12 policy
-router are implemented. The current [model matrix](reports/model_matrix.md)
-contains full 80-case `qwen3:4b` and `qwen3:8b` Variant-B runs. The generated
+router are implemented. The generated
 [routing frontier](reports/routing_frontier.md) compares four policies over
-those same cached answers, including bounded T0→T1 escalation. This is still a
-two-model experiment; the two-family × three-size bake-off is re-sequenced to
-Phase 18 by ADR-0011.
+cached answers, including bounded T0→T1 escalation.
+
+The two-family × three-size bake-off has now run. The
+[model matrix](reports/model_matrix.md) contains full 80-case Variant-B runs for
+all six models — `qwen3` 4B/8B/14B and `gemma3` 1B/4B/12B — at 100% generation
+coverage with zero tool errors, under one identical decoding profile. **No model
+beat the shipped `qwen3:8b`.** On paired judge verdicts over the same 80 rows,
+`gemma3:12b` went 6 wins / 4 losses against it (exact McNemar `p`=0.754) and
+`qwen3:14b` 3/8 (`p`=0.227); the remaining three were significantly worse. Both
+models that tied it cost 3.7–4.4× the median latency, and `qwen3:8b` leads
+outright on citation hit and abstention accuracy. A separate preregistered
+decoding sweep over six temperature × top-p profiles also came back null: every
+profile passes exactly the same 35 strict rows as the default. ADR-0016 and
+ADR-0017 record both decisions.
+
+The honest form of the claim is **`qwen3:8b` was measured against five
+alternatives and none beat it** — not that it is the best available local model.
+`p`=0.754 means no difference was detected, not that none exists; ten discordant
+rows give low statistical power, and the LLM judge behind these numbers is
+itself only validated to roughly 83% accuracy.
 
 The router matched its 80 initial-route labels on 100% of cases by construction.
 Its useful result is the measured policy comparison: strict match was 47.5%
