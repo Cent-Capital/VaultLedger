@@ -88,9 +88,30 @@ the entity-support downgrade are removed. The unchanged extractor lives only in
 
 The demonstrated support defect remains open. Verbatim citation existence is not
 entailment, and a technically valid citation can still sit behind an unsupported entity.
-The rejected rule shows that requiring every answer entity to occur in the small set of
-surviving snippets is too blunt: citation selection is not exhaustive, while the
-extractor can also classify discourse words such as `Therefore` as entities.
+
+**The 28 retractions have two distinct causes, and they should not be read as one.**
+Twenty-seven are the structural finding: the answer names a real entity — `Cedar Grove
+Media`, `Nimbus Analytics LLC`, `Halcyon Retail Group`, `Larkspur Lane`/`Astoria`/`NY` —
+that is correct and simply does not occur in the *selected* snippets. Citation selection
+is not exhaustive, so requiring every answer entity to appear in the small surviving set
+is too blunt a rule. That is the result.
+
+Exactly one retraction, `mh_007`, is a different thing: the extractor treated the
+discourse word `Therefore` as an entity. The sentence-initial exclusion ADR-0020
+specified is implemented and functioning; `therefore` is simply absent from
+`_SENTENCE_INITIAL_COMMON_WORDS`. That is a one-word list gap, not evidence about the
+approach, and it is left unfixed because ADR-0020 forbids touching the extractor after
+the receipt exists.
+
+The rejection does not depend on the distinction: 27 still fails a zero-tolerance gate.
+It is recorded so a future reader neither concludes the approach is hopeless on the
+strength of a stoplist omission, nor imagines that completing the stoplist addresses more
+than one row of twenty-eight.
+
+Note also that the 28 are row-manifest pairs spanning seven unique example ids, and that
+22 of them are two cross-persona rows recurring across eleven receipts each. The breadth
+of the replay amplifies a small number of distinct failures; seven unique ids still fails
+the gate.
 
 This result must not be reframed as an abstention-quality failure. Additional abstentions
 were expected and were not an adoption criterion. The failure is specifically the 28
