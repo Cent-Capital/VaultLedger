@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="640" viewBox="0 0 1120 640">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:Inter,Arial,sans-serif;fill:#172033}.mono{font-family:ui-monospace,SFMono-Regular,monospace}.muted{fill:#667085}.grid{stroke:#e5e7eb;stroke-width:1}.axis{stroke:#344054;stroke-width:1.3}</style>
+<text x="90" y="38" font-size="22" font-weight="700">Failure taxonomy over time — B_hybrid · ollama/qwen3:4b</text>
+<text x="90" y="64" font-size="13" class="muted">3 snapshots · 80 rows each · one snapshot per pipeline config · counts, not rates</text>
+<text x="90" y="86" font-size="13" class="muted">Bars are absolute failure counts out of 80 scored rows. A row can fail more than one check, so the categories do not sum to the row count.</text>
+<line x1="90" y1="490.0" x2="870" y2="490.0" class="grid"/>
+<text x="76" y="494.0" font-size="12" class="muted" text-anchor="end">0</text>
+<line x1="90" y1="397.5" x2="870" y2="397.5" class="grid"/>
+<text x="76" y="401.5" font-size="12" class="muted" text-anchor="end">10</text>
+<line x1="90" y1="305.0" x2="870" y2="305.0" class="grid"/>
+<text x="76" y="309.0" font-size="12" class="muted" text-anchor="end">20</text>
+<line x1="90" y1="212.5" x2="870" y2="212.5" class="grid"/>
+<text x="76" y="216.5" font-size="12" class="muted" text-anchor="end">30</text>
+<line x1="90" y1="120.0" x2="870" y2="120.0" class="grid"/>
+<text x="76" y="124.0" font-size="12" class="muted" text-anchor="end">40</text>
+<line x1="90" y1="490" x2="870" y2="490" class="axis"/>
+<rect x="99.0" y="184.8" width="26.0" height="305.2" fill="#2563eb" fill-opacity="0.35" rx="2"/>
+<text x="112.0" y="178.8" font-size="11" text-anchor="middle" class="muted">33</text>
+<rect x="128.0" y="175.5" width="26.0" height="314.5" fill="#2563eb" fill-opacity="0.68" rx="2"/>
+<text x="141.0" y="169.5" font-size="11" text-anchor="middle" class="muted">34</text>
+<rect x="157.0" y="120.0" width="26.0" height="370.0" fill="#2563eb" fill-opacity="1.00" rx="2"/>
+<text x="170.0" y="114.0" font-size="11" text-anchor="middle" class="muted">40</text>
+<text x="187.5" y="514" font-size="12" text-anchor="middle" class="mono">ABSTAIN_FP</text>
+<rect x="294.0" y="434.5" width="26.0" height="55.5" fill="#d97706" fill-opacity="0.35" rx="2"/>
+<text x="307.0" y="428.5" font-size="11" text-anchor="middle" class="muted">6</text>
+<rect x="323.0" y="434.5" width="26.0" height="55.5" fill="#d97706" fill-opacity="0.68" rx="2"/>
+<text x="336.0" y="428.5" font-size="11" text-anchor="middle" class="muted">6</text>
+<rect x="352.0" y="425.2" width="26.0" height="64.8" fill="#d97706" fill-opacity="1.00" rx="2"/>
+<text x="365.0" y="419.2" font-size="11" text-anchor="middle" class="muted">7</text>
+<text x="382.5" y="514" font-size="12" text-anchor="middle" class="mono">NUM_MISMATCH</text>
+<rect x="489.0" y="406.8" width="26.0" height="83.2" fill="#dc2626" fill-opacity="0.35" rx="2"/>
+<text x="502.0" y="400.8" font-size="11" text-anchor="middle" class="muted">9</text>
+<rect x="518.0" y="416.0" width="26.0" height="74.0" fill="#dc2626" fill-opacity="0.68" rx="2"/>
+<text x="531.0" y="410.0" font-size="11" text-anchor="middle" class="muted">8</text>
+<rect x="547.0" y="434.5" width="26.0" height="55.5" fill="#dc2626" fill-opacity="1.00" rx="2"/>
+<text x="560.0" y="428.5" font-size="11" text-anchor="middle" class="muted">6</text>
+<text x="577.5" y="514" font-size="12" text-anchor="middle" class="mono">GEN_HALLUC</text>
+<rect x="684.0" y="480.8" width="26.0" height="9.2" fill="#0891b2" fill-opacity="0.35" rx="2"/>
+<text x="697.0" y="474.8" font-size="11" text-anchor="middle" class="muted">1</text>
+<rect x="713.0" y="480.8" width="26.0" height="9.2" fill="#0891b2" fill-opacity="0.68" rx="2"/>
+<text x="726.0" y="474.8" font-size="11" text-anchor="middle" class="muted">1</text>
+<rect x="742.0" y="471.5" width="26.0" height="18.5" fill="#0891b2" fill-opacity="1.00" rx="2"/>
+<text x="755.0" y="465.5" font-size="11" text-anchor="middle" class="muted">2</text>
+<text x="772.5" y="514" font-size="12" text-anchor="middle" class="mono">CITE_FAIL</text>
+<text x="904" y="126" font-size="12" font-weight="700">Snapshot</text>
+<rect x="904" y="136" width="14" height="14" fill="#334155" fill-opacity="0.35" rx="2"/>
+<text x="926" y="148" font-size="12">2026-08-05</text>
+<text x="926" y="164" font-size="10" class="mono muted">cfg 8dd9710b · 49 total</text>
+<rect x="904" y="176" width="14" height="14" fill="#334155" fill-opacity="0.68" rx="2"/>
+<text x="926" y="188" font-size="12">2026-08-05</text>
+<text x="926" y="204" font-size="10" class="mono muted">cfg eb0c5047 · 49 total</text>
+<rect x="904" y="216" width="14" height="14" fill="#334155" fill-opacity="1.00" rx="2"/>
+<text x="926" y="228" font-size="12">2026-08-13</text>
+<text x="926" y="244" font-size="10" class="mono muted">cfg f8f9b3e4 · 55 total</text>
+<rect x="70" y="544" width="980" height="76" rx="8" fill="#fff7ed" stroke="#fdba74"/>
+<text x="90" y="568" font-size="12" font-weight="700">Read the config hashes before reading the trend</text>
+<text x="90" y="588" font-size="11" class="muted">Each snapshot ran under a different pipeline configuration, so a bar that moves carries pipeline drift as well as model behaviour.</text>
+<text x="90" y="606" font-size="11" class="muted">Counts are single runs, not repeated measurements: no error bar is available and a small move is not a demonstrated improvement.</text>
+</svg>

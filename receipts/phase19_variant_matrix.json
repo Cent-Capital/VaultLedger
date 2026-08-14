@@ -1,0 +1,107 @@
+{
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "generated_at": "2026-08-14T23:25:19.964510+00:00",
+  "git_sha": "32743fdac3c59b76a962f94df314ef785ac950d3",
+  "golden_examples": 80,
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "numeric_epsilon": 0.01,
+  "populations": {
+    "agentic_targets": [
+      "B_hybrid \u00b7 qwen3:8b",
+      "D_agentic \u00b7 qwen3:8b",
+      "B_hybrid \u00b7 qwen3:4b",
+      "D_agentic \u00b7 qwen3:4b"
+    ],
+    "full_golden": [
+      "B_hybrid \u00b7 qwen3:8b"
+    ],
+    "global_summary": [
+      "B_hybrid \u00b7 qwen3:8b \u00b7 context k=6",
+      "C_graph \u00b7 qwen3:8b \u00b7 context k=12",
+      "C_graph \u00b7 qwen3:8b \u00b7 context k=6"
+    ]
+  },
+  "product_prompt_sha256": "696efa2a9b0e6aa4e51fd7c1c0022cdbd45baea7ae44f0e3a5a1db3454c4e199",
+  "rejected_run_ids": [
+    "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9"
+  ],
+  "retrieval_scored_rows": 70,
+  "sources": {
+    "reports/phase11_ollama_qwen3_4b_b_hybrid_35d35e2fb62f.json": {
+      "answers_sha256": "b12d0980a135cb5bd5b18bdf71d69a5b02a8775955e20d56324aaa709936042a",
+      "population": "agentic_targets",
+      "run_id": "phase11_ollama_qwen3_4b_b_hybrid_35d35e2fb62f",
+      "sha256": "de470346456cb9e2f9e4c6498071c4f6db4b22a3cf69d04bc86c5e24bfc5fb0f",
+      "variant": "B_hybrid",
+      "why": "Phase 14's declared 4B baseline; its 26 target rows are scored here"
+    },
+    "reports/phase11_ollama_qwen3_4b_d_agentic_7163e731454e.json": {
+      "answers_sha256": "70469fa8baccb61fc81779569f2f99038d86bc568458e344240c2446fdfd4554",
+      "population": "agentic_targets",
+      "run_id": "phase11_ollama_qwen3_4b_d_agentic_7163e731454e",
+      "sha256": "017573a3821e03b2db4f9e5be1d83b86f08a28d2d0fe9b696063f7900ed70560",
+      "variant": "D_agentic",
+      "why": "Phase 14 agentic cell that regressed on 4B; the split result is kept"
+    },
+    "reports/phase11_ollama_qwen3_8b_b_hybrid_4a099797b084.json": {
+      "answers_sha256": "04d557facc857f0ea7d1d4b490580c98b7f3b0a7f913ea850b0693c621a23296",
+      "population": "global_summary",
+      "run_id": "phase11_ollama_qwen3_8b_b_hybrid_4a099797b084",
+      "sha256": "1b811b0b182ea252e88f6f1756a84e2f568c4491748a26c5ad2daedf3ccd0e3e",
+      "variant": "B_hybrid",
+      "why": "Phase 15's same-model B comparator"
+    },
+    "reports/phase11_ollama_qwen3_8b_b_hybrid_eea876388398.json": {
+      "answers_sha256": "07cd757d2810a0c6f367adb4eaeac5edc4df2ff9551f03691f7fa0b092d15ac3",
+      "population": "agentic_targets",
+      "run_id": "phase11_ollama_qwen3_8b_b_hybrid_eea876388398",
+      "sha256": "56c2d005f74918b698294a757a43b7baa2a4cc0aec1c711b4bbec8a1e2a3fa97",
+      "variant": "B_hybrid",
+      "why": "Phase 14's declared 8B baseline; its 26 target rows are scored here"
+    },
+    "reports/phase11_ollama_qwen3_8b_c_graph_f3be41d85c23.json": {
+      "answers_sha256": "048307f793bce63cc176d8789d2f023b7bfffc9f9295a1b5a8c5d6570c47b1a6",
+      "population": "global_summary",
+      "run_id": "phase11_ollama_qwen3_8b_c_graph_f3be41d85c23",
+      "sha256": "e74c215be61583d550e4b30b870a4c5c0560db0fc69f9d06e205314a122c46cc",
+      "variant": "C_graph",
+      "why": "Phase 15 graph arm at its default context budget"
+    },
+    "reports/phase11_ollama_qwen3_8b_c_graph_k6_e508b61b6bf6.json": {
+      "answers_sha256": "a7249573c98beca49f5f217e97597b2b5cab548646feeded1fa9ea7b8636d5e0",
+      "population": "global_summary",
+      "run_id": "phase11_ollama_qwen3_8b_c_graph_k6_e508b61b6bf6",
+      "sha256": "1528bcdf488f0998a723ca977ba06f84a975e2146651a2c51fd91778a8a575d2",
+      "variant": "C_graph",
+      "why": "the preregistered equal-context arm that left the comparison inconclusive"
+    },
+    "reports/phase11_ollama_qwen3_8b_d_agentic_4c9522233d68.json": {
+      "answers_sha256": "62757fdabb1fc0a64b37c236cb8d6d25b4c7f15f995e47130b341e595ebd7b96",
+      "population": "agentic_targets",
+      "run_id": "phase11_ollama_qwen3_8b_d_agentic_4c9522233d68",
+      "sha256": "b10baafb85438646bdc10ad8a7023ca3b0c49d9f8a7c5495b0dd9899e2928db4",
+      "variant": "D_agentic",
+      "why": "Phase 14 agentic cell that met the improvement AC on the shipped model"
+    },
+    "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f.json": {
+      "answers_sha256": "fb5330eef846724bf3e0365d33b1c87a88bf7650944712951c822be9521769b7",
+      "population": "full_golden",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f",
+      "sha256": "8999d2c2010753f6740fb1bd51805677ffb72495482dd42780a99b1c704ab2ff",
+      "variant": "B_hybrid",
+      "why": "Phase 18 canonical shipped-model cell on the shipped prompt"
+    },
+    "reports/phase3_c2a1ee76001e.json": {
+      "run_id": "phase3_c2a1ee76001e",
+      "sha256": "23730a0d6fda339925db13bd13b67b865bb9241d6cd828a96d3069b58f4f26bd",
+      "variant": "A_naive",
+      "why": "Phase 3 dense baseline, reproduced on the current golden set and config"
+    },
+    "reports/phase4_1966922cebd9.json": {
+      "run_id": "phase4_1966922cebd9",
+      "sha256": "a52ed2c54a678e941f201aa5250b86d75fb7f24d9e9012c7f7c2ffeed65aa0fe",
+      "variant": "B_hybrid",
+      "why": "Phase 4 shipped retriever, reproduced on the current golden set and config"
+    }
+  }
+}

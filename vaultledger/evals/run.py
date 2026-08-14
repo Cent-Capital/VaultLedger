@@ -521,6 +521,18 @@ def run_matrix_rescore(args: argparse.Namespace) -> int:
     return run_rescore(args)
 
 
+def run_variant_comparison(args: argparse.Namespace) -> int:
+    from vaultledger.evals.variant_matrix import run_variant_matrix
+
+    return run_variant_matrix(args)
+
+
+def run_failure_pareto_report(args: argparse.Namespace) -> int:
+    from vaultledger.evals.failure_pareto import run_failure_pareto
+
+    return run_failure_pareto(args)
+
+
 def run_policy_router_eval(args: argparse.Namespace) -> int:
     from vaultledger.evals.router import run_router_eval
 
@@ -725,6 +737,24 @@ def build_parser() -> argparse.ArgumentParser:
     rescore.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
     rescore.add_argument("--report", default="", help="Optional markdown output path")
     rescore.set_defaults(func=run_matrix_rescore)
+
+    variant = sub.add_parser(
+        "variant-matrix",
+        help="Generate the A/B/C/D comparison from committed receipts (no inference)",
+    )
+    variant.add_argument("--golden", default=str(DEFAULT_GOLDEN_PATH))
+    variant.add_argument("--report", default="reports/variant_matrix.md")
+    variant.add_argument("--receipt", default="receipts/phase19_variant_matrix.json")
+    variant.set_defaults(func=run_variant_comparison)
+
+    pareto = sub.add_parser(
+        "failure-pareto",
+        help="Generate the failure-taxonomy sequence from committed receipts (no inference)",
+    )
+    pareto.add_argument("--report", default="reports/failure_pareto.md")
+    pareto.add_argument("--chart-dir", default="reports/paretos")
+    pareto.add_argument("--receipt", default="receipts/phase19_failure_pareto.json")
+    pareto.set_defaults(func=run_failure_pareto_report)
 
     router = sub.add_parser(
         "router-eval", help="Evaluate Phase 12 routing accuracy and latency-quality policies"

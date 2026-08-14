@@ -3007,3 +3007,88 @@ passed**, `make lint` was clean, `git diff --check` was clean, and the previous 
 verifier/call-site files diffed identically against entry commit `3011349`. The synthetic
 corpus hash remained `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
 CI is checked after the result commit is pushed and is not inferred here.
+
+### Phase 19 comparison artifacts — generated, and the Pareto does not shrink (2026-08-14)
+
+**Built: three generators that read committed receipts and run nothing.** Work package 3
+of the Phase 19 kickoff brief is complete. `make variant-matrix`, `make failure-pareto`
+and `make adr-index` produce `reports/variant_matrix.md`, `reports/failure_pareto.md`
+plus two SVGs, and `reports/adr_index.md`, each with a source-hashed receipt under
+`receipts/`. No cell was run and no model was called: every figure is read from, or
+recomputed against, receipts already in the repository. The two report modules live in
+`vaultledger/evals/`; the decision index is `scripts/phase19_adr_index.py`, matching the
+existing script-shaped analyses.
+
+**The rejected candidate is a live trap, and all three artifacts now refuse it.**
+`phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9` sits in `reports/` under a
+`phase18_` prefix and carries better abstention numbers than the cell that ships. Any
+generator selecting "the newest qwen3:8b 80-row cell" would have published ADR-0019's
+rejected prompt as the product. Generation arms are checked against `PROMPT_SHA256`;
+manifests predating prompt hashing pass because the candidate is the run that introduced
+the field. The variant matrix names the run in its refusal message, and the Pareto lists
+it in an exclusions table beside the six non-default decoding arms.
+
+**The variant matrix refuses to be rectangular.** Sections are grouped by the population
+their arms share: 70 retrieval rows, the full 80, Variant D's 26 aggregation/multi-hop
+target rows, and Variant C's six global-summary rows. Four cells are named as never
+measured rather than left blank, including A_naive generation, which was never run at
+all. Every generation rate in the file is recomputed by `matrix.score_answer` from the
+committed `_answers.json` receipts, because several source manifests predate the
+per-category and numeric metrics and reading their stored values would mix scorer
+versions across the comparison. The Phase 15 entity-recall, precision, fabricated-node
+and inconclusive-context results are carried as quotations from ADR-0009, ADR-0010 and
+this log, marked as quoted rather than recomputed, and none is upgraded.
+
+**Retrieval reorders; it does not find more.** Shipped hybrid retrieval moves recall@20
+by `+0.0198979591836734` and MRR by `+0.2881943395073646` against the dense baseline,
+and hit rate is identical across dense, fusion-only and reranked arms. The fusion-only
+arm is read from the `rrf_` keys inside the same Phase 4 run rather than from the
+standalone `phase4_a87e4475e379`, which scored an older golden set. Counting by `run_id`
+so that `phase3_baseline_latest.json` and `phase4_latest.json` are not double-counted as
+independent runs, the dense baseline reproduces identical metrics across 4 of 4 committed
+runs and the shipped hybrid across 6 of 6, spanning different config hashes and dates.
+
+**The failure Pareto was discovered by rule, and the requested picture is not supported.**
+Snapshots enter a sequence only when variant, model, golden-set hash and row population
+match, and only on the shipped prompt and the shipped decoding profile; exactly one
+snapshot is kept per config hash, the earliest, so re-runs at one config cannot pad a
+flat sequence. Two arms reach the three-snapshot minimum. The shipped arm runs
+**48 → 48 → 47**: a net decrease, not a shrinking-bars sequence, with `NUM_MISMATCH`
+falling 17 → 14 while `ABSTAIN_FP` rose 16 → 19, so the largest single category moved
+rather than shrank. `qwen3:4b` runs **49 → 49 → 55** and is stated as unsupported
+outright. The verdict sentences are generated from the computed totals, not written by
+hand, and the trend booleans are stored in the receipt.
+
+**The decision index carries a second axis.** All 21 ADRs read `Status: accepted`, which
+describes the decision rather than the outcome, so an index printing only that column
+would render two waivers, two nulls, two rejections and one scope reduction as a wall of
+successes. Identity facts — number, title, date, status line, cross-references — are
+parsed from each file; the outcome class and one-line summary are declared in the
+generator and asserted against `decisions/`, so an unclassified ADR fails the run.
+**7 of 21** decisions record something other than a success, and each is restated in full
+with the debt it leaves, including ADR-0013's still-owed fresh-account install, checklist
+A5–A7 and independent cold read.
+
+**Two bugs the tests caught rather than the runs.** The Pareto verdict used
+`zip(totals, totals[1:], strict=True)`; `all()` short-circuits on the first non-decreasing
+pair, so the guard would have raised only on a genuinely shrinking sequence — the one case
+the artifact exists to report. And the ADR status regex omitted the newline from its
+character class, which dragged whole sections into table cells for ADR-0001 and ADR-0002,
+the two that write an unbolded status.
+
+**Verification.** `make lint` clean. `make test` reports **238 passed**, up from the 213
+recorded at the ADR-0021 rollback, including 25 new tests across
+`tests/test_phase19_variant_matrix.py`, `tests/test_phase19_failure_pareto.py` and
+`tests/test_phase19_adr_index.py`. `git diff --check` clean. The offline rescore was
+checked against the Phase 18 cell's own stored metrics across 45 shared keys with zero
+mismatches, and against the independently generated `reports/phase14_agentic_matrix.md`
+and `reports/phase14_baseline_by_category.md`, which it reproduces exactly. Both SVGs
+parse as XML. Changes outside the new files are two CLI wrappers in
+`vaultledger/evals/run.py` and four Makefile lines; no retrieval, generation, guardrail,
+schema or config path was touched. The synthetic corpus was not regenerated in this
+session and its hash was not re-derived here. CI is checked after this commit is pushed
+and is not inferred.
+
+**Still open in Phase 19.** Work package 4's reader-facing artifacts — demo v2, the
+internship report and blog draft in the PM-OS workspace, and README/app copy — and work
+package 5's final DoD truth table and regression. Phase 17's machine half remains owed.

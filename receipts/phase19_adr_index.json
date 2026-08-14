@@ -1,0 +1,291 @@
+{
+  "decision_count": 21,
+  "decisions": [
+    {
+      "date": "2026-07-11",
+      "number": 1,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0001-baseline-stack.md",
+      "references": [],
+      "sha256": "b879b47aea74136157fd6e4918c32a7a0209d6964ba161240dfba48da8d1d28b",
+      "status": "accepted",
+      "title": "Phase 0 baseline stack"
+    },
+    {
+      "date": "2026-07-27",
+      "number": 2,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0002-structured-output-and-repair.md",
+      "references": [],
+      "sha256": "35129cad273b3fd5838e2d846d9337d3c41aa61ce80eae4e5f39190ee981b933",
+      "status": "accepted",
+      "title": "Structured output, the repair loop, and citation verification"
+    },
+    {
+      "date": "2026-08-05",
+      "number": 3,
+      "outcome": "scope reduction",
+      "owed": "SPEC \u00a719's three-tier Kimi/GLM clause is not met and is not claimed.",
+      "path": "decisions/ADR-0003-model-lineup-local-only.md",
+      "references": [],
+      "sha256": "fa02a2c1d529f723f4af99b1d0d3fc84e7f91e013d41cd9dde5fdbc208d6564e",
+      "status": "accepted",
+      "title": "Model lineup \u2014 dropping the paid hosted tiers"
+    },
+    {
+      "date": "2026-08-05",
+      "number": 4,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0004-deterministic-local-policy-router.md",
+      "references": [],
+      "sha256": "c305cb2fd23817db2d62278d40999dac411d524b8f6094ac5639dbc01e4ad3ac",
+      "status": "accepted",
+      "title": "Deterministic local-size policy router before a learned router"
+    },
+    {
+      "date": "2026-08-05",
+      "number": 5,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0005-guardrails-custom-first-and-egress-without-cloud.md",
+      "references": [],
+      "sha256": "0e76526c3bcc5f47472fd52d22ef301646ad6b113f2ccb5583c886a655f10708",
+      "status": "accepted",
+      "title": "Guardrails custom-first, and the egress guard without a cloud path"
+    },
+    {
+      "date": "2026-08-05",
+      "number": 6,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0006-agentic-loop-hand-rolled-vs-langgraph.md",
+      "references": [],
+      "sha256": "006f764423d75f2111a6258ebedbfd704a5926c2eeff5f2f673e706aba939dd5",
+      "status": "accepted",
+      "title": "Variant D's agent loop \u2014 hand-rolled, not LangGraph"
+    },
+    {
+      "date": "2026-08-10",
+      "number": 7,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0007-loop-time-budgets-and-generator-parity.md",
+      "references": [],
+      "sha256": "849242b1089de60e371bdf736973c4dd67c8f8016d07db3f7e29afd12ae5ed40",
+      "status": "accepted",
+      "title": "Bounded loops need a wall-clock budget, and every generator must decode like the eval gateway"
+    },
+    {
+      "date": "2026-08-10",
+      "number": 8,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0008-lightrag-and-obsidian-projection.md",
+      "references": [],
+      "sha256": "5ae223fca3a6becda03f456c9c74b1f3116856ebe9f9d3fd0c2b8c0321e4119f",
+      "status": "accepted",
+      "title": "LightRAG extraction and retrieval; Obsidian as a projection"
+    },
+    {
+      "date": "2026-08-11",
+      "number": 9,
+      "outcome": "measurement decision",
+      "owed": "The post-hoc alias rule was written after seeing the strict result, so the headline stays 11/15 = 73.3% and the gate stays missed.",
+      "path": "decisions/ADR-0009-account-alias-scoring-and-distinct-entity-precision.md",
+      "references": [],
+      "sha256": "210408d42112777830c44930b519acaab5a97efc62f72318065ebc0c66e3b70e",
+      "status": "accepted",
+      "title": "Account aliases are schema-derived; precision credits distinct entities"
+    },
+    {
+      "date": "2026-08-11",
+      "number": 10,
+      "outcome": "waiver",
+      "owed": "Phase 15 closes as an implementation and evaluation milestone, never as an all-green acceptance result.",
+      "path": "decisions/ADR-0010-phase15-failed-gate-waiver.md",
+      "references": [],
+      "sha256": "1ed77a62eda5c89322298c14e8c877fed950bbf005f63c1d918dea15a058723e",
+      "status": "accepted",
+      "title": "Phase 15 receives a one-phase failed-gate waiver"
+    },
+    {
+      "date": "2026-08-11",
+      "number": 11,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0011-roadmap-resequence-and-local-distribution.md",
+      "references": [],
+      "sha256": "35e98bb407a3cff0573de34a0dd51f4da9e6b468e47ea16ad3c66fe785cc0ada",
+      "status": "accepted",
+      "title": "Ship the product before judging it; distribute locally without a native shell"
+    },
+    {
+      "date": "2026-08-11",
+      "number": 12,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0012-ocr-preprocessing-and-provenance.md",
+      "references": [],
+      "sha256": "1fafbc3a82b140ad05b0aec28bc01fb043ca770af7f776ecf9389c99789dc594",
+      "status": "accepted",
+      "title": "OCR by preprocessing, with provenance, because citations cannot detect a misread digit"
+    },
+    {
+      "date": "2026-08-12",
+      "number": 13,
+      "outcome": "waiver",
+      "owed": "Still owed before handoff: the fresh macOS Administrator-account install and its receipt, checklist items A5\u2013A7, and an independent non-technical cold read.",
+      "path": "decisions/ADR-0013-phase17-machine-half-deferred-to-handoff.md",
+      "references": [],
+      "sha256": "a6b515e6f6482006f7a9651af4e6ccf46c6c4dceda54e8c543d385193cdad021",
+      "status": "accepted",
+      "title": "Close Phase 17 on a waiver; run the machine half immediately before handoff"
+    },
+    {
+      "date": "2026-08-12",
+      "number": 14,
+      "outcome": "preregistration",
+      "owed": "",
+      "path": "decisions/ADR-0014-phase18-decoding-sweep-preregistration.md",
+      "references": [],
+      "sha256": "e79c32ee5451289f060c3a3c5c0c9f724e4a65c5a9122e5d337f76e98f1eb108",
+      "status": "accepted; amended 2026-08-13 before the first sweep cell",
+      "title": "Phase 18 decoding sweep preregistration"
+    },
+    {
+      "date": "2026-08-12",
+      "number": 15,
+      "outcome": "design choice",
+      "owed": "",
+      "path": "decisions/ADR-0015-one-ollama-chat-path.md",
+      "references": [
+        7
+      ],
+      "sha256": "f4629619797997f7ba181915429caaf5f6b4dbdeb375160a5ae267927e9aa46a",
+      "status": "accepted",
+      "title": "One native Ollama chat path for product and evaluation"
+    },
+    {
+      "date": "2026-08-13",
+      "number": 16,
+      "outcome": "null result",
+      "owed": "Say 'measured against five alternatives; none beat it'. `p`=0.754 is absence of evidence, not equivalence.",
+      "path": "decisions/ADR-0016-local-model-selection-after-the-bake-off.md",
+      "references": [
+        11,
+        14
+      ],
+      "sha256": "03440a308dc4715afde11d663faece449b7c24e07a098c97a39a7231a7c8749f",
+      "status": "accepted",
+      "title": "Retain `qwen3:8b` after the six-model local bake-off"
+    },
+    {
+      "date": "2026-08-13",
+      "number": 17,
+      "outcome": "null result",
+      "owed": "",
+      "path": "decisions/ADR-0017-decoding-sweep-null-result.md",
+      "references": [
+        14
+      ],
+      "sha256": "de3b00e244c5b30d8b6fbe541148cc871ca48e435620e17851dcd82b7f7aab2f",
+      "status": "accepted",
+      "title": "The decoding sweep is null; retain `temperature=0.0 / top_p=0.95`"
+    },
+    {
+      "date": "2026-08-13",
+      "number": 18,
+      "outcome": "preregistration",
+      "owed": "",
+      "path": "decisions/ADR-0018-phase19-abstention-preregistration.md",
+      "references": [],
+      "sha256": "c9a1eaef1b0d0ccaa110f2cb12612a67070894621455a47446395259986c94cc",
+      "status": "accepted",
+      "title": "Test an evidence-first answer policy before producing the final portfolio"
+    },
+    {
+      "date": "2026-08-14",
+      "number": 19,
+      "outcome": "rejected candidate",
+      "owed": "The original prompt is restored and no second candidate is permitted. Three of four newly answered rows only moved from `FALSE_ABSTAIN` to `INCORRECT`.",
+      "path": "decisions/ADR-0019-reject-evidence-first-abstention-candidate.md",
+      "references": [
+        18
+      ],
+      "sha256": "c06f0643617dad5db8968bf1d28a9147f5d21b90be91c4108beaafd65d612af8",
+      "status": "accepted",
+      "title": "Reject the evidence-first abstention candidate"
+    },
+    {
+      "date": "2026-08-14",
+      "number": 20,
+      "outcome": "preregistration",
+      "owed": "",
+      "path": "decisions/ADR-0020-support-aware-citation-verification.md",
+      "references": [
+        19
+      ],
+      "sha256": "a480038294d34d4ae160a4756a4ac20df24cf929fd60222575d4012ee0a8be87",
+      "status": "accepted",
+      "title": "Preregister support-aware citation verification (entity coverage)"
+    },
+    {
+      "date": "2026-08-14",
+      "number": 21,
+      "outcome": "rejected candidate",
+      "owed": "The rule stays replay-only and must not be tuned on those rows or described as shipped. The underlying faithfulness defect is unfixed.",
+      "path": "decisions/ADR-0021-reject-entity-coverage-citation-verifier.md",
+      "references": [
+        20
+      ],
+      "sha256": "e3ea5d48456aa02ec46b7084c3053bbeb15823a91200052f3d01537acd16c848",
+      "status": "accepted",
+      "title": "Reject the entity-coverage citation verifier"
+    }
+  ],
+  "generated_at": "2026-08-14T23:35:16.119218+00:00",
+  "git_sha": "32743fdac3c59b76a962f94df314ef785ac950d3",
+  "meets_minimum": true,
+  "minimum_decisions": 8,
+  "not_a_success_count": 7,
+  "outcomes": {
+    "design choice": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      11,
+      12,
+      15
+    ],
+    "measurement decision": [
+      9
+    ],
+    "null result": [
+      16,
+      17
+    ],
+    "preregistration": [
+      14,
+      18,
+      20
+    ],
+    "rejected candidate": [
+      19,
+      21
+    ],
+    "scope reduction": [
+      3
+    ],
+    "waiver": [
+      10,
+      13
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "coverage": [
+    {
+      "committed_runs": 4,
+      "drawn": true,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:4b",
+      "rows": 80,
+      "snapshots": 3,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 4,
+      "drawn": true,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:8b",
+      "rows": 80,
+      "snapshots": 3,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/gemma3:12b",
+      "rows": 80,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/gemma3:1b",
+      "rows": 80,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/gemma3:4b",
+      "rows": 80,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:14b",
+      "rows": 80,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+      "model": "ollama/qwen3:4b",
+      "rows": 12,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "ece0ea370052e5fe97021442dd14cf5533be22d76248568e422a958d9a0e543b",
+      "model": "ollama/qwen3:8b",
+      "rows": 12,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:8b",
+      "rows": 6,
+      "snapshots": 1,
+      "variant": "B_hybrid"
+    },
+    {
+      "committed_runs": 2,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:8b",
+      "rows": 6,
+      "snapshots": 1,
+      "variant": "C_graph"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:4b",
+      "rows": 26,
+      "snapshots": 1,
+      "variant": "D_agentic"
+    },
+    {
+      "committed_runs": 1,
+      "drawn": false,
+      "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+      "model": "ollama/qwen3:8b",
+      "rows": 26,
+      "snapshots": 1,
+      "variant": "D_agentic"
+    }
+  ],
+  "exclusions": [
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9.json",
+      "reason": "ran a prompt the product does not ship (ADR-0019 rejected candidate)",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9"
+    },
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767.json",
+      "reason": "decoding sweep arm at t=0.3/p=0.8, not the shipped profile",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767"
+    },
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df.json",
+      "reason": "decoding sweep arm at t=0.3/p=0.9, not the shipped profile",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df"
+    },
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a.json",
+      "reason": "decoding sweep arm at t=0.3/p=1, not the shipped profile",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a"
+    },
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32.json",
+      "reason": "decoding sweep arm at t=0.7/p=0.8, not the shipped profile",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32"
+    },
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1.json",
+      "reason": "decoding sweep arm at t=0.7/p=0.9, not the shipped profile",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1"
+    },
+    {
+      "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b.json",
+      "reason": "decoding sweep arm at t=0.7/p=1, not the shipped profile",
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b"
+    }
+  ],
+  "generated_at": "2026-08-14T23:32:18.895152+00:00",
+  "git_sha": "32743fdac3c59b76a962f94df314ef785ac950d3",
+  "minimum_sequence": 3,
+  "product_prompt_sha256": "696efa2a9b0e6aa4e51fd7c1c0022cdbd45baea7ae44f0e3a5a1db3454c4e199",
+  "sequences": {
+    "b_hybrid_ollama_qwen3_4b_80": {
+      "chart": "reports/paretos/failure_pareto_b_hybrid_ollama_qwen3_4b_80.svg",
+      "model": "ollama/qwen3:4b",
+      "rows": 80,
+      "snapshots": [
+        {
+          "config_hash": "8dd9710b9ab177a9ac661f6750a0ef47283181eadf6621d0c04ab7aaae06e65a",
+          "counts": {
+            "ABSTAIN_FP": 33,
+            "CITE_FAIL": 1,
+            "GEN_HALLUC": 9,
+            "NUM_MISMATCH": 6
+          },
+          "path": "reports/phase11_ollama_qwen3_4b_b_hybrid_2adbab6cec95.json",
+          "rows": 80,
+          "run_id": "phase11_ollama_qwen3_4b_b_hybrid_2adbab6cec95",
+          "sha256": "a9194dd2d8271e8af04c5a9f69f0ca66168d83162927218fe73a9f77fe0c0a0f",
+          "timestamp": "2026-08-05T17:57:43.516578+00:00",
+          "total": 49
+        },
+        {
+          "config_hash": "eb0c50473ac0eb3ed1f1c375583e31b95391c4806453af9f485bdbe345eb21f6",
+          "counts": {
+            "ABSTAIN_FP": 34,
+            "CITE_FAIL": 1,
+            "GEN_HALLUC": 8,
+            "NUM_MISMATCH": 6
+          },
+          "path": "reports/phase11_ollama_qwen3_4b_b_hybrid_35d35e2fb62f.json",
+          "rows": 80,
+          "run_id": "phase11_ollama_qwen3_4b_b_hybrid_35d35e2fb62f",
+          "sha256": "de470346456cb9e2f9e4c6498071c4f6db4b22a3cf69d04bc86c5e24bfc5fb0f",
+          "timestamp": "2026-08-05T22:38:51.537638+00:00",
+          "total": 49
+        },
+        {
+          "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+          "counts": {
+            "ABSTAIN_FP": 40,
+            "CITE_FAIL": 2,
+            "GEN_HALLUC": 6,
+            "NUM_MISMATCH": 7
+          },
+          "path": "reports/phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693.json",
+          "rows": 80,
+          "run_id": "phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693",
+          "sha256": "bebfad4a685ed174fa85ad964101dda4e728dddc7ec80f75b2f7b850706d84a5",
+          "timestamp": "2026-08-13T18:33:37.164329+00:00",
+          "total": 55
+        }
+      ],
+      "variant": "B_hybrid",
+      "verdict": {
+        "dominant_first": "ABSTAIN_FP",
+        "dominant_last": "ABSTAIN_FP",
+        "growing_codes": [
+          "ABSTAIN_FP",
+          "CITE_FAIL",
+          "NUM_MISMATCH"
+        ],
+        "monotonic_decrease": false,
+        "net_decrease": false,
+        "shrinking_codes": [
+          "GEN_HALLUC"
+        ],
+        "total_change": 6,
+        "totals": [
+          49,
+          49,
+          55
+        ]
+      }
+    },
+    "b_hybrid_ollama_qwen3_8b_80": {
+      "chart": "reports/paretos/failure_pareto_b_hybrid_ollama_qwen3_8b_80.svg",
+      "model": "ollama/qwen3:8b",
+      "rows": 80,
+      "snapshots": [
+        {
+          "config_hash": "8dd9710b9ab177a9ac661f6750a0ef47283181eadf6621d0c04ab7aaae06e65a",
+          "counts": {
+            "ABSTAIN_FP": 16,
+            "CITE_FAIL": 2,
+            "GEN_HALLUC": 12,
+            "NUM_MISMATCH": 17,
+            "TOOL_ERR": 1
+          },
+          "path": "reports/phase11_ollama_qwen3_8b_b_hybrid_49b2db3bd79c.json",
+          "rows": 80,
+          "run_id": "phase11_ollama_qwen3_8b_b_hybrid_49b2db3bd79c",
+          "sha256": "9d8a83cee13581e00f5d2574d8319ce68a3a2d2d5d91b4d8116a6f5c505de850",
+          "timestamp": "2026-08-05T18:26:41.476353+00:00",
+          "total": 48
+        },
+        {
+          "config_hash": "eb0c50473ac0eb3ed1f1c375583e31b95391c4806453af9f485bdbe345eb21f6",
+          "counts": {
+            "ABSTAIN_FP": 17,
+            "CITE_FAIL": 2,
+            "GEN_HALLUC": 12,
+            "NUM_MISMATCH": 16,
+            "TOOL_ERR": 1
+          },
+          "path": "reports/phase11_ollama_qwen3_8b_b_hybrid_eea876388398.json",
+          "rows": 80,
+          "run_id": "phase11_ollama_qwen3_8b_b_hybrid_eea876388398",
+          "sha256": "56c2d005f74918b698294a757a43b7baa2a4cc0aec1c711b4bbec8a1e2a3fa97",
+          "timestamp": "2026-08-05T22:52:51.481325+00:00",
+          "total": 48
+        },
+        {
+          "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+          "counts": {
+            "ABSTAIN_FP": 19,
+            "CITE_FAIL": 2,
+            "GEN_HALLUC": 12,
+            "NUM_MISMATCH": 14
+          },
+          "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f.json",
+          "rows": 80,
+          "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f",
+          "sha256": "8999d2c2010753f6740fb1bd51805677ffb72495482dd42780a99b1c704ab2ff",
+          "timestamp": "2026-08-13T18:48:09.162375+00:00",
+          "total": 47
+        }
+      ],
+      "variant": "B_hybrid",
+      "verdict": {
+        "dominant_first": "NUM_MISMATCH",
+        "dominant_last": "ABSTAIN_FP",
+        "growing_codes": [
+          "ABSTAIN_FP"
+        ],
+        "monotonic_decrease": false,
+        "net_decrease": true,
+        "shrinking_codes": [
+          "NUM_MISMATCH",
+          "TOOL_ERR"
+        ],
+        "total_change": -1,
+        "totals": [
+          48,
+          48,
+          47
+        ]
+      }
+    }
+  },
+  "shipped_decoding": {
+    "temperature": 0.0,
+    "top_p": 0.95
+  }
+}

@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit abstention-candidate support-coverage-replay router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit abstention-candidate support-coverage-replay variant-matrix failure-pareto adr-index router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -83,6 +83,15 @@ abstention-candidate:  ## Phase 19: one evidence-first candidate cell vs the fro
 
 support-coverage-replay:  ## ADR-0020: replay entity support over committed Phase 18 B_hybrid answers
 	$(PYTHON) -m scripts.support_coverage_replay
+
+variant-matrix:  ## Phase 19 A/B/C/D comparison from committed receipts, no inference
+	$(PYTHON) -m vaultledger.evals variant-matrix
+
+failure-pareto:  ## Phase 19 failure-taxonomy sequence, discovered by rule from receipts
+	$(PYTHON) -m vaultledger.evals failure-pareto
+
+adr-index:  ## Phase 19 decision index with outcome classes, generated from decisions/
+	$(PYTHON) -m scripts.phase19_adr_index
 
 router-eval:  ## Phase 12 routing accuracy + four-policy latency-quality frontier
 	$(PYTHON) -m vaultledger.evals router-eval \
