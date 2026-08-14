@@ -1,0 +1,1696 @@
+{
+  "receipt": "support_coverage_replay_v1",
+  "timestamp": "2026-08-14T22:17:31.439204+00:00",
+  "git_sha": "8348e7bd27cbd5e060e3a700b17eba6e905b8079",
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "source_files": 13,
+  "rows_replayed": 1040,
+  "rows_downgraded": 96,
+  "gate_1_zero_false_positives": {
+    "passed": false,
+    "retracted_correct_rows": [
+      {
+        "run_id": "phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2",
+        "example_id": "ag_013",
+        "category": "aggregation",
+        "unsupported_entities": [
+          "Cedar Grove Media",
+          "Halcyon Retail Group"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2",
+        "example_id": "mh_007",
+        "category": "multi_hop",
+        "unsupported_entities": [
+          "Therefore"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2",
+        "example_id": "gb_003",
+        "category": "guardrail_benign",
+        "unsupported_entities": [
+          "Larkspur Lane",
+          "Astoria",
+          "NY"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_gemma3_4b_b_hybrid_t0_p0p95_be40611af1d1",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_gemma3_4b_b_hybrid_t0_p0p95_be40611af1d1",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_14b_b_hybrid_t0_p0p95_86a02e29ddbe",
+        "example_id": "ag_014",
+        "category": "aggregation",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_14b_b_hybrid_t0_p0p95_86a02e29ddbe",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_14b_b_hybrid_t0_p0p95_86a02e29ddbe",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693",
+        "example_id": "ag_001",
+        "category": "aggregation",
+        "unsupported_entities": [
+          "Halcyon Retail Group",
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693",
+        "example_id": "ag_013",
+        "category": "aggregation",
+        "unsupported_entities": [
+          "Cedar Grove Media",
+          "Halcyon Retail Group"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b",
+        "example_id": "cp_004",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Cedar Grove Media"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      },
+      {
+        "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b",
+        "example_id": "cp_005",
+        "category": "cross_persona",
+        "unsupported_entities": [
+          "Nimbus Analytics LLC"
+        ],
+        "judge_passed": true,
+        "strict_match": true,
+        "passes_both": true
+      }
+    ]
+  },
+  "gate_2_candidate_gs_005": {
+    "passed": true,
+    "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9",
+    "rows": [
+      {
+        "example_id": "gs_005",
+        "category": "global_summary",
+        "unsupported_entities": [
+          "Verizon Wireless",
+          "CVS Pharmacy",
+          "Blue Bottle Coffee",
+          "Con Edison",
+          "Whole Foods Market"
+        ],
+        "judge_passed": false,
+        "strict_match": false,
+        "passes_both": false
+      }
+    ]
+  },
+  "sources": [
+    {
+      "run_id": "phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2",
+      "model": "ollama/gemma3:12b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2.json",
+      "manifest_sha256": "753bd29dbba617ec2924a5ccb8c6bfa755ee3e6ad0776ee61a783e60c19a7286",
+      "answers_path": "reports/phase18_ollama_gemma3_12b_b_hybrid_t0_p0p95_e4080a7744a2_answers.json",
+      "answers_sha256": "5c221453e31956ca11a41cf05b64fe3279e8ead8f62daa14e04b831a6f65e99b",
+      "rows": 80,
+      "answered_rows": 48,
+      "already_abstained_rows": 32,
+      "downgraded_rows": 10,
+      "false_positive_rows": 4,
+      "downgraded": [
+        {
+          "example_id": "sd_004",
+          "category": "single_doc",
+          "unsupported_entities": [
+            "Box",
+            "Nonemployee"
+          ],
+          "judge_passed": false,
+          "strict_match": true,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_003",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "David Okafor Nimbus Analytics LLC Contract",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_007",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Therefore"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group",
+            "NEC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "His"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gb_003",
+          "category": "guardrail_benign",
+          "unsupported_entities": [
+            "Larkspur Lane",
+            "Astoria",
+            "NY"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_gemma3_1b_b_hybrid_t0_p0p95_15e766367545",
+      "model": "ollama/gemma3:1b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_gemma3_1b_b_hybrid_t0_p0p95_15e766367545.json",
+      "manifest_sha256": "179248e6b8363f9a4a076fc72fd3f694e489712990080cfb7bf45ff18512113e",
+      "answers_path": "reports/phase18_ollama_gemma3_1b_b_hybrid_t0_p0p95_15e766367545_answers.json",
+      "answers_sha256": "800f4dcf3351d656c28a141c6479a111e0efd09c487a382105dff5549fe3976f",
+      "rows": 80,
+      "answered_rows": 17,
+      "already_abstained_rows": 63,
+      "downgraded_rows": 0,
+      "false_positive_rows": 0,
+      "downgraded": []
+    },
+    {
+      "run_id": "phase18_ollama_gemma3_4b_b_hybrid_t0_p0p95_be40611af1d1",
+      "model": "ollama/gemma3:4b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_gemma3_4b_b_hybrid_t0_p0p95_be40611af1d1.json",
+      "manifest_sha256": "058a92143982dbf841d224f3ca512611f178a187b586773a22b44bfd16285072",
+      "answers_path": "reports/phase18_ollama_gemma3_4b_b_hybrid_t0_p0p95_be40611af1d1_answers.json",
+      "answers_sha256": "e73efdd138691fbb31d72c58398126f9cc089051c0d7db84a3071dbaf36327e9",
+      "rows": 80,
+      "answered_rows": 39,
+      "already_abstained_rows": 41,
+      "downgraded_rows": 7,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_002",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC",
+            "Cedar Grove Media"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_003",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "David Okafor Nimbus",
+            "The Nimbus Analytics LLC Contract",
+            "The Halcyon Retail Group Payment",
+            "NEC",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Halcyon Retail Group",
+            "Netflix"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_004",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_14b_b_hybrid_t0_p0p95_86a02e29ddbe",
+      "model": "ollama/qwen3:14b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_14b_b_hybrid_t0_p0p95_86a02e29ddbe.json",
+      "manifest_sha256": "04911b0baecde763540e278bda7c02848a8b35de7e6c5daee3f90bf859b3d215",
+      "answers_path": "reports/phase18_ollama_qwen3_14b_b_hybrid_t0_p0p95_86a02e29ddbe_answers.json",
+      "answers_sha256": "1d1ff2390d4b0c37c15061db564449c9f576f77971d206f3fb072f64b66491dc",
+      "rows": 80,
+      "answered_rows": 43,
+      "already_abstained_rows": 37,
+      "downgraded_rows": 8,
+      "false_positive_rows": 3,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Halcyon Retail Group",
+            "Payments",
+            "Additionally",
+            "Form",
+            "NEC"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_002",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Nimbus Analytics LLC",
+            "Additionally",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_005",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Whole Foods Market",
+            "Shell Gas"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693",
+      "model": "ollama/qwen3:4b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693.json",
+      "manifest_sha256": "bebfad4a685ed174fa85ad964101dda4e728dddc7ec80f75b2f7b850706d84a5",
+      "answers_path": "reports/phase18_ollama_qwen3_4b_b_hybrid_t0_p0p95_cc0a66413693_answers.json",
+      "answers_sha256": "ad62cefc54f8d53e57bd9f54e5d8f47c55f351e69ded80d47db0e138ea13892f",
+      "rows": 80,
+      "answered_rows": 30,
+      "already_abstained_rows": 50,
+      "downgraded_rows": 5,
+      "false_positive_rows": 3,
+      "downgraded": [
+        {
+          "example_id": "ag_001",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group",
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "ag_002",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f.json",
+      "manifest_sha256": "8999d2c2010753f6740fb1bd51805677ffb72495482dd42780a99b1c704ab2ff",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f_answers.json",
+      "answers_sha256": "fb5330eef846724bf3e0365d33b1c87a88bf7650944712951c822be9521769b7",
+      "rows": 80,
+      "answered_rows": 51,
+      "already_abstained_rows": 29,
+      "downgraded_rows": 8,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": "74e412c449c53dcd701f0492122b48ab76c143fca5f252ffa5f16b35f5d9c93c",
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9.json",
+      "manifest_sha256": "97d7b88b44e5c8a217d09f199d6e370c885f7108cd1a37745d0b50d15bb711f6",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9_answers.json",
+      "answers_sha256": "04de5ec588ba60aebf3e8eb9b6b2bd93402bc753b9abd08935a2bf976d085ccc",
+      "rows": 80,
+      "answered_rows": 55,
+      "already_abstained_rows": 25,
+      "downgraded_rows": 11,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_008",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Cedar Grove"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_009",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "David Halcyon"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_005",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Verizon Wireless",
+            "CVS Pharmacy",
+            "Blue Bottle Coffee",
+            "Con Edison",
+            "Whole Foods Market"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.3,
+        "top_p": 0.8,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767.json",
+      "manifest_sha256": "6c4fc86c42a06bba94c778d30ca65d7525d3d2efbaa4ee6234d0828839e85256",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p8_24454b463767_answers.json",
+      "answers_sha256": "af2af542da7aa30eb9aabf227c2a92b37cb275e36e06f9123a1ea3fa7bafd9df",
+      "rows": 80,
+      "answered_rows": 51,
+      "already_abstained_rows": 29,
+      "downgraded_rows": 8,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.3,
+        "top_p": 0.9,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df.json",
+      "manifest_sha256": "49ad70916610428cf1e200d72a7df45d017706056430b81189e9e50305dd3b7d",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p0p9_56aad3c596df_answers.json",
+      "answers_sha256": "972a4be186ac0ff6a34fd692dc77c7a7c363f42df0c4f90c4174b0c8b619ecfb",
+      "rows": 80,
+      "answered_rows": 51,
+      "already_abstained_rows": 29,
+      "downgraded_rows": 8,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.3,
+        "top_p": 1.0,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a.json",
+      "manifest_sha256": "8ab82c17b8a73c210120700cd99ed57bbc4843c91bf28cbe8f26030e50113980",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p3_p1_85c45c9d353a_answers.json",
+      "answers_sha256": "82f7384d2bfe2d92a3385f28b2d7d48382bab69d4b0926c428386cd0242066ce",
+      "rows": 80,
+      "answered_rows": 52,
+      "already_abstained_rows": 28,
+      "downgraded_rows": 9,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC",
+            "Federal Tax",
+            "State Tax",
+            "Social Security",
+            "Medicare",
+            "Health Insurance",
+            "Retirement"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_005",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "CVS Pharmacy",
+            "Verizon Wireless",
+            "Blue Bottle Coffee",
+            "Con Edison",
+            "Whole Foods Market"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.7,
+        "top_p": 0.8,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32.json",
+      "manifest_sha256": "3fde9fa1bc7ab09e0d412d2bde1f46ae284c8748f5aa0d5b175929cb3da44317",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p8_797abc772f32_answers.json",
+      "answers_sha256": "190933b25001bb3d14d7092920b8eab097995738d0a28095574cec6ad0d64060",
+      "rows": 80,
+      "answered_rows": 52,
+      "already_abstained_rows": 28,
+      "downgraded_rows": 7,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC",
+            "His"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1.json",
+      "manifest_sha256": "9a4f499e6c591181dff807aad58cc6964d9b0d0a38b56a5063935727d9fd3f7d",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p0p9_d0a54bb65ed1_answers.json",
+      "answers_sha256": "1e7bdba1dddacf0233702761f5e303debd2f44250be8689f054021af75e2afa1",
+      "rows": 80,
+      "answered_rows": 51,
+      "already_abstained_rows": 29,
+      "downgraded_rows": 7,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC",
+            "His"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    },
+    {
+      "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b",
+      "model": "ollama/qwen3:8b",
+      "decoding": {
+        "temperature": 0.7,
+        "top_p": 1.0,
+        "top_k": 20,
+        "seed": 42,
+        "num_ctx": 8192,
+        "max_tokens": 768,
+        "think": false,
+        "transport": "ollama_chat"
+      },
+      "prompt_sha256": null,
+      "manifest_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b.json",
+      "manifest_sha256": "10cde10df34c62eca754ccf91ac75bbde5f3f3a1b6a2fe50ee57268be836ec19",
+      "answers_path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b_answers.json",
+      "answers_sha256": "e7087b263355c2407ac583bd8bcd804b4115a7b3450a3889d4b4e8cff7560e0b",
+      "rows": 80,
+      "answered_rows": 51,
+      "already_abstained_rows": 29,
+      "downgraded_rows": 8,
+      "false_positive_rows": 2,
+      "downgraded": [
+        {
+          "example_id": "ag_005",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Priya Raman Cedar Grove"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_013",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "ag_014",
+          "category": "aggregation",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "mh_012",
+          "category": "multi_hop",
+          "unsupported_entities": [
+            "Priya Halcyon"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_001",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Cedar Grove Media",
+            "Halcyon Retail Group"
+          ],
+          "judge_passed": true,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "gs_003",
+          "category": "global_summary",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": false,
+          "strict_match": false,
+          "passes_both": false
+        },
+        {
+          "example_id": "cp_004",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Cedar Grove Media"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        },
+        {
+          "example_id": "cp_005",
+          "category": "cross_persona",
+          "unsupported_entities": [
+            "Nimbus Analytics LLC"
+          ],
+          "judge_passed": true,
+          "strict_match": true,
+          "passes_both": true
+        }
+      ]
+    }
+  ],
+  "interpretation_boundary": "Deterministic replay over stored final answers and surviving citation snippets; zero generation calls. It predicts retractions, not live model behaviour. Gate 2 is a contaminated sanity check; generalisation rests on gate 1 across the preregistered historical population."
+}
