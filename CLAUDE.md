@@ -106,9 +106,12 @@ lever. It needs its own phase, not a Phase 18 addendum.
 finding: 15 of `qwen3:8b`'s 19 answerable abstentions were model-declared, three were
 output-guard downgrades, and one was a deliberate query block. All 19 retrieval top
 scores exceeded `rerank_tau`; expected documents were already in the top six for 14 and
-the top 12 for 17. ADR-0018 therefore preregisters one evidence-first prompt candidate,
-with safety/quality gates fixed before it runs. No candidate result or improvement is
-claimed yet. The inherited Phase 19 portfolio scope remains owed after that experiment.
+the top 12 for 17. ADR-0018 preregistered one evidence-first prompt candidate. ADR-0019
+rejects it: abstentions improved 19→15 and judge false-abstains 15→11, but paired judge
+movement was only 2 wins / 0 losses (net +2, exact `p=0.500`) against the fixed +4 gate.
+Three of four newly answered rows merely changed from `FALSE_ABSTAIN` to `INCORRECT`.
+The original prompt is restored; no second candidate is allowed. The inherited Phase 19
+portfolio scope remains owed.
 
 Phase 16 (ADR-0011/ADR-0012) delivered the external
 live-document path: inbox outside the repo, real OCR via `ocrmypdf --skip-text`,

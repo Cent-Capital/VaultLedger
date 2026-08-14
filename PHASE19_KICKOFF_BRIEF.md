@@ -139,10 +139,10 @@ into “every original SPEC criterion passed.”
 - [x] Entry tests/lint and corpus hash recorded from actual commands.
 - [x] Abstention causes and retrieval state captured in a reproducible receipt.
 - [x] Experiment and adoption rule committed before the candidate run.
-- [ ] Candidate prompt version/hash recorded; one full candidate cell completed.
-- [ ] ADR-0018 rule applied without post-result threshold changes; finding written even
+- [x] Candidate prompt version/hash recorded; one full candidate cell completed.
+- [x] ADR-0018 rule applied without post-result threshold changes; finding written even
       if null or mixed.
-- [ ] Any adopted prompt revalidated against affected Phase 18 claims.
+- [x] Candidate rejected and original prompt restored; Phase 18 revalidation not triggered.
 - [ ] `reports/variant_matrix.md` harness-generated with population boundaries visible.
 - [ ] Pareto sequence or honest non-comparability artifact harness-generated.
 - [ ] ADR index generated; ≥8 numbered decisions remain traceable.

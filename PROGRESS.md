@@ -2890,3 +2890,62 @@ its model-independent unit slice is **4 passed**. The complete kickoff slice is
 **199 passed**, `make lint` is clean, `git diff --check` is clean, and the corpus hash is
 unchanged. No Phase 19 generation candidate has run, no improvement is claimed, and the
 phase is open.
+
+### Phase 19 abstention candidate — mixed result, rejected (2026-08-14)
+
+**One candidate, exactly as preregistered.** Commit `a37b5bf` inserted ADR-0018's
+evidence-first block verbatim. It also added optional `RunManifest.prompt_sha256`, keyed
+matrix checkpoints on it, and surfaced it beside decoding in generated reports. The
+candidate prompt hash is `74e412c449c5…c93c`; historical manifests still validate with
+no prompt hash. No retrieval, guard, decoding, context, or loop control changed.
+
+The only permitted cell completed 80/80 rows with zero `TOOL_ERR`:
+`phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9`. The report and frontier are
+`reports/phase19_candidate_matrix.md` and
+`reports/phase19_candidate_frontier.svg`. Candidate row wall time summed to 717.0 s and
+the fixed judge added 183.8 s. Both are descriptive one-run timings; Phase 13's latency
+instability still forbids a latency ranking.
+
+**The candidate passed four gates and failed the one that decides adoption.** Answerable
+abstentions fell 19→15 and judge `FALSE_ABSTAIN` fell 15→11. Judge passes rose 56→58,
+strict matches 35→36, citation-document hits 57→60, and correct abstention decisions
+61→65; numeric exact match stayed 15/42. Coverage was 80/80 with zero tool errors. All
+10 unanswerable rows still abstained, the poisoned-document row answered `$4,207.55`
+without following the instruction, and the complete Phase 13 guardrail gate was green.
+
+But paired judge verdicts were only **2 candidate wins / 0 losses**, net +2 against the
+preregistered +4 requirement. Exact two-sided McNemar is `p=0.500` on two discordant
+rows — low power, not equivalence, and not a replacement for the practical threshold.
+ADR-0019 therefore rejects the prompt.
+
+The row mechanism explains why the conjunction mattered. Four rows stopped abstaining:
+`mh_002`, `mh_008`, `mh_009`, and `gs_005`. Only `mh_002` became judge-correct. The
+other three became incorrect answers, so their judge label changed from `FALSE_ABSTAIN`
+to `INCORRECT` without becoming product wins. The second paired win, `gb_004`, was a
+better answer on a row that neither arm abstained on. The candidate-side audit records
+15 remaining answerable abstentions: 10 model-declared, four guard downgrades, and one
+query block.
+
+**Candidate-side verification.** `make verify-track-a` exited 0 with Ruff clean,
+**203 tests**, golden validation at `b59ee2659a17`, 10/10 rightly abstained plus the
+poisoned answer correct in safety `phase7_4efa2e4ec293`, all Phase 13 gates green in
+`phase13_guardrails_56dd86a4e1e6`, judge validation 20/20 in
+`phase9_judge_8f5ec119c48e`, dense `phase3_c2a1ee76001e`, hybrid
+`phase4_1966922cebd9`, and regression passed with zero deltas against distinct baseline
+`phase4_551b3b20b9f9`. The corpus hash remained `ba7148a…5405`. CI is checked after
+the result commit is pushed; it is not inferred here.
+
+**Worktree receipt incident.** The eight pre-existing untracked JSON receipts named in
+the implementation brief were present at entry but absent after the required
+`make verify-track-a` run. They were never staged. The target and its invoked Python
+paths contain no report-cleanup step, and searches of the repository, user/temp paths,
+Trash, local snapshots, and unreachable Git objects found no recoverable copies. They
+were not recreated from guessed content. This result commit contains only the new
+candidate and candidate-side Track-A receipts.
+
+**Shipped outcome.** The evidence-first block is removed and the original prompt is
+restored at hash `696efa2a9b0e…e199`. Prompt identity plumbing and every experimental
+artifact remain. There is no second prompt candidate. Because the product did not adopt
+a new prompt, Phase 18's model and decoding findings remain current rather than becoming
+historical. Phase 19 remains open for its variant matrix, Pareto, ADR index, demo v2,
+narrative artifacts, and final DoD work.

@@ -1,0 +1,55 @@
+{
+  "run_id": "phase3_c2a1ee76001e",
+  "timestamp": "2026-08-14T20:41:54.706736+00:00",
+  "git_sha": "a37b5bf8974f70066f3328316de50fa818193295",
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "seed": 42,
+  "variant": "A_naive",
+  "model": "nomic-embed-text",
+  "metrics": {
+    "retrieval_recall@20": 0.9586734693877551,
+    "retrieval_precision@20": 0.1007142857142856,
+    "retrieval_mrr": 0.49739239518651296,
+    "retrieval_hit_rate": 0.9857142857142858,
+    "retrieval_eval_coverage": 0.875
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "mh_008",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_cedargrove_priya_2024"
+    },
+    {
+      "example_id": "mh_012",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_halcyon_priya_2024"
+    },
+    {
+      "example_id": "gs_001",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_halcyon_priya_2024"
+    },
+    {
+      "example_id": "gs_003",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: stmt_marcus_checking_2025-03"
+    },
+    {
+      "example_id": "gs_004",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: f1099_cedargrove_priya_2024, f1099_halcyon_priya_2024"
+    },
+    {
+      "example_id": "gs_006",
+      "taxonomy_code": "RANK_MISS",
+      "note": "missing expected docs in top-20: inv_priya_cedargrove_03_dup, inv_priya_halcyon_04, stmt_marcus_checking_2025-03"
+    }
+  ],
+  "decoding": null,
+  "prompt_sha256": null,
+  "model_metadata": null,
+  "judge_model": null,
+  "judge_verdicts": []
+}
