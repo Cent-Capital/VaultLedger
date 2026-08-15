@@ -15,6 +15,7 @@ from vaultledger.generate.ollama import GenerationError
 from vaultledger.retrieve.agentic import (
     AgenticRetriever,
     AgentToolError,
+    SqlResult,
     calculate,
     run_agent_loop,
     run_readonly_sql,
@@ -134,6 +135,33 @@ def test_sql_is_parameterized_read_only_allowlisted_and_provenanced(records_db: 
     conn = sqlite3.connect(records_db)
     assert conn.execute("SELECT COUNT(*) FROM forms_1099").fetchone()[0] == 1
     conn.close()
+
+
+def test_sql_result_summary_marks_only_empty_results_as_uninformative():
+    empty = SqlResult(columns=("amount",), rows=(), doc_ids=())
+    assert json.loads(empty.summary()) == {
+        "columns": ["amount"],
+        "rows": [],
+        "provenance_doc_ids": [],
+        "truncated": False,
+        "result": "NO_ROWS_RETURNED",
+        "interpretation": (
+            "An empty result means this query matched nothing. It is NOT evidence that the "
+            "fact is false, absent, or smaller. Do not state a negative or comparative "
+            "conclusion from an empty result. Re-query more simply, split a join into "
+            "separate lookups, or use retrieve."
+        ),
+    }
+
+    non_empty = SqlResult(
+        columns=("amount",),
+        rows=({"amount": 12000.0},),
+        doc_ids=("f1099_halcyon_priya_2024",),
+    )
+    assert non_empty.summary() == (
+        '{"columns":["amount"],"rows":[{"amount":12000.0}],'
+        '"provenance_doc_ids":["f1099_halcyon_priya_2024"],"truncated":false}'
+    )
 
 
 def test_loop_traces_sql_retrieve_and_finish_within_both_budgets(records_db: Path):
