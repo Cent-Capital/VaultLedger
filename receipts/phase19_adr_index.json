@@ -1,5 +1,5 @@
 {
-  "decision_count": 23,
+  "decision_count": 24,
   "decisions": [
     {
       "date": "2026-07-11",
@@ -260,7 +260,7 @@
       "date": "2026-08-15",
       "number": 23,
       "outcome": "preregistration",
-      "owed": "Both runs, the adoption rule and the containment diagnostic are unrun. No result is claimed, and ADR-0022's rejection is set aside as untestable rather than overturned.",
+      "owed": "Discharged by ADR-0024. ADR-0022's rejection remains set aside as untestable rather than being treated as evidence for the clean retest.",
       "path": "decisions/ADR-0023-empty-result-payload-only-retest.md",
       "references": [
         22
@@ -268,13 +268,26 @@
       "sha256": "616556375ccb75a430994392a7e47ecb097084fcdaddc48864a2702bac3ba119",
       "status": "accepted",
       "title": "Retest the empty-result contract, payload only, against a same-code baseline"
+    },
+    {
+      "date": "2026-08-15",
+      "number": 24,
+      "outcome": "rejected candidate",
+      "owed": "The payload is restored, both experimental runs are excluded from product history, and there is no third wording attempt. The schema gap moves to Phase 20.",
+      "path": "decisions/ADR-0024-reject-empty-result-payload-only-contract.md",
+      "references": [
+        23
+      ],
+      "sha256": "dc5d2ef8c3c58de262dafb4b4d4dbb224a360e108347d275196a2161d9254320",
+      "status": "accepted",
+      "title": "Reject the empty-result payload-only contract"
     }
   ],
-  "generated_at": "2026-08-15T06:02:23.621062+00:00",
-  "git_sha": "85a06facda20a82e205fa924dd50d32c3baafc91",
+  "generated_at": "2026-08-15T14:50:06.905044+00:00",
+  "git_sha": "8f391566ab6f028061a4ecc093554c583b162518",
   "meets_minimum": true,
   "minimum_decisions": 8,
-  "not_a_success_count": 8,
+  "not_a_success_count": 9,
   "outcomes": {
     "design choice": [
       1,
@@ -304,7 +317,8 @@
     "rejected candidate": [
       19,
       21,
-      22
+      22,
+      24
     ],
     "scope reduction": [
       3

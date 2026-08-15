@@ -3179,3 +3179,99 @@ the rejected run therefore looked like a shipped default-decoding snapshot. The 
 now excludes the exact rejected code SHA with an ADR-0022 reason, its test names the run,
 and the Pareto report and receipt are regenerated. The failed candidate remains visible
 in the exclusions table rather than being mixed into the restored product's history.
+
+### ADR-0023 payload-only retest — rejected cleanly; no third attempt (2026-08-15)
+
+**Baseline before implementation.** Entry was verified rather than assumed: `main` and
+`origin/main` were `7896cae`, the worktree was clean, `make test` passed 238 tests,
+`make lint` was clean, and the corpus hash was
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+The brief's target was absent, so commit `25823d0` added only the evaluation entrypoint,
+including the established `aggregation multi_hop` filter required to select 26 rather
+than all 80 golden rows. No product code changed before the baseline.
+
+Run 1, `matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_6a82bd327b6e`, completed 26/26
+against product SHA `7896cae`. Only after that receipt was committed did commit `dbcfcde`
+add the two exact empty-result fields inside `SqlResult.summary()` plus one focused test.
+It did not touch `_PLANNER_SYSTEM`, the SQL tool description, or any always-present
+model-facing string. Run 2,
+`matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_a4da2769451b`, then completed 26/26 against
+product SHA `dbcfcde`. Both manifests have config hash `f8f9b3e4…54b894`, guardrails on,
+the fixed `qwen3:8b` judge, and identical recorded decoding: temperature 0, top-p 0.95,
+top-k 20, seed 42, 8,192 context tokens, 768 output tokens, thinking off, native Ollama
+chat. The Phase 11 receipt was not used as a comparator.
+
+**`mh_009`, verbatim.** The target did not assert a false negative in either clean arm:
+
+| Arm | Answer text |
+|---|---|
+| Baseline — `6a82bd327b6e` | “I couldn't find that in your documents.” |
+| Candidate — `a4da2769451b` | “I couldn't find that in your documents.” |
+
+The baseline reached `finish` after two empty SQL results. The candidate followed its
+first empty result with `retrieve`, then attempted an ambiguous SQL query, retrieved
+again, and ended on another empty SQL result at step 5. The fallback abstention is honest,
+but candidate `mh_009` exhausted its configured budget and is therefore a `TOOL_ERR`.
+
+**Empty-result traces.** The fresh runs both contained eight empty-result rows, not the
+seven assumed by ADR-0023. The row identities were identical:
+`ag_005`, `ag_013`, `mh_003`, `mh_006`, `mh_007`, `mh_009`, `mh_010`, and `mh_011`.
+The baseline had ten empty-result events and the candidate had thirteen. Every next action
+is recorded below; “loop ended” means no next planner action existed.
+
+| Arm | Empty result | Next planner action |
+|---|---|---|
+| Baseline | `ag_005` step 2 | `retrieve` |
+| Baseline | `ag_013` step 1 | `finish` with abstention |
+| Baseline | `mh_003` step 1 | `finish` with abstention and an unsupported absence claim |
+| Baseline | `mh_006` step 1 | `finish` with abstention and an unsupported absence claim |
+| Baseline | `mh_007` step 2 | `finish` |
+| Baseline | `mh_009` step 1 | repeat `sql` |
+| Baseline | `mh_009` step 2 | `finish` with an unsupported negative comparison in the action payload |
+| Baseline | `mh_010` step 2 | `retrieve` |
+| Baseline | `mh_010` step 6 | loop ended at budget exhaustion |
+| Baseline | `mh_011` step 1 | `retrieve` |
+| Candidate | `ag_005` step 2 | `retrieve` |
+| Candidate | `ag_013` step 1 | `retrieve` |
+| Candidate | `ag_013` step 3 | `retrieve` |
+| Candidate | `mh_003` step 1 | `retrieve` |
+| Candidate | `mh_003` step 3 | `retrieve` |
+| Candidate | `mh_006` step 1 | `retrieve` |
+| Candidate | `mh_006` step 3 | `finish` |
+| Candidate | `mh_007` step 2 | `retrieve` |
+| Candidate | `mh_009` step 1 | `retrieve` |
+| Candidate | `mh_009` step 5 | loop ended at budget exhaustion |
+| Candidate | `mh_010` step 2 | `retrieve` |
+| Candidate | `mh_011` step 1 | `retrieve` |
+| Candidate | `mh_011` step 3 | `finish` with abstention |
+
+**Containment diagnostic.** Because eight rows received the payload, the unaffected set
+was 18 rather than the preregistered 19. On those actual 18 rows, differences were
+**0** for `strict_match`, **0** for `abstained`, and **0** for byte-exact `answer_text`.
+The behavior was contained; the predicted denominator was false and is not silently
+rewritten. The eight empty-row identities also matched exactly between arms.
+
+**Binding result.** `mh_009` passed the negative-conclusion rule, but two adoption gates
+failed. Baseline `mh_011` answered, “David's June checking closing balance was $21,909.69,
+while Marcus's June savings closing balance was $18,185.00. Therefore, David's June
+checking closing balance was larger.” The candidate answered, “I couldn't find that in
+your documents.” That is one paired strict loss. Candidate `TOOL_ERR` was 4/26:
+`ag_003`, `mh_009`, `mh_010`, and `mh_012`, against the zero-error gate. Baseline itself
+had three `TOOL_ERR`s (`ag_003`, `mh_010`, `mh_012`), an observation rather than the
+candidate gate.
+
+Aggregate strict matches stayed 11/26 and numeric exact stayed 11/24. Citation-document
+hits and correct abstention decisions moved 11/26→14/26; judge passes moved 12/26→13/26.
+These are observations only. Accuracy was not an adoption criterion, and the gain on
+`mh_003` cannot be netted against the binding `mh_011` loss.
+
+**Outcome.** ADR-0024 rejects the payload-only contract. The payload and its focused test
+are removed from the product tree; both reports and receipts plus implementation commit
+`dbcfcde` remain. Both run SHAs are excluded from failure-Pareto discovery with explicit
+ADR-0024 reasons. There is no third wording attempt. The empty-result logical defect is
+still open, and the next permissible lever is the deferred Phase 20 schema relationship.
+
+**Delivery verification.** `make test` passes all **238 tests**, `make lint` is clean,
+and `git diff --check` is clean. The synthetic corpus hash remains
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+CI is checked from GitHub after the result commit is pushed; it is not inferred here.

@@ -46,6 +46,14 @@ MIN_SEQUENCE = 3
 #: Exclude that commit explicitly instead of letting its receipt describe the
 #: restored product as a comparable shipping snapshot.
 REJECTED_CODE_SHAS: dict[str, str] = {
+    "7896cae838108e6983cd973ec8e5308a866e0efc": (
+        "ran as the same-stack baseline for the rejected payload-only experiment "
+        "(ADR-0024)"
+    ),
+    "dbcfcde8f0b2ccb6d55fd5f3f056f0f56138ca1f": (
+        "ran the payload-only empty-result contract the product does not ship "
+        "(ADR-0024 rejected candidate)"
+    ),
     "f72c849bbe5c7f1bdfe42f4c768ca5b17466745b": (
         "ran the empty-SQL-result contract the product does not ship "
         "(ADR-0022 rejected candidate)"

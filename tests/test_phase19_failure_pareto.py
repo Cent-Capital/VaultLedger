@@ -86,6 +86,12 @@ def test_discovery_excludes_rejected_candidates_and_the_decoding_sweep():
     adr0022_run = "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89"
     assert adr0022_run in reasons
     assert "ADR-0022" in reasons[adr0022_run]
+    adr0023_runs = {
+        "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_6a82bd327b6e",
+        "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_a4da2769451b",
+    }
+    assert adr0023_runs <= reasons.keys()
+    assert all("ADR-0024" in reasons[run_id] for run_id in adr0023_runs)
     sweep = [run_id for run_id, reason in reasons.items() if "decoding sweep" in reason]
     assert len(sweep) == 6, "all six non-default decoding arms must be excluded"
 

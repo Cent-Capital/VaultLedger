@@ -130,24 +130,13 @@ class SqlResult:
     truncated: bool = False
 
     def summary(self) -> str:
-        payload: dict[str, object] = {
-            "columns": self.columns,
-            "rows": self.rows,
-            "provenance_doc_ids": self.doc_ids,
-            "truncated": self.truncated,
-        }
-        if not self.rows:
-            payload.update(
-                result="NO_ROWS_RETURNED",
-                interpretation=(
-                    "An empty result means this query matched nothing. It is NOT evidence "
-                    "that the fact is false, absent, or smaller. Do not state a negative or "
-                    "comparative conclusion from an empty result. Re-query more simply, "
-                    "split a join into separate lookups, or use retrieve."
-                ),
-            )
         return json.dumps(
-            payload,
+            {
+                "columns": self.columns,
+                "rows": self.rows,
+                "provenance_doc_ids": self.doc_ids,
+                "truncated": self.truncated,
+            },
             default=str,
             separators=(",", ":"),
         )

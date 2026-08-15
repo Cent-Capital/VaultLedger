@@ -112,9 +112,19 @@
   ],
   "exclusions": [
     {
+      "path": "reports/matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_6a82bd327b6e.json",
+      "reason": "ran as the same-stack baseline for the rejected payload-only experiment (ADR-0024)",
+      "run_id": "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_6a82bd327b6e"
+    },
+    {
       "path": "reports/matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89.json",
       "reason": "ran the empty-SQL-result contract the product does not ship (ADR-0022 rejected candidate)",
       "run_id": "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89"
+    },
+    {
+      "path": "reports/matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_a4da2769451b.json",
+      "reason": "ran the payload-only empty-result contract the product does not ship (ADR-0024 rejected candidate)",
+      "run_id": "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_a4da2769451b"
     },
     {
       "path": "reports/phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9.json",
@@ -152,8 +162,8 @@
       "run_id": "phase18_ollama_qwen3_8b_b_hybrid_t0p7_p1_b4d8ec65454b"
     }
   ],
-  "generated_at": "2026-08-15T05:47:17.392067+00:00",
-  "git_sha": "dbe8095cb59e102091db4c148c0b3b3a495b9b05",
+  "generated_at": "2026-08-15T14:50:11.439711+00:00",
+  "git_sha": "8f391566ab6f028061a4ecc093554c583b162518",
   "minimum_sequence": 3,
   "product_prompt_sha256": "696efa2a9b0e6aa4e51fd7c1c0022cdbd45baea7ae44f0e3a5a1db3454c4e199",
   "sequences": {

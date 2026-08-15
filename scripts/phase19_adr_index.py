@@ -199,9 +199,15 @@ CLASSIFICATIONS: dict[int, Classification] = {
         "preregistration",
         "Retests the empty-SQL-result contract payload-only against a same-code baseline, "
         "after review found ADR-0022's two arms differed by three variables rather than one.",
-        owed="Both runs, the adoption rule and the containment diagnostic are unrun. No "
-        "result is claimed, and ADR-0022's rejection is set aside as untestable rather "
-        "than overturned.",
+        owed="Discharged by ADR-0024. ADR-0022's rejection remains set aside as untestable "
+        "rather than being treated as evidence for the clean retest.",
+    ),
+    24: Classification(
+        "rejected candidate",
+        "Rejected the payload-only empty-result contract after `mh_011` lost a baseline "
+        "strict pass and the candidate produced four budget-exhaustion `TOOL_ERR`s.",
+        owed="The payload is restored, both experimental runs are excluded from product "
+        "history, and there is no third wording attempt. The schema gap moves to Phase 20.",
     ),
 }
 

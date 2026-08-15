@@ -54,7 +54,7 @@ def test_waivers_nulls_and_rejections_are_not_summarised_as_successes():
 
     assert receipt["outcomes"]["waiver"] == [10, 13]
     assert receipt["outcomes"]["null result"] == [16, 17]
-    assert receipt["outcomes"]["rejected candidate"] == [19, 21, 22]
+    assert receipt["outcomes"]["rejected candidate"] == [19, 21, 22, 24]
     assert receipt["outcomes"]["scope reduction"] == [3]
 
     expected = sum(
@@ -84,6 +84,7 @@ def test_preregistration_chains_are_parsed_not_asserted():
     assert 18 in by_number[19]["references"], "ADR-0019 applies ADR-0018"
     assert 20 in by_number[21]["references"], "ADR-0021 applies ADR-0020"
     assert 14 in by_number[17]["references"], "ADR-0017 applies ADR-0014"
+    assert 23 in by_number[24]["references"], "ADR-0024 applies ADR-0023"
 
 
 def test_committed_index_matches_a_fresh_generation():
