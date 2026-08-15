@@ -93,6 +93,44 @@ change. Old-prompt model/decoding results cannot describe a new-prompt product.
 
 ## Work package 3 — harness-generated comparison artifacts
 
+### Coverage survey, 2026-08-14 — measured before building any generator
+
+A review pass inventoried every committed manifest. Two of this work package's open
+questions are now settled, and the generators should be built against these facts rather
+than rediscovering them.
+
+**Variant coverage is not rectangular, and worse than this brief assumed.**
+
+| variant | generation rows | model(s) | config hash | status |
+|---|---:|---|---|---|
+| `A_naive` | **0** | — | phase3 | retrieval-only; **never measured for generation** |
+| `B_hybrid` | 80 | six models | `f8f9b3e4` | current |
+| `C_graph` | 6 | qwen3:8b | `21a33d1b` | pre-ADR-0015 |
+| `D_agentic` | 26 | qwen3:4b/8b | `22e0086c` | pre-ADR-0015 |
+
+Only `B_hybrid` describes the shipped system. `C_graph` and `D_agentic` predate ADR-0015's
+native-chat transport change and carry no `decoding` block at all, so they measure the old
+LiteLLM path. The `A_naive` generation cell is not merely sparse — it is empty, and must be
+named as never measured rather than left blank.
+
+**The Pareto population is comparable; the requested story is not.** All 19 committed
+80-row generation manifests share golden-set hash `b59ee265`, so population never varies.
+Three `qwen3:8b` snapshots across the Phase 11→18 arc give totals of **48 → 48 → 47**:
+
+| taxonomy | phase11 | phase11 (guard on) | phase18 |
+|---|---:|---:|---:|
+| `ABSTAIN_FP` | 16 | 17 | **19** |
+| `NUM_MISMATCH` | 17 | 16 | **14** |
+| `TOOL_ERR` | 1 | 1 | **0** |
+| `GEN_HALLUC` | 12 | 12 | **12** |
+| `CITE_FAIL` | 2 | 2 | **2** |
+
+The bars do not shrink. The profile **rotates**: numeric accuracy improves and tool errors
+vanish, false abstention grows and overtakes numeric mismatch as the top failure, and
+hallucination does not move at all across three configurations. Generate that finding; do
+not generate shrinking bars. These figures were computed in review and must be reproduced
+by the generator, not copied from here.
+
 ### `reports/variant_matrix.md`
 
 Generate a category-aware A/B/C/D report from committed manifests and answer receipts.
@@ -170,10 +208,20 @@ into “every original SPEC criterion passed.”
 - [x] ADR-0020 rule applied without post-result tuning of the stoplist or extractor;
       ADR-0021 records adoption or rejection, and a rejected guard is reverted out of the
       product path rather than left shipped.
-- [ ] `reports/variant_matrix.md` harness-generated with population boundaries visible.
-- [ ] Pareto sequence or honest non-comparability artifact harness-generated.
+- [x] Committed-manifest coverage surveyed before generator work, so non-comparability is
+      designed for rather than discovered late (Work package 3 survey, 2026-08-14).
+- [x] Repo→PM-OS claim register written with every figure bounded and pointed at its
+      manifest, receipt or ADR (`PM_OS_HANDOVER.md`), and the mixed Phase 15
+      recall/precision citation corrected at `32743fd`.
+- [ ] `reports/variant_matrix.md` harness-generated with population boundaries visible;
+      `A_naive` named as never measured for generation rather than left blank, and
+      `C_graph`/`D_agentic` marked pre-ADR-0015 rather than compared to current `B_hybrid`.
+- [ ] Pareto artifact harness-generated and reproducing the surveyed rotation — totals
+      48 → 48 → 47 on one population — rather than a shrinking-bars story the data does
+      not support.
 - [ ] ADR index generated; ≥8 numbered decisions remain traceable.
-- [ ] Demo v2 and PM-OS narrative artifacts completed with current claims.
+- [ ] Demo v2 and PM-OS narrative artifacts completed with current claims, drawing on the
+      handover register rather than restating numbers independently.
 - [ ] Final DoD truth table names every waiver/deviation above.
 - [ ] `make test`, `make lint`, `make verify-track-a`, CI green; corpus hash unchanged.
 - [ ] Phase 17 machine/human debt either performed at handoff or still named as debt —
