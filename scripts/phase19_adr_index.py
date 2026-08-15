@@ -188,6 +188,13 @@ CLASSIFICATIONS: dict[int, Classification] = {
         owed="The rule stays replay-only and must not be tuned on those rows or described "
         "as shipped. The underlying faithfulness defect is unfixed.",
     ),
+    22: Classification(
+        "rejected candidate",
+        "Rejected the empty-SQL-result contract after its paired 26-row run fixed `mh_009` "
+        "but lost five committed strict passes and produced one budget-exhaustion `TOOL_ERR`.",
+        owed="The prior SQL summary and planner prompt are restored. Empty SQL results remain "
+        "logically uninformative, and the demonstrated false-negative failure remains open.",
+    ),
 }
 
 

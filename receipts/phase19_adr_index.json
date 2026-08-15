@@ -1,5 +1,5 @@
 {
-  "decision_count": 21,
+  "decision_count": 22,
   "decisions": [
     {
       "date": "2026-07-11",
@@ -244,13 +244,24 @@
       "sha256": "e3ea5d48456aa02ec46b7084c3053bbeb15823a91200052f3d01537acd16c848",
       "status": "accepted",
       "title": "Reject the entity-coverage citation verifier"
+    },
+    {
+      "date": "2026-08-15",
+      "number": 22,
+      "outcome": "rejected candidate",
+      "owed": "The prior SQL summary and planner prompt are restored. Empty SQL results remain logically uninformative, and the demonstrated false-negative failure remains open.",
+      "path": "decisions/ADR-0022-empty-sql-result-is-not-negative-evidence.md",
+      "references": [],
+      "sha256": "e137ea7b3c51062c625d40150685df911869b105161f1b594cadf73c9b1398ac",
+      "status": "accepted",
+      "title": "An empty SQL result is not negative evidence"
     }
   ],
-  "generated_at": "2026-08-14T23:35:16.119218+00:00",
-  "git_sha": "32743fdac3c59b76a962f94df314ef785ac950d3",
+  "generated_at": "2026-08-15T05:38:13.449638+00:00",
+  "git_sha": "f72c849bbe5c7f1bdfe42f4c768ca5b17466745b",
   "meets_minimum": true,
   "minimum_decisions": 8,
-  "not_a_success_count": 7,
+  "not_a_success_count": 8,
   "outcomes": {
     "design choice": [
       1,
@@ -278,7 +289,8 @@
     ],
     "rejected candidate": [
       19,
-      21
+      21,
+      22
     ],
     "scope reduction": [
       3

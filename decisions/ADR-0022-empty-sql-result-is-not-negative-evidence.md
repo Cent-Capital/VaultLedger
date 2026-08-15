@@ -1,6 +1,6 @@
 # ADR-0022: An empty SQL result is not negative evidence
 
-2026-08-15 · Status: **accepted for measurement**
+2026-08-15 · Status: **accepted** · Outcome: contract rejected after measurement
 
 ## Context
 
@@ -51,3 +51,34 @@ The result record will quote `mh_009` before and after verbatim, count rows with
 result in each arm, and report the planner's next action after every such result. If `mh_009`
 still asserts a false negative, the contract change will be reverted and the failed fix
 reported plainly.
+
+## Measured outcome
+
+The fixed cell `matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89` completed the
+same 26 rows at temperature 0, top-p 0.95, top-k 20, seed 42, and 768 output tokens.
+`mh_009` answered correctly: the invoice “exceeds” the 1099 amount and the answer gives
+both `$14,549.70` and `$9,800.00`.
+
+The preregistered conjunction nevertheless failed. Five rows that passed the committed
+strict scorer stopped passing: `ag_001`, `ag_002`, `ag_011`, `ag_012`, and `mh_002`.
+`ag_005` exhausted the six-step agent budget and was recorded as `TOOL_ERR`. Aggregate
+strict movement was 10/26 to 11/26, but that net count cannot override the paired-loss
+gate and is not an adoption rationale.
+
+| Condition | Measured result | Verdict |
+|---|---|---|
+| `mh_009` correct or honestly abstained | Correct comparison and both amounts | Pass |
+| No committed strict pass starts failing | Five paired strict losses | **Fail** |
+| 26/26 coverage and zero `TOOL_ERR` | 26/26; one budget-exhaustion `TOOL_ERR` | **Fail** |
+| Tests, lint, corpus | Delivery checks recorded in `PROGRESS.md`; corpus unchanged | Delivery only |
+
+## Consequences
+
+**Reject the empty-result contract and restore the previous planner prompt and SQL summary.**
+The implementation and its focused regression test remain visible in commit `f72c849`,
+while the paired receipt and report remain as the negative result. There is no second run
+or tuned wording.
+
+The underlying correctness bug remains open: an empty SQL result is still not logically
+negative evidence, but this proposed model-facing contract did not satisfy its adoption
+rule. The successful `mh_009` outcome is reported as an observation, not an accuracy claim.

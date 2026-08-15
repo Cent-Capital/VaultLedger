@@ -3092,3 +3092,81 @@ and is not inferred.
 **Still open in Phase 19.** Work package 4's reader-facing artifacts — demo v2, the
 internship report and blog draft in the PM-OS workspace, and README/app copy — and work
 package 5's final DoD truth table and regression. Phase 17's machine half remains owed.
+
+### ADR-0022 empty-SQL-result contract — target fixed, adoption gate failed (2026-08-15)
+
+**Rule before measurement.** Commit `1082920` recorded that zero SQL rows mean only that
+the submitted query matched nothing; they are not evidence that a fact is false, absent,
+or smaller. Commit `f72c849` added `result: NO_ROWS_RETURNED` plus that interpretation to
+empty `SqlResult.summary()` values and mirrored it in the planner's SQL tool description.
+Empty results did not raise `AgentToolError`, non-empty summary bytes were covered as
+unchanged, and no schema, query template, retrieval, or guard path moved.
+
+**Paired 26-row run.** `make agentic-empty-result-check` explicitly selected the 14
+aggregation and 12 multi-hop rows and completed 26/26 against `ollama/qwen3:8b`, with
+guardrails and the fixed `qwen3:8b` judge on. The new manifest is
+`matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89`; it records temperature 0,
+top-p 0.95, top-k 20, seed 42, 8,192 context tokens, 768 output tokens, thinking off,
+and the local Ollama chat transport. The harness-generated report and frontier are
+`reports/adr0022_agentic_matrix.md` and
+`reports/adr0022_agentic_matrix_frontier.svg`.
+
+**The target row changed in the right direction.** The before and after `mh_009` answer
+text, verbatim, is:
+
+| Arm | Answer |
+|---|---|
+| Before — `phase11_ollama_qwen3_8b_d_agentic_4c9522233d68` | “The invoice DAVID-HALCYON-005 did not exceed David's Halcyon 1099 amount. The total amount of the invoice was $14,549.70, and there is no evidence of a corresponding 1099 form amount for David Halcyon.” |
+| After — `matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89` | “The invoice DAVID-HALCYON-005 total amount is $14,549.70, which exceeds David's Halcyon 1099 amount of $9,800.00.” |
+
+The after answer is strict- and judge-passing. Its first SQL attempt failed structurally
+because the planner invented `forms_1099_boxes`; it then used `retrieve` and finished
+correctly. It did not receive an empty result on this run, so this is a successful target
+outcome under the preregistered rule, not proof that the post-result marker caused it.
+`mh_003` also changed from an abstention to the correct `$24,500.00` versus `$9,800.00`
+comparison after following its empty SQL result with `retrieve`.
+
+**Empty-result behavior.** Seven of 26 rows produced at least one empty SQL result in each
+arm. There were eight empty-result events before and eleven after. Every next planner
+action is enumerated below; repeated row ids are separate empty-result events.
+
+| Arm | Empty SQL result | Planner's next action |
+|---|---|---|
+| Before | `ag_013` step 1 | `retrieve` |
+| Before | `mh_003` step 1 | `finish` with abstention and an unsupported absence claim |
+| Before | `mh_006` step 1 | `retrieve` |
+| Before | `mh_007` step 2 | `finish` |
+| Before | `mh_009` step 1 | `retrieve` |
+| Before | `mh_009` step 3 | `finish` with the false comparison quoted above |
+| Before | `mh_010` step 2 | `retrieve` |
+| Before | `mh_011` step 2 | `retrieve` |
+| After | `ag_005` step 2 | `retrieve` |
+| After | `mh_003` step 1 | `retrieve` |
+| After | `mh_006` step 1 | `retrieve` |
+| After | `mh_007` step 2 | simpler `sql` |
+| After | `mh_007` step 3 | `retrieve` |
+| After | `mh_010` step 3 | simpler `sql` |
+| After | `mh_010` step 4 | `retrieve` |
+| After | `mh_011` step 2 | simpler `sql` |
+| After | `mh_011` step 3 | `finish` with an honest abstention |
+| After | `mh_012` step 1 | simpler `sql` |
+| After | `mh_012` step 2 | `retrieve` |
+
+**The full adoption conjunction failed.** Strict matches moved from 10/26 to 11/26,
+numeric exact matches from 10/24 to 11/24, citation-document hits stayed 14/26, and
+abstention accuracy moved from 15/26 to 14/26. These are observations, not an accuracy
+claim or adoption basis. The paired gate failed because five formerly strict-passing rows
+stopped passing: `ag_001`, `ag_002`, `ag_011`, `ag_012`, and `mh_002`. Six other rows
+started passing, but the rule did not permit netting gains against losses. The zero-error
+gate also failed: `ag_005` exhausted the six-step agent budget and therefore appears as
+one `TOOL_ERR`. The fixed judge covered 26/26 and passed 10; the Phase 11 comparator has
+no stored judge verdicts, so no paired judge change is claimed.
+
+**Outcome and delivery.** ADR-0022 rejects the contract. The prior `SqlResult.summary()`
+and planner prompt are restored; commit `f72c849` preserves the tested implementation,
+and the new Make target and all measured artifacts remain reproducible. There is no
+second run or wording adjustment. `make test` passes all **238 tests**, and `make lint`
+is clean. CI is checked after the result commit is pushed, not inferred. The
+corpus hash is unchanged at
+`ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
+This is a failed adoption gate and an open correctness defect, not an accuracy improvement.

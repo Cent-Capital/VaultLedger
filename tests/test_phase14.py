@@ -13,10 +13,8 @@ from vaultledger.evals.run import build_parser, score_injection_answer
 from vaultledger.generate.agentic import answer_question_agentic
 from vaultledger.generate.ollama import GenerationError
 from vaultledger.retrieve.agentic import (
-    EMPTY_SQL_RESULT_INTERPRETATION,
     AgenticRetriever,
     AgentToolError,
-    SqlResult,
     calculate,
     run_agent_loop,
     run_readonly_sql,
@@ -138,28 +136,6 @@ def test_sql_is_parameterized_read_only_allowlisted_and_provenanced(records_db: 
     conn.close()
 
 
-def test_sql_result_summary_marks_only_empty_results_as_uninformative():
-    empty = SqlResult(columns=("amount",), rows=(), doc_ids=())
-    assert json.loads(empty.summary()) == {
-        "columns": ["amount"],
-        "rows": [],
-        "provenance_doc_ids": [],
-        "truncated": False,
-        "result": "NO_ROWS_RETURNED",
-        "interpretation": EMPTY_SQL_RESULT_INTERPRETATION,
-    }
-
-    non_empty = SqlResult(
-        columns=("amount",),
-        rows=({"amount": 12000.0},),
-        doc_ids=("f1099_halcyon_priya_2024",),
-    )
-    assert non_empty.summary() == (
-        '{"columns":["amount"],"rows":[{"amount":12000.0}],'
-        '"provenance_doc_ids":["f1099_halcyon_priya_2024"],"truncated":false}'
-    )
-
-
 def test_loop_traces_sql_retrieve_and_finish_within_both_budgets(records_db: Path):
     planner = _Planner(
         [
@@ -202,7 +178,6 @@ def test_loop_traces_sql_retrieve_and_finish_within_both_budgets(records_db: Pat
     assert not any(step.failure for step in result.steps)
     assert sum(step.tokens_used for step in result.steps) <= 8192
     assert all(call["max_tokens"] <= 768 for call in planner.calls)
-    assert EMPTY_SQL_RESULT_INTERPRETATION in planner.calls[0]["prompt"]
 
 
 def test_tool_failure_is_structured_and_the_bounded_loop_can_recover(records_db: Path):

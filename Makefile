@@ -2,7 +2,7 @@
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python; fi)
 
-.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit abstention-candidate support-coverage-replay variant-matrix failure-pareto adr-index router-eval guardrails-eval agentic-eval agentic-safety graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
+.PHONY: install install-graph doctor lint test data ingest live-ingest watch eval-smoke eval-safety judge-validate regression eval-full verify-track-a matrix decoding-sweep decoding-proof decoding-parity-proof abstention-audit abstention-candidate support-coverage-replay variant-matrix failure-pareto adr-index router-eval guardrails-eval agentic-eval agentic-safety agentic-empty-result-check graph-index graph-eval graph-eval-k6 graph-vault graph-vault-extracted replay run clean
 
 install:  ## Install the package + dev, synth, reranking, and model gateway tools
 	$(PYTHON) -m pip install -e ".[dev,synth,rerank,gateway,graph]"
@@ -106,6 +106,12 @@ agentic-eval:  ## Phase 14 full target-category matrix, guards on
 
 agentic-safety:  ## Phase 14 live Phase-7 suite rerun, Variant D + guards on
 	$(PYTHON) -m vaultledger.evals safety --variant D_agentic --guardrails on
+
+agentic-empty-result-check:  ## ADR-0022: re-run D's 26 rows after the tool-contract fix
+	$(PYTHON) -m vaultledger.evals matrix --models ollama/qwen3:8b \
+		--variants D_agentic --categories aggregation multi_hop --limit 0 \
+		--guardrails on --judge-model ollama/qwen3:8b \
+		--report reports/adr0022_agentic_matrix.md
 
 graph-vault:  ## Phase 15 demo-only ground-truth vault (not extraction evidence)
 	$(PYTHON) -m vaultledger.graph export-ground-truth --replace

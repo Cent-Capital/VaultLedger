@@ -54,7 +54,7 @@ def test_waivers_nulls_and_rejections_are_not_summarised_as_successes():
 
     assert receipt["outcomes"]["waiver"] == [10, 13]
     assert receipt["outcomes"]["null result"] == [16, 17]
-    assert receipt["outcomes"]["rejected candidate"] == [19, 21]
+    assert receipt["outcomes"]["rejected candidate"] == [19, 21, 22]
     assert receipt["outcomes"]["scope reduction"] == [3]
 
     expected = sum(
