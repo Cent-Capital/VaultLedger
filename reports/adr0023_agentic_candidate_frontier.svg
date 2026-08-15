@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:Inter,Arial,sans-serif;fill:#172033}.mono{font-family:ui-monospace,SFMono-Regular,monospace}.muted{fill:#667085}.grid{stroke:#e5e7eb;stroke-width:1}.axis{stroke:#344054;stroke-width:1.3}</style>
+<text x="90" y="36" font-size="22" font-weight="700">Local-model latency–quality frontier</text>
+<text x="90" y="62" font-size="13" class="muted">1 model × decoding cell(s) · bubble area ≈ resident bytes · direct labels identify every point</text>
+<line x1="90" y1="540.0" x2="920" y2="540.0" class="grid"/>
+<text x="76" y="544.0" font-size="12" text-anchor="end" class="mono muted">0%</text>
+<line x1="90" y1="431.2" x2="920" y2="431.2" class="grid"/>
+<text x="76" y="435.2" font-size="12" text-anchor="end" class="mono muted">25%</text>
+<line x1="90" y1="322.5" x2="920" y2="322.5" class="grid"/>
+<text x="76" y="326.5" font-size="12" text-anchor="end" class="mono muted">50%</text>
+<line x1="90" y1="213.8" x2="920" y2="213.8" class="grid"/>
+<text x="76" y="217.8" font-size="12" text-anchor="end" class="mono muted">75%</text>
+<line x1="90" y1="105.0" x2="920" y2="105.0" class="grid"/>
+<text x="76" y="109.0" font-size="12" text-anchor="end" class="mono muted">100%</text>
+<line x1="90.0" y1="105" x2="90.0" y2="540" class="grid"/>
+<text x="90.0" y="564" font-size="12" text-anchor="middle" class="mono muted">0.0s</text>
+<line x1="297.5" y1="105" x2="297.5" y2="540" class="grid"/>
+<text x="297.5" y="564" font-size="12" text-anchor="middle" class="mono muted">7.1s</text>
+<line x1="505.0" y1="105" x2="505.0" y2="540" class="grid"/>
+<text x="505.0" y="564" font-size="12" text-anchor="middle" class="mono muted">14.3s</text>
+<line x1="712.5" y1="105" x2="712.5" y2="540" class="grid"/>
+<text x="712.5" y="564" font-size="12" text-anchor="middle" class="mono muted">21.4s</text>
+<line x1="920.0" y1="105" x2="920.0" y2="540" class="grid"/>
+<text x="920.0" y="564" font-size="12" text-anchor="middle" class="mono muted">28.5s</text>
+<line x1="90" y1="540" x2="920" y2="540" class="axis"/>
+<line x1="90" y1="105" x2="90" y2="540" class="axis"/>
+<text x="505.0" y="598" font-size="13" text-anchor="middle">Median wall latency per completed row</text>
+<text x="25" y="322.5" font-size="13" text-anchor="middle" transform="rotate(-90 25 322.5)">Quality rate</text>
+<g class="data-point" data-model="ollama/qwen3:8b">
+<circle cx="844.5" cy="322.5" r="18.0" fill="#2563eb" stroke="#2563eb" stroke-width="3"><title>ollama/qwen3:8b; judge_pass_rate=50.0%; generation coverage=100.0%; median completed-row wall=25927 ms; resident=5.75 GiB</title></circle>
+<text x="818.5" y="284.5" font-size="12" font-weight="600" text-anchor="end">qwen3:8b</text>
+<text x="818.5" y="300.5" font-size="11" class="mono muted" text-anchor="end">50.0% · 25.9s · cov 100%</text>
+</g>
+<text x="970" y="113" font-size="12" font-weight="700">Family</text>
+<circle cx="977" cy="137" r="7" fill="#2563eb" stroke="#2563eb" stroke-width="2"/>
+<text x="994" y="141" font-size="12">Qwen3</text>
+<circle cx="977" cy="163" r="7" fill="#ffffff" stroke="#d97706" stroke-width="3"/>
+<text x="994" y="167" font-size="12">Gemma 3</text>
+<text x="970" y="210" font-size="12" font-weight="700">Size encoding</text>
+<circle cx="982" cy="244" r="12" fill="#ffffff" stroke="#667085" stroke-width="2"/>
+<text x="1004" y="248" font-size="11" class="muted">larger bubble =</text>
+<text x="1004" y="263" font-size="11" class="muted">more resident bytes</text>
+<rect x="70" y="630" width="1040" height="76" rx="8" fill="#f8fafc" stroke="#d0d5dd"/>
+<text x="90" y="655" font-size="12" font-weight="700">Descriptive only — not a latency ranking</text>
+<text x="90" y="677" font-size="11" class="muted">Phase 13 saw ~50% p50 movement between runs with byte-identical answers. Machine load can move points more than the apparent model gap.</text>
+<text x="90" y="694" font-size="11" class="muted">Latency uses completed rows only; points below 100% coverage are not comparable on the x axis.</text>
+</svg>
