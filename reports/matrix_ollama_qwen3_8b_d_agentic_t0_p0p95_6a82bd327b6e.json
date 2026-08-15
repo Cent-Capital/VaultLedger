@@ -1,0 +1,314 @@
+{
+  "run_id": "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_6a82bd327b6e",
+  "timestamp": "2026-08-15T06:44:23.834181+00:00",
+  "git_sha": "7896cae838108e6983cd973ec8e5308a866e0efc",
+  "config_hash": "f8f9b3e473cf377cb11354246ca2ef47b9fe388c5a1ee3b47765e3ff06c1b894",
+  "golden_set_hash": "b59ee2659a17714c6cff995ef64a8da04cc7d601ca01ba1634d17e296dad551c",
+  "seed": 42,
+  "variant": "D_agentic",
+  "model": "ollama/qwen3:8b",
+  "metrics": {
+    "matrix_examples": 26.0,
+    "generation_eval_coverage": 1.0,
+    "strict_answer_match_rate": 0.4230769230769231,
+    "citation_doc_hit_rate": 0.4230769230769231,
+    "abstention_accuracy": 0.4230769230769231,
+    "numeric_exact_match_examples": 24.0,
+    "numeric_exact_match_rate": 0.4583333333333333,
+    "matrix_examples__aggregation": 14.0,
+    "strict_answer_match_rate__aggregation": 0.5,
+    "citation_doc_hit_rate__aggregation": 0.5,
+    "abstention_accuracy__aggregation": 0.5,
+    "numeric_exact_match_examples__aggregation": 12.0,
+    "numeric_exact_match_rate__aggregation": 0.5833333333333334,
+    "matrix_examples__multi_hop": 12.0,
+    "strict_answer_match_rate__multi_hop": 0.3333333333333333,
+    "citation_doc_hit_rate__multi_hop": 0.3333333333333333,
+    "abstention_accuracy__multi_hop": 0.3333333333333333,
+    "numeric_exact_match_examples__multi_hop": 12.0,
+    "numeric_exact_match_rate__multi_hop": 0.3333333333333333,
+    "median_gateway_latency_ms": 19272.215,
+    "p95_gateway_latency_ms": 40646.041,
+    "median_wall_latency_ms": 20765.089,
+    "p95_wall_latency_ms": 41515.198,
+    "gateway_calls": 85.0,
+    "input_tokens": 80930.0,
+    "output_tokens": 11745.0,
+    "provider_token_usage_rate": 1.0,
+    "model_unpriced": 1.0,
+    "judge_coverage_rate": 1.0,
+    "judge_pass_rate": 0.46153846153846156,
+    "judge_calls": 26.0,
+    "judge_input_tokens": 9481.0,
+    "judge_output_tokens": 1160.0,
+    "judge_latency_ms": 65652.66,
+    "agent_trace_coverage_rate": 1.0,
+    "agent_step_budget_compliance_rate": 1.0,
+    "agent_token_budget_compliance_rate": 1.0,
+    "agent_exhaustion_rate": 0.11538461538461539,
+    "agent_average_steps": 3.269230769230769,
+    "agent_max_steps": 6.0,
+    "agent_average_trace_tokens": 2863.730769230769,
+    "retrieval_answer_top_n": 6.0,
+    "model_prewarmed": 1.0,
+    "guardrails_enabled": 1.0
+  },
+  "total_cost_usd": 0.0,
+  "failures": [
+    {
+      "example_id": "ag_003",
+      "taxonomy_code": "TOOL_ERR",
+      "note": "agent exhausted a configured budget and safely abstained"
+    },
+    {
+      "example_id": "ag_005",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_008",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_009",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_010",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "ag_013",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_003",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_004",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_005",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_006",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_007",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_009",
+      "taxonomy_code": "ABSTAIN_FP",
+      "note": "abstained on an answerable example"
+    },
+    {
+      "example_id": "mh_010",
+      "taxonomy_code": "TOOL_ERR",
+      "note": "agent exhausted a configured budget and safely abstained"
+    },
+    {
+      "example_id": "mh_012",
+      "taxonomy_code": "TOOL_ERR",
+      "note": "agent exhausted a configured budget and safely abstained"
+    }
+  ],
+  "decoding": {
+    "temperature": 0.0,
+    "top_p": 0.95,
+    "top_k": 20,
+    "seed": 42,
+    "num_ctx": 8192,
+    "max_tokens": 768,
+    "think": false,
+    "transport": "ollama_chat"
+  },
+  "prompt_sha256": null,
+  "model_metadata": {
+    "parameter_count": "8.2B",
+    "quantization": "Q4_K_M",
+    "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "family": "qwen3",
+    "artifact_size_bytes": 5225388164,
+    "resident_size_bytes": 6177989590,
+    "resident_size_vram_bytes": 6177989590,
+    "ollama_version": "0.32.5"
+  },
+  "judge_model": "ollama/qwen3:8b",
+  "judge_verdicts": [
+    {
+      "example_id": "ag_001",
+      "passed": true,
+      "reason": "The candidate answer correctly sums the nonemployee compensation amounts from both sources and matches the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_002",
+      "passed": true,
+      "reason": "The candidate answer correctly states the total nonemployee compensation and aligns with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_003",
+      "passed": false,
+      "reason": "The candidate abstained despite the reference answer providing the exact total gross pay.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "ag_004",
+      "passed": true,
+      "reason": "The candidate answer correctly states Marcus Chen's total net pay and agrees with the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_005",
+      "passed": true,
+      "reason": "The candidate correctly abstained as the supporting evidence was not provided.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_006",
+      "passed": true,
+      "reason": "The candidate correctly abstained as the supporting evidence indicates no documents were provided.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_007",
+      "passed": false,
+      "reason": "The candidate answer incorrectly states the total invoiced amount as $55,667.64, which is not supported by the provided evidence.",
+      "failure_code": "INCORRECT"
+    },
+    {
+      "example_id": "ag_008",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer providing the correct information.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "ag_009",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer providing the correct information.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "ag_010",
+      "passed": false,
+      "reason": "The candidate answer is an abstention, but the reference answer provides the required information.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "ag_011",
+      "passed": true,
+      "reason": "The candidate answer correctly states the closing balances for January and June 2025 and is supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_012",
+      "passed": true,
+      "reason": "The candidate answer correctly states the January and June 2025 checking closing balances for David Okafor and is fully supported by the evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "ag_013",
+      "passed": false,
+      "reason": "The candidate answer is an abstention, but the reference answer provides the correct information which is present in the supporting evidence.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "ag_014",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies Nimbus Analytics LLC as the payer with the largest Box 1 amount and matches the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_001",
+      "passed": true,
+      "reason": "The candidate answer correctly states that Priya Raman received more from Halcyon than from Cedar Grove, matching the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_002",
+      "passed": true,
+      "reason": "The candidate answer correctly states that the 1099 amount was larger than the invoice amount and supports the claim with the provided evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_003",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer clearly states the answer is 'Yes'.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_004",
+      "passed": false,
+      "reason": "The candidate incorrectly abstained from answering a question that the reference answer explicitly addresses.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_005",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer confirms the checking balance grew.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_006",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer confirms an increase in David Okafor's checking balance.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_007",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains when the reference answer provides a clear 'Yes'.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_008",
+      "passed": true,
+      "reason": "The candidate answer correctly states that the invoice amount exceeded the 1099 amount and provides accurate figures supported by the reference and evidence.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_009",
+      "passed": false,
+      "reason": "The candidate answer falsely abstains from providing an answer when the reference answer clearly states that the invoice exceeded the 1099 amount.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_010",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer providing the correct information.",
+      "failure_code": "FALSE_ABSTAIN"
+    },
+    {
+      "example_id": "mh_011",
+      "passed": true,
+      "reason": "The candidate answer correctly identifies David's June checking closing balance as larger than Marcus's June savings closing balance, and the figures match the reference answer.",
+      "failure_code": "NONE"
+    },
+    {
+      "example_id": "mh_012",
+      "passed": false,
+      "reason": "The candidate answer abstains despite the reference answer providing a clear 'Yes'.",
+      "failure_code": "FALSE_ABSTAIN"
+    }
+  ]
+}
