@@ -3170,3 +3170,12 @@ is clean. CI is checked after the result commit is pushed, not inferred. The
 corpus hash is unchanged at
 `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
 This is a failed adoption gate and an open correctness defect, not an accuracy improvement.
+
+**CI discovery fix.** The first pushed result run, GitHub Actions `31867562286`, failed
+one generated-artifact test. Locally, the new manifest was untracked while the tests ran;
+the failure-Pareto generator intentionally discovers only `git ls-files`, so the receipt
+entered discovery for the first time in CI. Variant D predates planner-prompt hashing and
+the rejected run therefore looked like a shipped default-decoding snapshot. The generator
+now excludes the exact rejected code SHA with an ADR-0022 reason, its test names the run,
+and the Pareto report and receipt are regenerated. The failed candidate remains visible
+in the exclusions table rather than being mixed into the restored product's history.

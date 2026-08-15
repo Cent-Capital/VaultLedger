@@ -74,7 +74,7 @@ def test_verdict_names_a_rising_total_as_unsupported():
     assert verdict["total_change"] == 7
 
 
-def test_discovery_excludes_the_rejected_prompt_and_the_decoding_sweep():
+def test_discovery_excludes_rejected_candidates_and_the_decoding_sweep():
     cfg = load_config()
     groups, exclusions = collect_groups(
         shipped_temperature=cfg.generation.temperature,
@@ -83,6 +83,9 @@ def test_discovery_excludes_the_rejected_prompt_and_the_decoding_sweep():
     reasons = {run_id: reason for run_id, _, reason in exclusions}
     assert "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9" in reasons
     assert "ADR-0019" in reasons["phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9"]
+    adr0022_run = "matrix_ollama_qwen3_8b_d_agentic_t0_p0p95_861c711def89"
+    assert adr0022_run in reasons
+    assert "ADR-0022" in reasons[adr0022_run]
     sweep = [run_id for run_id, reason in reasons.items() if "decoding sweep" in reason]
     assert len(sweep) == 6, "all six non-default decoding arms must be excluded"
 

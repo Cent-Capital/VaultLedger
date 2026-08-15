@@ -41,6 +41,17 @@ DEFAULT_RECEIPT = REPO_ROOT / "receipts" / "phase19_failure_pareto.json"
 #: A sequence needs at least this many comparable snapshots to be drawn at all.
 MIN_SEQUENCE = 3
 
+#: Variant D does not record a planner-prompt hash, so a run made at a rejected
+#: answer-affecting code commit cannot be distinguished by ``prompt_sha256``.
+#: Exclude that commit explicitly instead of letting its receipt describe the
+#: restored product as a comparable shipping snapshot.
+REJECTED_CODE_SHAS: dict[str, str] = {
+    "f72c849bbe5c7f1bdfe42f4c768ca5b17466745b": (
+        "ran the empty-SQL-result contract the product does not ship "
+        "(ADR-0022 rejected candidate)"
+    ),
+}
+
 #: SPEC's failure taxonomy, with the reading each code supports. Codes are
 #: printed in this order everywhere so two charts can be compared by eye.
 TAXONOMY: tuple[tuple[str, str], ...] = (
@@ -167,6 +178,11 @@ def collect_groups(
             # `*_latest.json` pointers are byte copies of a dated manifest.
             continue
         seen_run_ids[manifest.run_id] = relative
+
+        rejected_reason = REJECTED_CODE_SHAS.get(manifest.git_sha)
+        if rejected_reason is not None:
+            exclusions.append((manifest.run_id, relative, rejected_reason))
+            continue
 
         if manifest.prompt_sha256 is not None and manifest.prompt_sha256 != PROMPT_SHA256:
             exclusions.append(
