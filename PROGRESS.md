@@ -1,4 +1,70 @@
+<!-- NAVIGATION HEADER — added 2026-08-19. This block is navigation only.
+     No entry below it has been altered, reordered, compressed, or backdated.
+     The append-only rule stated in the next paragraph remains in force. -->
+
 # PROGRESS
+
+> ### Reader's index
+>
+> This log is ~3,300 lines and reads chronologically. It is the primary evidence trail:
+> one entry per phase, recording what was built, what deviated from `SPEC.md` and why, and
+> a plain-English explainer of the trickiest piece.
+>
+> **New to the project?** Start with [`docs/handover.md`](docs/handover.md) instead, then
+> come back here for detail. For a phase-by-phase narrative with the metrics explained from
+> first principles, see the study guide kept outside this repository.
+>
+> **Two things to know before reading:**
+> 1. Phase numbers changed on 2026-08-11 (ADR-0011). The translation table is immediately
+>    below. Entries written before that date use the old numbering and were deliberately
+>    left as written.
+> 2. Several entries **correct earlier entries**, including corrections that were themselves
+>    later withdrawn (see the latency thread across Phases 11 → 12 → 13). Read a claim
+>    together with anything that supersedes it.
+
+<details>
+<summary><b>Jump to an entry</b> (click to expand)</summary>
+
+| Entry |
+|---|
+| [Phase 0 — Scaffold & config  (2026-07-11)](#phase-0--scaffold--config--2026-07-11) |
+| [Phase 1 — Synthetic data  (2026-07-13)](#phase-1--synthetic-data--2026-07-13) |
+| [Phase 2 — Ingestion & indexing  (2026-07-13)](#phase-2--ingestion--indexing--2026-07-13) |
+| [Phase 3 — Naive RAG + golden set  (2026-07-13)](#phase-3--naive-rag--golden-set--2026-07-13) |
+| [Phase 4 — Retrieval quality  (2026-07-13)](#phase-4--retrieval-quality--2026-07-13) |
+| [Phase 5 — Structured-output reliability  (2026-07-27)](#phase-5--structured-output-reliability--2026-07-27) |
+| [Phase 6 — Privacy switch / routing v1  (2026-07-28)](#phase-6--privacy-switch--routing-v1--2026-07-28) |
+| [Phase 7 — Adversarial & safety evals  (2026-07-28)](#phase-7--adversarial--safety-evals--2026-07-28) |
+| [Phase 8 — Observability & cost  (2026-07-28)](#phase-8--observability--cost--2026-07-28) |
+| [Phase 9 — Judge validation + regression runner  (2026-07-28)](#phase-9--judge-validation--regression-runner--2026-07-28) |
+| [Phase 10 — Track-A polish  (2026-07-30)](#phase-10--track-a-polish--2026-07-30) |
+| [Phase 11 — Local model gateway + benchmark-matrix machinery  (2026-08-05)](#phase-11--local-model-gateway--benchmark-matrix-machinery--2026-08-05) |
+| [Phase 12 — Deterministic local-size policy router v2  (2026-08-05)](#phase-12--deterministic-local-size-policy-router-v2--2026-08-05) |
+| [Phase 13 — Named guardrail pipeline  (2026-08-05)](#phase-13--named-guardrail-pipeline--2026-08-05) |
+| [Comprehensive review before Phase 14  (2026-08-05)](#comprehensive-review-before-phase-14--2026-08-05) |
+| [Phase 14 opened — bounded Variant D vertical slice  (2026-08-06)](#phase-14-opened--bounded-variant-d-vertical-slice--2026-08-06) |
+| [Phase 14 closed — bounded agentic RAG (variant D)  (2026-08-10)](#phase-14-closed--bounded-agentic-rag-variant-d--2026-08-10) |
+| [Phase 15 opened — measurable graph contracts and live LightRAG smoke  (2026-08-10)](#phase-15-opened--measurable-graph-contracts-and-live-lightrag-smoke--2026-08-10) |
+| [Phase 15 mid-phase: the graph is built and scored — recall gate MISSED  (2026-08-11)](#phase-15-mid-phase-the-graph-is-built-and-scored--recall-gate-missed--2026-08-11) |
+| [Phase 15 account-alias re-score — post-hoc recall passes; precision remains poor  (2026-08-11)](#phase-15-account-alias-re-score--post-hoc-recall-passes-precision-remains-poor--2026-08-11) |
+| [Phase 15 closed — GraphRAG (variant C) built, measured, and not promoted  (2026-08-11)](#phase-15-closed--graphrag-variant-c-built-measured-and-not-promoted--2026-08-11) |
+| [Phase 16 — Live documents, safely (opened and closed 2026-08-11)](#phase-16--live-documents-safely-opened-and-closed-2026-08-11) |
+| [Phase 17 — Browser-UI packaging and handoff (opened 2026-08-11; in progress)](#phase-17--browser-ui-packaging-and-handoff-opened-2026-08-11-in-progress) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [Phase 17 review continuation — code half complete; owner half still open](#phase-17-review-continuation--code-half-complete-owner-half-still-open) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [Phase 17 close — on a waiver (ADR-0013), 2026-08-12](#phase-17-close--on-a-waiver-adr-0013-2026-08-12) |
+| [Phase 18 — Local-model bake-off and decoding sweep (opened 2026-08-12; in progress)](#phase-18--local-model-bake-off-and-decoding-sweep-opened-2026-08-12-in-progress) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [Phase 18 review corrections — 2026-08-13](#phase-18-review-corrections--2026-08-13) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [The six-model matrix has run — 2026-08-13](#the-six-model-matrix-has-run--2026-08-13) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [The decoding sweep has run — it is null — 2026-08-13](#the-decoding-sweep-has-run--it-is-null--2026-08-13) |
+| [Phase 18 close — 2026-08-13](#phase-18-close--2026-08-13) |
+| [Phase 19 — Final comparison, portfolio, and abstention pass (opened 2026-08-13; in progress)](#phase-19--final-comparison-portfolio-and-abstention-pass-opened-2026-08-13-in-progress) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [Phase 19 abstention candidate — mixed result, rejected (2026-08-14)](#phase-19-abstention-candidate--mixed-result-rejected-2026-08-14) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [Phase 19 support-aware citation verifier — replay gate failed, rejected (2026-08-14)](#phase-19-support-aware-citation-verifier--replay-gate-failed-rejected-2026-08-14) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [Phase 19 comparison artifacts — generated, and the Pareto does not shrink (2026-08-14)](#phase-19-comparison-artifacts--generated-and-the-pareto-does-not-shrink-2026-08-14) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [ADR-0022 empty-SQL-result contract — target fixed, adoption gate failed (2026-08-15)](#adr-0022-empty-sql-result-contract--target-fixed-adoption-gate-failed-2026-08-15) |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ [ADR-0023 payload-only retest — rejected cleanly; no third attempt (2026-08-15)](#adr-0023-payload-only-retest--rejected-cleanly-no-third-attempt-2026-08-15) |
+
+</details>
 
 Honest build log. One entry per phase: what got built, what deviated from
 SPEC.md and why, and a plain-English explainer of the trickiest piece (that
@@ -3275,3 +3341,44 @@ still open, and the next permissible lever is the deferred Phase 20 schema relat
 and `git diff --check` is clean. The synthetic corpus hash remains
 `ba7148a112191bc81be89636ddbc9ececd90a8a525447814666ee355ae257405`.
 CI is checked from GitHub after the result commit is pushed; it is not inferred here.
+
+---
+
+## Repository reorganisation for ownership transfer  (2026-08-19)
+
+Not a phase. Recorded here because this log is the receipt for changes to the repository,
+and because a reader following a path reference in an older entry needs to know where the
+file went.
+
+**What moved.** Seventeen working documents that had accumulated at the repository root —
+phase kickoff briefs, review-fix briefs, close checklists, `HANDOFF.md`, and
+`PM_OS_HANDOVER.md` — were `git mv`'d to `docs/briefs/`. The root drops from 28 tracked
+files to 11. Nothing was deleted; git history and file contents are unchanged.
+
+**What was deliberately *not* changed.** The seven prose references to those files in this
+log and in ADR-0013 were left byte-identical. This log is append-only and ADRs are amended
+rather than rewritten, so rewriting historical text to chase a path would have cost more
+than it bought. `docs/briefs/README.md` carries a location note and a citation table so a
+reference like `` `PHASE16_BUILD_PLAN.md` `` at line 2186 above still resolves for a reader.
+
+**What was added.** A `docs/` tree: `README.md` (index), `handover.md` (project status, the
+conventions that bite, and the open debts), `architecture.md`, `evaluation.md`,
+`getting-started.md`, and `limitations.md`. A navigation header was added to the top of this
+file; it is marked as navigation-only and alters no entry.
+
+**What was deliberately left alone.**
+- `reports/` — its ~200 files are hard-coded as default paths in `evals/run.py`,
+  `variant_matrix.py` and `failure_pareto.py`, named inside source-hashed receipts, and
+  asserted by tests. Reorganising it would break the harness and invalidate the artifacts
+  that cite it.
+- `LICENSE` — licensing on transfer is a legal decision for the owner and Cent Capital, not
+  an editorial one. Flagged in `docs/handover.md` §5, unchanged here.
+- The `~/Desktop/PM-OS` references in `CLAUDE.md` and `docs/briefs/PM_OS_HANDOVER.md` —
+  they document where non-code artifacts were routed and are not a runtime dependency;
+  nothing in the build reads them. Noted in the handover rather than edited.
+- Every measured claim, receipt, manifest and ADR.
+
+**Verification.** Recorded in the commit; see the commit message for the measured `make lint`
+and `make test` result at this commit. No source file, config value, manifest or report was
+modified by this reorganisation, and no eval was re-run — so no number in this log changes
+meaning.

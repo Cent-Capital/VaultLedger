@@ -15,6 +15,19 @@ outside the public repository. User documents never enter a metric denominator.
 VaultLedger is not a production financial service and provides document extraction
 and Q&A, never financial advice.
 
+## Documentation
+
+| You are | Start at |
+|---|---|
+| **Taking ownership of this repo** | [`docs/handover.md`](docs/handover.md) — status, conventions, and the open debts |
+| **A new engineer** | [`docs/getting-started.md`](docs/getting-started.md) → [`docs/architecture.md`](docs/architecture.md) |
+| **Reviewing the evidence** | [`docs/evaluation.md`](docs/evaluation.md) → `reports/variant_matrix.md` → `reports/adr_index.md` |
+| **Checking what is *not* proven** | [`docs/limitations.md`](docs/limitations.md) |
+| **A non-technical Mac user** | the next section |
+
+Full index: [`docs/README.md`](docs/README.md). The primary record is `SPEC.md` (read its
+ACTIVE DEVIATIONS banner first), `PROGRESS.md` (append-only), and `decisions/` (24 ADRs).
+
 ## Start here on a Mac — no Terminal commands
 
 VaultLedger runs locally. Your PDFs and question text stay on your Mac; the app does
