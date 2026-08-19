@@ -3382,3 +3382,44 @@ file; it is marked as navigation-only and alters no entry.
 and `make test` result at this commit. No source file, config value, manifest or report was
 modified by this reorganisation, and no eval was re-run — so no number in this log changes
 meaning.
+
+---
+
+## Observation: the remote is private, not public  (2026-08-19)
+
+Not a phase. Recorded because several committed documents assert the opposite, and a reader
+who trusts them will draw a wrong conclusion about why the Phase 16 isolation design exists.
+
+**Measured today**, `gh api repos/abhinavgupta0809/vaultledger --jq '.visibility'` returns
+`private`. It also reports `has_wiki: true` and `default_branch: main`.
+
+**What asserts otherwise, and is left unedited:**
+
+| Location | Text |
+|---|---|
+| `decisions/ADR-0011…md:98` | "The repository is public, so the document inbox lives outside the working tree" |
+| `decisions/ADR-0011…md:115` | "Public remote `github.com/abhinavgupta0809/vaultledger`, synced at `d01ecb4`" |
+| `README.md:14` | "outside the public repository" |
+| `PROGRESS.md:2259` (the Phase 16 entry) | "at or below the public repository" |
+| `docs/briefs/ROADMAP_RESEQUENCE_BRIEF.md:48` | "The repository is public." |
+
+Whether the remote was public in August and later flipped, or was never public and ADR-0011
+recorded an assumption rather than a check, **is not established here.** ADR-0011 cites it
+under *Evidence*, which is where a checked fact belongs, but no receipt of that check exists.
+Saying which of the two happened would be a guess, so this entry does not.
+
+**What it does and does not change.** It does not weaken the Phase 16 design: keeping the
+user inbox, derived indexes, graph store, Obsidian projection and traces outside the checkout
+is correct for a private repository too, and becomes load-bearing the moment visibility
+changes — which an ownership transfer can do in one click. The startup refusal is unaffected
+and still tested.
+
+What it does change is the *stated reason*. ADR-0011's argument runs "the repository is
+public, **therefore** the inbox must be external." On a private remote that premise does not
+hold as written, so the decision is currently better supported by the weaker, still-sufficient
+argument: a public repository is one setting change away, and the isolation costs nothing.
+
+**Not corrected in place, deliberately.** ADR-0011 is amended rather than rewritten, and this
+log is append-only. Editing five documents to chase a visibility setting that may change again
+at transfer would destroy more evidence than it repairs. Recorded here so the discrepancy is
+visible rather than a trap. `docs/handover.md` carries it as a pre-transfer item.

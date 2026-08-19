@@ -129,6 +129,23 @@ workspace on the previous owner's machine (`~/Desktop/PM-OS`). Those paths will 
 for you. They are documentation of where non-code artifacts were routed, not a runtime
 dependency — nothing in the build reads them — but you may want to genericise them.
 
+## 5a. Pre-transfer checklist — things only the new owner can fix
+
+Each of these hardcodes the *previous* owner's identity or asserts a fact that the transfer
+itself will change. None is fixable without knowing the destination org.
+
+| Item | Where | What it needs |
+|---|---|---|
+| The ZIP download link points at a personal account | `README.md:44` — `github.com/abhinavgupta0809/vaultledger/archive/…` | Repoint to the org URL. This is the **first link a non-technical recipient clicks**; if it 404s, the documented handoff path fails at step one |
+| Same link, wiki copy | wiki `Getting-Started` page | Same repoint |
+| The remote is asserted to be public in five places, but is currently **private** | ADR-0011 (×2), `README.md:14`, `PROGRESS.md:2259`, `docs/briefs/ROADMAP_RESEQUENCE_BRIEF.md:48` | Decide the destination visibility, then reconcile. Recorded as a dated observation at the end of `PROGRESS.md`; deliberately not edited in place |
+| `LICENSE` — "Proprietary… internship at Cent Capital LLC; not licensed for reuse" | `LICENSE` | A legal decision, see §5 |
+| Rounding drift between the ADR and its own artifact | ADR-0016 reads 72% judge and 8.0 GB resident; `reports/model_matrix.md` reads 72.5% and 7.50 GiB | Consistent (8.0 GB ≈ 7.45 GiB), different precision and units. Not an error — but a reviewer diffing the ADR against the generated artifact will query it |
+
+**Do not "fix" the visibility assertions by editing ADR-0011.** ADRs are amended, not
+rewritten. Add an `## Amendment — <date>` section if you want it corrected in the decision
+record itself.
+
 ## 6. Getting running
 
 See [`getting-started.md`](getting-started.md). The short version:
