@@ -133,7 +133,7 @@ file and compares it to the baseline derived from that same file.
 
 Current text, `README.md:91-92`:
 
-> The current [model matrix](reports/model_matrix.md)
+> The current [model matrix](../../reports/model_matrix.md)
 > contains full 80-case `qwen3:4b` and `qwen3:8b` Variant-B runs.
 
 `reports/model_matrix.md` says *"Cells: **2** across **2 model(s)**"* and its only two
