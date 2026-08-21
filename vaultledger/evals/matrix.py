@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import re
-import subprocess
 from argparse import Namespace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,7 +13,7 @@ from time import perf_counter
 from uuid import uuid4
 from xml.sax.saxutils import escape
 
-from vaultledger.config import CONFIG_PATH, Config, load_config
+from vaultledger.config import Config, load_config
 from vaultledger.evals.golden import golden_hash, load_golden_set
 from vaultledger.evals.judge import JudgeItem, judge_item
 from vaultledger.gateway import GatewayTotals, LiteLLMGenerator
@@ -25,6 +23,7 @@ from vaultledger.generate.reliable import PROMPT_SHA256
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import assert_evaluation_corpus
+from vaultledger.provenance import config_hash, git_sha
 from vaultledger.retrieve import (
     AgenticRetriever,
     CrossEncoderReranker,
@@ -60,17 +59,6 @@ _IDENTIFIER = re.compile(r"\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+){2,}\b")
 # judgement — a second metric that repeated it would earn its place nowhere.
 _REFERENCE_QUANTITY = re.compile(r"\$\s*\d[\d,]*(?:\.\d+)?|(?<![\w$.])\d[\d,]*\.\d{2}(?![\d])")
 _CANDIDATE_QUANTITY = re.compile(r"(?<![\w.])\$?\s*\d[\d,]*(?:\.\d+)?(?![\d])")
-
-
-def _git_sha() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return "unknown"
-
-
-def _config_hash() -> str:
-    return hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()
 
 
 def _float_slug(value: float) -> str:
@@ -583,7 +571,7 @@ def _run_cell(
     checkpoint_key = {
         "model": model,
         "variant": variant,
-        "config_hash": _config_hash(),
+        "config_hash": config_hash(),
         "golden_set_hash": golden_set_hash,
         # The guard arm is part of the key: an off-arm checkpoint must never be
         # resumed into an on-arm run, or the cell would mix two pipelines.
@@ -898,8 +886,8 @@ def _run_cell(
             unique=uuid4().hex[:12],
         ),
         timestamp=datetime.now(UTC).isoformat(),
-        git_sha=_git_sha(),
-        config_hash=_config_hash(),
+        git_sha=git_sha(),
+        config_hash=config_hash(),
         golden_set_hash=golden_set_hash,
         seed=cfg.seed,
         variant=variant,  # type: ignore[arg-type]
@@ -1188,7 +1176,7 @@ def write_matrix_report(
     total_cost = sum(manifest.total_cost_usd for manifest in manifests)
     model_count = len({manifest.model for manifest in manifests})
     report_cfg = load_config()
-    current_config_hash = _config_hash()
+    current_config_hash = config_hash()
     lines = [
         "# Model matrix",
         "",

@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
-from vaultledger.config import CONFIG_PATH, Config, load_config
+from vaultledger.config import Config, load_config
 from vaultledger.evals.golden import (
     DEFAULT_GOLDEN_PATH,
     golden_hash,
@@ -41,6 +39,7 @@ from vaultledger.generate import (
 from vaultledger.guardrails import GuardrailToggles
 from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.ingest.pipeline import assert_evaluation_corpus, load_chunks
+from vaultledger.provenance import config_hash, git_sha, sha256_file
 from vaultledger.retrieve import (
     AgenticRetriever,
     CrossEncoderReranker,
@@ -48,17 +47,6 @@ from vaultledger.retrieve import (
     NaiveDenseRetriever,
 )
 from vaultledger.schemas import RunManifest
-
-
-def _git_sha() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return "unknown"
-
-
-def _config_hash() -> str:
-    return hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()
 
 
 def _chunks_by_doc(index_dir: Path) -> dict[str, str]:
@@ -155,8 +143,8 @@ def run_eval(args: argparse.Namespace) -> int:
     manifest = RunManifest(
         run_id=f"{phase}_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
-        git_sha=_git_sha(),
-        config_hash=_config_hash(),
+        git_sha=git_sha(),
+        config_hash=config_hash(),
         golden_set_hash=golden_hash(args.golden),
         seed=cfg.seed,
         variant=args.variant,
@@ -401,8 +389,8 @@ def run_safety_eval(args: argparse.Namespace) -> int:
     manifest = RunManifest(
         run_id=f"{run_prefix}_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
-        git_sha=_git_sha(),
-        config_hash=_config_hash(),
+        git_sha=git_sha(),
+        config_hash=config_hash(),
         golden_set_hash=golden_hash(args.golden),
         seed=cfg.seed,
         variant=variant,
@@ -456,12 +444,12 @@ def run_judge_validation(args: argparse.Namespace) -> int:
             }
         )
     metrics, failures = validation_metrics(items, verdicts)
-    labels_hash = hashlib.sha256(Path(args.labels).read_bytes()).hexdigest()
+    labels_hash = sha256_file(args.labels)
     manifest = RunManifest(
         run_id=f"phase9_judge_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
-        git_sha=_git_sha(),
-        config_hash=_config_hash(),
+        git_sha=git_sha(),
+        config_hash=config_hash(),
         golden_set_hash=labels_hash,
         seed=cfg.seed,
         variant="B_hybrid",

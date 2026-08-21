@@ -30,9 +30,7 @@ rejected it.
 
 from __future__ import annotations
 
-import hashlib
 import json
-import subprocess
 from argparse import Namespace
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -41,14 +39,13 @@ from pathlib import Path
 from vaultledger.config import REPO_ROOT, load_config
 from vaultledger.evals.golden import DEFAULT_GOLDEN_PATH, golden_hash, load_golden_set
 from vaultledger.evals.matrix import (
-    _config_hash,
     _decoding_text,
-    _git_sha,
     _prompt_hash_text,
     _reported_context_top_n,
     rescore_receipt,
 )
 from vaultledger.generate.reliable import PROMPT_SHA256
+from vaultledger.provenance import config_hash, git_output, git_sha, sha256_file
 from vaultledger.schemas import QAExample, RunManifest
 
 DEFAULT_REPORT = REPO_ROOT / "reports" / "variant_matrix.md"
@@ -293,23 +290,10 @@ RECORDED_LIMITS: tuple[tuple[str, str, str], ...] = (
 )
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _git(*args: str) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
-
-
 def _committed_paths() -> set[str]:
-    return {line for line in _git("ls-files", "--", "reports").splitlines() if line}
+    return {
+        line for line in git_output("ls-files", "--", "reports").splitlines() if line
+    }
 
 
 def _load_manifest(relative_path: str, committed: set[str]) -> RunManifest:
@@ -558,7 +542,7 @@ def build_report(
 ) -> tuple[str, dict]:
     """Render the cross-variant report and its provenance receipt."""
     cfg = load_config()
-    current_config_hash = _config_hash()
+    current_config_hash = config_hash()
     committed = _committed_paths()
     golden = load_golden_set(golden_path)
     examples = golden.examples
@@ -570,7 +554,7 @@ def build_report(
         manifest = _load_manifest(arm.relative_path, committed)
         retrieval.append((arm, manifest))
         sources[arm.relative_path] = {
-            "sha256": _sha256(REPO_ROOT / arm.relative_path),
+            "sha256": sha256_file(REPO_ROOT / arm.relative_path),
             "run_id": manifest.run_id,
             "variant": manifest.variant,
             "why": arm.why,
@@ -593,8 +577,8 @@ def build_report(
             scored.append((arm, manifest, metrics))
             answers = _answers_path(arm.relative_path)
             sources[arm.relative_path] = {
-                "sha256": _sha256(REPO_ROOT / arm.relative_path),
-                "answers_sha256": _sha256(answers),
+                "sha256": sha256_file(REPO_ROOT / arm.relative_path),
+                "answers_sha256": sha256_file(answers),
                 "run_id": manifest.run_id,
                 "variant": manifest.variant,
                 "population": population.key,
@@ -610,7 +594,7 @@ def build_report(
 
     scored_rows = sum(1 for example in examples if example.expected_doc_ids)
     generated_at = datetime.now(UTC).isoformat()
-    git_sha = _git_sha()
+    current_git_sha = git_sha()
     # Section numbers are derived, so adding a population cannot leave a stale
     # cross-reference pointing at the wrong table.
     unmeasured_index = 2 + len(GENERATION_POPULATIONS)
@@ -720,7 +704,7 @@ def build_report(
 
     receipt = {
         "generated_at": generated_at,
-        "git_sha": git_sha,
+        "git_sha": current_git_sha,
         "config_hash": current_config_hash,
         "golden_set_hash": expected_golden_hash,
         "numeric_epsilon": cfg.thresholds.numeric_epsilon,

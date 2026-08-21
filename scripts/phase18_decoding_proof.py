@@ -11,16 +11,15 @@ values. Transport parity is a later Phase 18 change.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
 
-from vaultledger.config import CONFIG_PATH, REPO_ROOT, load_config
+from vaultledger.config import load_config
 from vaultledger.generate.ollama import ollama_model_name
+from vaultledger.provenance import config_hash, git_output, sha256_text
 
 PROMPT = (
     "Return a JSON object whose only key is `phase` and whose value is the "
@@ -32,21 +31,6 @@ SCHEMA = {
     "required": ["phase"],
     "additionalProperties": False,
 }
-
-
-def _sha256_bytes(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
-
-
-def _git_sha() -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
 
 
 def _effective_parameter(parameters: str, name: str) -> float:
@@ -110,8 +94,8 @@ def run(output: Path) -> bool:
     receipt = {
         "receipt": "phase18_decoding_config_promotion_v1",
         "timestamp": datetime.now(UTC).isoformat(),
-        "git_sha": _git_sha(),
-        "config_hash": hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest(),
+        "git_sha": git_output("rev-parse", "HEAD"),
+        "config_hash": config_hash(),
         "model": cfg.models.T1.id,
         "ollama_version": version_response.json().get("version"),
         "transport": "/api/generate",
@@ -130,9 +114,9 @@ def run(output: Path) -> bool:
         "implicit_top_k": effective_top_k,
         "legacy_options": legacy_options,
         "promoted_options": promoted_options,
-        "prompt_sha256": _sha256_bytes(PROMPT),
-        "legacy_output_sha256": _sha256_bytes(legacy),
-        "promoted_output_sha256": _sha256_bytes(promoted),
+        "prompt_sha256": sha256_text(PROMPT),
+        "legacy_output_sha256": sha256_text(legacy),
+        "promoted_output_sha256": sha256_text(promoted),
         "byte_identical": identical,
     }
     output.parent.mkdir(parents=True, exist_ok=True)

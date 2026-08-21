@@ -2,32 +2,20 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
-import subprocess
 from argparse import Namespace
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import median
 from uuid import uuid4
 
-from vaultledger.config import CONFIG_PATH, Config, load_config
+from vaultledger.config import Config, load_config
 from vaultledger.evals.golden import golden_hash, load_golden_set
+from vaultledger.provenance import config_hash, git_sha
 from vaultledger.route import PolicyRouter, escalation_trigger
 from vaultledger.schemas import Answer, QAExample, RunManifest
 
 POLICIES = ("all_t0", "all_t1", "category_static", "policy_router")
-
-
-def _git_sha() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return "unknown"
-
-
-def _config_hash() -> str:
-    return hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()
 
 
 def build_policy_router(cfg: Config) -> PolicyRouter:
@@ -478,8 +466,8 @@ def run_router_eval(args: Namespace) -> int:
     manifest = RunManifest(
         run_id=f"phase12_router_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
-        git_sha=_git_sha(),
-        config_hash=_config_hash(),
+        git_sha=git_sha(),
+        config_hash=config_hash(),
         golden_set_hash=expected_hash,
         seed=cfg.seed,
         variant="B_hybrid",
