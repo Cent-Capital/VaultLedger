@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 import sys
 from pathlib import Path
 
@@ -13,6 +12,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from vaultledger import __version__, load_config  # noqa: E402
+from vaultledger.ui_data import LibraryLoadError, load_library_snapshot  # noqa: E402
 from vaultledger.ui_state import sync_sample_question  # noqa: E402
 
 st.set_page_config(page_title="VaultLedger", page_icon="🔒", layout="wide")
@@ -158,64 +158,23 @@ with library:
             "`make doctor`, or click Rebuild after the PDFs exist."
         )
     else:
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        document_columns = {
-            row["name"] for row in conn.execute("PRAGMA table_info(documents)")
-        }
-        guardrail_column = (
-            "guardrail_events" if "guardrail_events" in document_columns
-            else "'[]' AS guardrail_events"
-        )
-        corpus_column = "corpus" if "corpus" in document_columns else "'synthetic' AS corpus"
-        ocr_column = (
-            "ocr_derived" if "ocr_derived" in document_columns else "0 AS ocr_derived"
-        )
-        ocr_pages_column = "ocr_pages" if "ocr_pages" in document_columns else "'[]' AS ocr_pages"
-        docs = conn.execute(
-            "SELECT doc_id, doc_type, period_start, period_end, page_count, "
-            f"pii_entity_types, {guardrail_column}, parse_status, {corpus_column}, "
-            f"{ocr_column}, {ocr_pages_column} "
-            "FROM documents ORDER BY doc_id"  # noqa: S608 - fixed column choice above
-        ).fetchall()
-        chunks_file = index_dir / "chunks.jsonl"
-        n_chunks = sum(1 for _ in open(chunks_file)) if chunks_file.exists() else 0
+        try:
+            snapshot = load_library_snapshot(index_dir)
+        except LibraryLoadError as exc:
+            st.error(str(exc))
+        else:
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Documents", len(snapshot.documents))
+            m2.metric("Parse failures", snapshot.parse_failures)
+            m3.metric("Chunks", snapshot.chunks)
+            m4.metric("Vector index", "built" if snapshot.vector_index_built else "—")
 
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Documents", len(docs))
-        m2.metric("Parse failures", sum(1 for d in docs if d["parse_status"] != "ok"))
-        m3.metric("Chunks", n_chunks)
-        m4.metric("Vector index", "built" if (index_dir / "chroma").exists() else "—")
-
-        st.subheader("Parsed documents")
-        st.dataframe(
-            [
-                {
-                    "Document": d["doc_id"],
-                    "Type": d["doc_type"],
-                    "Period": (
-                        f"{d['period_start']} → {d['period_end']}" if d["period_start"] else ""
-                    ),
-                    "Pages": d["page_count"],
-                    "PII tags": len(json.loads(d["pii_entity_types"])),
-                    "Guard flags": sum(
-                        event["action"] != "pass"
-                        for event in json.loads(d["guardrail_events"])
-                    ),
-                    "Source": "User" if d["corpus"] == "user" else "Synthetic",
-                    "OCR": (
-                        f"Scanned pages {json.loads(d['ocr_pages'])}"
-                        if d["ocr_derived"]
-                        else "Text layer"
-                    ),
-                    "Status": d["parse_status"],
-                }
-                for d in docs
-            ],
-            width="stretch",
-            hide_index=True,
-        )
-        conn.close()
+            st.subheader("Parsed documents")
+            st.dataframe(
+                [document.table_row() for document in snapshot.documents],
+                width="stretch",
+                hide_index=True,
+            )
 
 with ask:
     st.header("Ask your documents")

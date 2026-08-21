@@ -20,7 +20,7 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
-from vaultledger.schemas import QuestionCategory, Variant
+from vaultledger.schemas import LocalTier, QuestionCategory, Variant
 
 # Repo root is one level above this package directory.
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -61,18 +61,22 @@ class ModelRegistry(BaseModel):
 class Matrix(BaseModel):
     """Phase 18 local model-matrix and preregistered decoding defaults."""
 
-    variants: list[Variant] = ["B_hybrid"]
+    variants: list[Variant] = Field(default_factory=lambda: ["B_hybrid"])
     smoke_limit: int = Field(default=12, ge=0)
     decoding_sweep_model: str = "ollama/qwen3:8b"
-    decoding_temperatures: list[float] = [0.3, 0.7]
-    decoding_top_ps: list[float] = [1.0, 0.9, 0.8]
+    decoding_temperatures: list[float] = Field(default_factory=lambda: [0.3, 0.7])
+    decoding_top_ps: list[float] = Field(default_factory=lambda: [1.0, 0.9, 0.8])
 
 
 class Router(BaseModel):
     """Phase 12 deterministic local-size routing policy."""
 
-    t0_categories: list[QuestionCategory] = ["single_doc", "guardrail_benign"]
-    projected_cost_usd: dict[str, float] = {"T0": 0.0, "T1": 0.0}
+    t0_categories: list[QuestionCategory] = Field(
+        default_factory=lambda: ["single_doc", "guardrail_benign"]
+    )
+    projected_cost_usd: dict[LocalTier, float] = Field(
+        default_factory=lambda: {"T0": 0.0, "T1": 0.0}
+    )
 
 
 class Guardrails(BaseModel):
@@ -186,18 +190,18 @@ class Config(BaseSettings):
     loops: Loops
     thresholds: Thresholds
     models: ModelRegistry
-    matrix: Matrix = Matrix()
-    router: Router = Router()
-    guardrails: Guardrails = Guardrails()
-    variant_default: str = "B_hybrid"
-    reranker: Reranker = Reranker()
-    retrieval: Retrieval = Retrieval()
-    generation: Generation = Generation()
-    embedding: Embedding = Embedding()
-    graph: Graph = Graph()
-    chunking: Chunking = Chunking()
-    paths: Paths = Paths()
-    live: LiveDocuments = LiveDocuments()
+    matrix: Matrix = Field(default_factory=Matrix)
+    router: Router = Field(default_factory=Router)
+    guardrails: Guardrails = Field(default_factory=Guardrails)
+    variant_default: Variant = "B_hybrid"
+    reranker: Reranker = Field(default_factory=Reranker)
+    retrieval: Retrieval = Field(default_factory=Retrieval)
+    generation: Generation = Field(default_factory=Generation)
+    embedding: Embedding = Field(default_factory=Embedding)
+    graph: Graph = Field(default_factory=Graph)
+    chunking: Chunking = Field(default_factory=Chunking)
+    paths: Paths = Field(default_factory=Paths)
+    live: LiveDocuments = Field(default_factory=LiveDocuments)
 
     def repo_path(self, rel: str) -> Path:
         """Resolve a repo-relative path from config against the repo root."""

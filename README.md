@@ -372,7 +372,7 @@ re-recording script.
 ## Repository map
 
 ```text
-vaultledger/   typed config, ingest/index/retrieve/generate/route/evals modules
+vaultledger/   typed config/contracts, provenance, UI projections, and pipeline modules
 app/           Streamlit Library / Ask / Evals / Experiment Lab
 data/          committed ground truth; generated PDFs and indexes are gitignored
 reports/       committed RunManifests and generated comparison receipts
