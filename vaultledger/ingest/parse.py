@@ -18,6 +18,8 @@ from pathlib import Path
 
 import pdfplumber
 
+from vaultledger.schemas import Corpus
+
 
 @dataclass
 class Word:
@@ -47,7 +49,7 @@ class ParsedDoc:
     pages: list[ParsedPage]
     needs_ocr: bool = False  # some page had ~no extractable text
     ocr_pages: tuple[int, ...] = ()  # pages whose text layer came from OCR preprocessing
-    corpus: str = "synthetic"
+    corpus: Corpus = "synthetic"
 
 
 # Rows are grouped by their `top` coordinate; words whose tops differ by less

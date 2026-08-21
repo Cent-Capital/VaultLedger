@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import hashlib
 import importlib.metadata
 import json
-import subprocess
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -13,6 +11,7 @@ from time import perf_counter
 
 from vaultledger.config import Config
 from vaultledger.ingest.pipeline import load_chunks
+from vaultledger.provenance import git_output, sha256_file, sha256_text
 from vaultledger.schemas import Chunk
 
 from .ollama_binding import LocalOllamaBinding
@@ -28,23 +27,6 @@ def documents_from_chunks(index_dir: str | Path) -> tuple[list[str], list[str]]:
         "\n\n".join(text for _, _, text in sorted(grouped[doc_id])) for doc_id in ids
     ]
     return ids, documents
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    digest.update(path.read_bytes())
-    return digest.hexdigest()
-
-
-def _git_sha(repo_root: Path) -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=repo_root,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
 
 
 def _display_path(path: Path, repo_root: Path) -> str:
@@ -236,19 +218,19 @@ async def build_lightrag_index(
         raise RuntimeError(f"expected one LightRAG GraphML artifact, found {len(graphmls)}")
     usage = binding.usage()
     timestamp = datetime.now(UTC).isoformat()
-    run_id = hashlib.sha256(
-        f"{timestamp}:{_git_sha(cfg.repo_path('.'))}:{len(ids)}".encode()
-    ).hexdigest()[:12]
+    repo_root = cfg.repo_path(".")
+    current_git_sha = git_output("rev-parse", "HEAD", repo_root=repo_root)
+    run_id = sha256_text(f"{timestamp}:{current_git_sha}:{len(ids)}")[:12]
     return {
         "run_id": run_id,
         "timestamp": timestamp,
-        "git_sha": _git_sha(cfg.repo_path(".")),
+        "git_sha": current_git_sha,
         "engine": "lightrag",
         "engine_version": importlib.metadata.version("lightrag-hku"),
         "extraction_model": cfg.graph.extraction_model,
         "embedding_model": cfg.embedding.model,
-        "config_hash": _sha256(cfg.repo_path("config.yaml")),
-        "corpus_hash": _sha256(index_dir / "chunks.jsonl"),
+        "config_hash": sha256_file(cfg.repo_path("config.yaml")),
+        "corpus_hash": sha256_file(index_dir / "chunks.jsonl"),
         "documents_indexed": len(ids),
         "graphml": _display_path(graphmls[0], cfg.repo_path(".")),
         "wall_latency_ms": wall_ms,

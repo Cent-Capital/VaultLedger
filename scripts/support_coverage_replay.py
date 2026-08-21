@@ -7,17 +7,16 @@ strict scores. It never constructs a generator or makes a model call.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import subprocess
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from vaultledger.config import CONFIG_PATH, REPO_ROOT
+from vaultledger.config import REPO_ROOT
 from vaultledger.evals.golden import DEFAULT_GOLDEN_PATH, golden_hash, load_golden_set
 from vaultledger.guardrails.support import unsupported_named_entities
+from vaultledger.provenance import config_hash, git_output, sha256_file
 from vaultledger.schemas import Citation, QAExample
 
 DEFAULT_OUTPUT = REPO_ROOT / "receipts" / "support_coverage_replay.json"
@@ -26,24 +25,13 @@ CANDIDATE_RUN_ID = "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_d5c5f885d0c9"
 CANDIDATE_DEFECT_ROW = "gs_005"
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _git(*args: str) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
-
-
 def committed_answer_paths() -> list[Path]:
     """Return every committed receipt in ADR-0020's Phase 18 B_hybrid population."""
-    relative_paths = [line for line in _git("ls-files", "--", SOURCE_PATHSPEC).splitlines() if line]
+    relative_paths = [
+        line
+        for line in git_output("ls-files", "--", SOURCE_PATHSPEC).splitlines()
+        if line
+    ]
     if not relative_paths:
         raise FileNotFoundError("no committed Phase 18 B_hybrid answer receipts found")
     paths = [REPO_ROOT / relative for relative in sorted(relative_paths)]
@@ -168,9 +156,9 @@ def run(golden_path: Path, output: Path) -> dict[str, Any]:
             "decoding": manifest.get("decoding"),
             "prompt_sha256": manifest.get("prompt_sha256"),
             "manifest_path": str(manifest_path.relative_to(REPO_ROOT)),
-            "manifest_sha256": _sha256(manifest_path),
+            "manifest_sha256": sha256_file(manifest_path),
             "answers_path": str(answers_path.relative_to(REPO_ROOT)),
-            "answers_sha256": _sha256(answers_path),
+            "answers_sha256": sha256_file(answers_path),
             **summary,
             "downgraded": downgraded,
         }
@@ -192,8 +180,8 @@ def run(golden_path: Path, output: Path) -> dict[str, Any]:
     receipt = {
         "receipt": "support_coverage_replay_v1",
         "timestamp": datetime.now(UTC).isoformat(),
-        "git_sha": _git("rev-parse", "HEAD"),
-        "config_hash": _sha256(CONFIG_PATH),
+        "git_sha": git_output("rev-parse", "HEAD"),
+        "config_hash": config_hash(),
         "golden_set_hash": expected_golden_hash,
         "source_files": len(sources),
         "rows_replayed": total_rows,

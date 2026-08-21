@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
-from vaultledger.config import CONFIG_PATH, REPO_ROOT, load_config
+from vaultledger.config import load_config
 from vaultledger.gateway import LiteLLMGenerator
 from vaultledger.generate.ollama import OllamaGenerator
+from vaultledger.provenance import config_hash, git_output, sha256_text
 
 PROMPT = (
     "Return a JSON object whose only key is `path` and whose value is the "
@@ -23,21 +22,6 @@ SCHEMA = {
     "required": ["path"],
     "additionalProperties": False,
 }
-
-
-def _sha256(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
-
-
-def _git_sha() -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
 
 
 def run(output: Path) -> bool:
@@ -60,11 +44,11 @@ def run(output: Path) -> bool:
     receipt = {
         "receipt": "phase18_product_eval_parity_v1",
         "timestamp": datetime.now(UTC).isoformat(),
-        "git_sha": _git_sha(),
-        "config_hash": hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest(),
+        "git_sha": git_output("rev-parse", "HEAD"),
+        "config_hash": config_hash(),
         "model": cfg.models.T1.id,
         "endpoint": "/api/chat",
-        "messages": [{"role": "user", "content_sha256": _sha256(PROMPT)}],
+        "messages": [{"role": "user", "content_sha256": sha256_text(PROMPT)}],
         "options": {
             "temperature": cfg.generation.temperature,
             "top_p": cfg.generation.top_p,
@@ -75,8 +59,8 @@ def run(output: Path) -> bool:
             "think": False,
         },
         "request_timeout_seconds": cfg.generation.request_timeout_seconds,
-        "product_output_sha256": _sha256(product_output),
-        "matrix_output_sha256": _sha256(matrix_output),
+        "product_output_sha256": sha256_text(product_output),
+        "matrix_output_sha256": sha256_text(matrix_output),
         "byte_identical": identical,
         "matrix_provider_input_tokens": matrix.snapshot().input_tokens,
         "matrix_provider_output_tokens": matrix.snapshot().output_tokens,

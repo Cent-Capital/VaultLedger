@@ -88,6 +88,10 @@ never asked.
 
 The one thing taken from the model — its citation — is treated as **a claim to be checked**.
 
+The Streamlit entrypoint does not own its library database lifecycle. Read-only library
+projection lives in `vaultledger/ui_data.py`, which owns SQLite connection cleanup,
+legacy-column fallbacks, metadata decoding, and index counts before the UI renders a table.
+
 ## The four retrieval variants
 
 All sit behind one `Retriever` interface so the harness scores them without special-casing.
@@ -254,7 +258,8 @@ repair-trigger rate, guardrail-flag rate, escalation rate.
 
 ```text
 vaultledger/     synth · ingest · index · retrieve · generate · route · gateway ·
-                 guardrails · graph · observability · evals, plus schemas.py + config.py
+                 guardrails · graph · observability · evals, plus shared schemas,
+                 configuration, provenance, and read-only UI projections
 app/             Streamlit: Library / Ask / Evals / Experiment Lab
 data/            committed ground truth; generated PDFs and indexes are gitignored
 decisions/       24 ADRs

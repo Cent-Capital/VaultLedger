@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
-import subprocess
 from argparse import Namespace
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
-from vaultledger.config import CONFIG_PATH, load_config
+from vaultledger.config import load_config
 from vaultledger.evals.golden import golden_hash, load_golden_set
 from vaultledger.evals.router import _best_receipt
 from vaultledger.generate.reliable import verify_citations
@@ -25,19 +23,9 @@ from vaultledger.guardrails.output import (
     numeric_verify,
 )
 from vaultledger.ingest.pii import PiiTagger
+from vaultledger.provenance import config_hash, git_sha
 from vaultledger.retrieve.types import ScoredChunk
 from vaultledger.schemas import Chunk, RunManifest
-
-
-def _git_sha() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return "unknown"
-
-
-def _config_hash() -> str:
-    return hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()
 
 
 def _phase7_source(out_dir: Path) -> tuple[str, float]:
@@ -353,8 +341,8 @@ def run_guardrail_eval(args: Namespace) -> int:
     manifest = RunManifest(
         run_id=f"phase13_guardrails_{uuid4().hex[:12]}",
         timestamp=datetime.now(UTC).isoformat(),
-        git_sha=_git_sha(),
-        config_hash=_config_hash(),
+        git_sha=git_sha(),
+        config_hash=config_hash(),
         golden_set_hash=golden_hash(),
         seed=cfg.seed,
         variant="B_hybrid",

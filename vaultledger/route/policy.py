@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Literal
+from typing import cast
 from uuid import uuid4
 
 from vaultledger.generate.reliable import StructuredGenerator, answer_question_reliable
 from vaultledger.retrieve import Retriever
-from vaultledger.schemas import Answer, GuardrailEvent, RoutingDecision
+from vaultledger.schemas import Answer, GuardrailEvent, LocalTier, RoutingDecision
 
-LocalTier = Literal["T0", "T1"]
 _TIER_ORDER: tuple[LocalTier, ...] = ("T0", "T1")
 
 
@@ -159,7 +158,9 @@ def answer_with_policy(
     )
     attempts: list[PolicyAttempt] = []
     spent = 0.0
-    current: LocalTier = decision.chosen_tier  # type: ignore[assignment]
+    if decision.chosen_tier not in _TIER_ORDER:
+        raise ValueError(f"policy router selected non-local tier {decision.chosen_tier}")
+    current = cast(LocalTier, decision.chosen_tier)
 
     for escalation_count in range(escalation_max + 1):
         if current not in generators:

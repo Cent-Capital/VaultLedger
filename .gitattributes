@@ -1,0 +1,16 @@
+* text=auto
+
+# Executable source and configuration stay portable across macOS, Linux, and Windows.
+*.command text eol=lf
+*.py text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Demo and document assets must never be line-ending normalized.
+*.gif binary
+*.mp4 binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary

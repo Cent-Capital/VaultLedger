@@ -21,8 +21,24 @@ from pydantic import BaseModel, ConfigDict, Field
 # --- Shared type aliases (SPEC 8.1) ---------------------------------------
 DocType = Literal["bank_statement", "form_1099", "invoice", "pay_stub", "unknown"]
 Tier = Literal["T0", "T1", "T2", "T3"]
+LocalTier = Literal["T0", "T1"]
 Variant = Literal["A_naive", "B_hybrid", "C_graph", "D_agentic"]
 Corpus = Literal["synthetic", "user"]
+PrivacyMode = Literal["local", "cloud"]
+GuardrailStage = Literal["input", "ingest", "egress", "output"]
+GuardrailAction = Literal["pass", "flag", "redact", "block", "downgrade_to_abstain"]
+AgentTool = Literal["retrieve", "calculator", "sql", "finish"]
+QuestionCategory = Literal[
+    "single_doc",
+    "aggregation",
+    "unanswerable",
+    "adversarial",
+    "multi_hop",
+    "global_summary",
+    "guardrail_benign",
+    "cross_persona",
+]
+Difficulty = Literal["easy", "medium", "hard"]
 
 
 # --- Ingestion & retrieval primitives -------------------------------------
@@ -73,15 +89,15 @@ class RoutingDecision(BaseModel):
 
 
 class GuardrailEvent(BaseModel):
-    stage: Literal["input", "ingest", "egress", "output"]
+    stage: GuardrailStage
     guard: str  # e.g. "pii_redaction", "numeric_verify", "advice_steer"
-    action: Literal["pass", "flag", "redact", "block", "downgrade_to_abstain"]
+    action: GuardrailAction
     details: str
 
 
 class AgentStep(BaseModel):
     step: int
-    tool: Literal["retrieve", "calculator", "sql", "finish"]
+    tool: AgentTool
     input: str
     output_summary: str
     tokens_used: int
@@ -103,7 +119,7 @@ class Answer(BaseModel):
     model_used: str  # e.g. "qwen3:8b", "kimi-k2.6", "claude-sonnet"
     tier: Tier
     variant: Variant
-    privacy_mode: Literal["local", "cloud"]
+    privacy_mode: PrivacyMode
     data_left_machine: bool  # drives the UI badge
     routing: RoutingDecision
     guardrail_events: list[GuardrailEvent] = Field(default_factory=list)
@@ -117,17 +133,8 @@ class QAExample(BaseModel):  # one row of the golden set
     expected_answer: str
     expected_doc_ids: list[str]
     expected_snippets: list[str]  # must appear in cited chunks
-    category: Literal[
-        "single_doc",
-        "aggregation",
-        "unanswerable",
-        "adversarial",
-        "multi_hop",
-        "global_summary",
-        "guardrail_benign",
-        "cross_persona",
-    ]
-    difficulty: Literal["easy", "medium", "hard"]
+    category: QuestionCategory
+    difficulty: Difficulty
     expected_tier: Tier | None = None  # hand label for router evals (Track B)
 
 
@@ -195,8 +202,15 @@ class RunManifest(BaseModel):  # one per eval run (SPEC 15.3)
 __all__ = [
     "DocType",
     "Tier",
+    "LocalTier",
     "Variant",
     "Corpus",
+    "PrivacyMode",
+    "GuardrailStage",
+    "GuardrailAction",
+    "AgentTool",
+    "QuestionCategory",
+    "Difficulty",
     "DocMeta",
     "Chunk",
     "Citation",

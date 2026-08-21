@@ -12,7 +12,7 @@ from vaultledger.config import Config
 from vaultledger.graph.ollama_binding import LocalOllamaBinding
 from vaultledger.ingest.pipeline import load_chunks
 from vaultledger.retrieve.types import ScoredChunk
-from vaultledger.schemas import Chunk
+from vaultledger.schemas import Chunk, Variant
 
 GraphQueryMode = Literal["local", "global"]
 QueryDataFn = Callable[[str, GraphQueryMode, int], dict[str, Any]]
@@ -60,7 +60,7 @@ class LightRAGRetriever:
     Phase 5's existing verbatim citation verifier remains unchanged.
     """
 
-    variant = "C_graph"
+    variant: Variant = "C_graph"
 
     def __init__(
         self,

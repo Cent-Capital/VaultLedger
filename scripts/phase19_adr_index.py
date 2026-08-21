@@ -17,15 +17,14 @@ dropping it.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
-import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
 from vaultledger.config import REPO_ROOT
+from vaultledger.provenance import git_output, sha256_file
 
 DECISIONS_DIR = REPO_ROOT / "decisions"
 DEFAULT_REPORT = REPO_ROOT / "reports" / "adr_index.md"
@@ -224,21 +223,6 @@ class Adr:
     classification: Classification
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _git(*args: str) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
-
-
 def parse_adr(path: Path) -> tuple[int, str, str, str, tuple[int, ...]]:
     """Read one ADR's identity facts. Nothing here is inferred or supplied."""
     lines = path.read_text().splitlines()
@@ -288,7 +272,7 @@ def load_adrs(directory: Path = DECISIONS_DIR) -> list[Adr]:
                 date=date,
                 status=status,
                 path=str(path.relative_to(REPO_ROOT)),
-                sha256=_sha256(path),
+                sha256=sha256_file(path),
                 references=references,
                 classification=classification,
             )
@@ -337,7 +321,7 @@ def _outcome_phrase(by_outcome: dict[str, list[Adr]]) -> str:
 def build_report(directory: Path = DECISIONS_DIR) -> tuple[str, dict]:
     adrs = load_adrs(directory)
     generated_at = datetime.now(UTC).isoformat()
-    git_sha = _git("rev-parse", "HEAD")
+    git_sha = git_output("rev-parse", "HEAD")
     by_outcome: dict[str, list[Adr]] = {outcome: [] for outcome in OUTCOME_ORDER}
     for adr in adrs:
         by_outcome[adr.classification.outcome].append(adr)

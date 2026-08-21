@@ -10,17 +10,16 @@ generation call.  The output is a diagnostic receipt, not an accuracy result.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import subprocess
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from vaultledger.config import CONFIG_PATH, REPO_ROOT, load_config
+from vaultledger.config import REPO_ROOT, load_config
 from vaultledger.evals.golden import DEFAULT_GOLDEN_PATH, golden_hash, load_golden_set
 from vaultledger.ingest.pipeline import assert_evaluation_corpus
+from vaultledger.provenance import config_hash, git_output, sha256_file
 from vaultledger.schemas import QAExample
 
 DEFAULT_ANSWERS = (
@@ -29,21 +28,6 @@ DEFAULT_ANSWERS = (
     / "phase18_ollama_qwen3_8b_b_hybrid_t0_p0p95_c64ee5ca952f_answers.json"
 )
 DEFAULT_OUTPUT = REPO_ROOT / "receipts" / "phase19_abstention_baseline.json"
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _git_sha() -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
 
 
 def abstention_source(row: dict[str, Any]) -> str | None:
@@ -219,12 +203,12 @@ def run(answers_path: Path, golden_path: Path, output: Path) -> dict[str, Any]:
     receipt = {
         "receipt": "phase19_abstention_baseline_v1",
         "timestamp": datetime.now(UTC).isoformat(),
-        "git_sha": _git_sha(),
-        "config_hash": hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest(),
+        "git_sha": git_output("rev-parse", "HEAD"),
+        "config_hash": config_hash(),
         "golden_set_hash": golden_hash(golden_path),
         "source_manifest": manifest.get("run_id"),
-        "source_manifest_sha256": _sha256(manifest_path),
-        "source_answers_sha256": _sha256(answers_path),
+        "source_manifest_sha256": sha256_file(manifest_path),
+        "source_answers_sha256": sha256_file(answers_path),
         "baseline": baseline,
         "retrieval_replay": retrieval,
         "rows": replayed,

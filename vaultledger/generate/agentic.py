@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 from uuid import uuid4
 
@@ -24,7 +25,14 @@ from vaultledger.guardrails.output import (
 )
 from vaultledger.observability import TraceRecorder
 from vaultledger.retrieve.agentic import AgenticRetriever, AgentPlanner, run_agent_loop
-from vaultledger.schemas import Answer, Citation, GuardrailEvent, RoutingDecision
+from vaultledger.retrieve.types import ScoredChunk
+from vaultledger.schemas import (
+    Answer,
+    Citation,
+    GuardrailEvent,
+    PrivacyMode,
+    RoutingDecision,
+)
 
 
 def _routing(model_id: str) -> RoutingDecision:
@@ -39,8 +47,8 @@ def _routing(model_id: str) -> RoutingDecision:
     )
 
 
-def _confidence(citations: list[Citation], hits: list[object]) -> float:
-    scores = {hit.chunk.chunk_id: hit.score for hit in hits}  # type: ignore[attr-defined]
+def _confidence(citations: list[Citation], hits: Sequence[ScoredChunk]) -> float:
+    scores = {hit.chunk.chunk_id: hit.score for hit in hits}
     return max((scores.get(citation.chunk_id, 0.0) for citation in citations), default=0.0)
 
 
@@ -57,7 +65,7 @@ def answer_question_agentic(
     k: int = 6,
     min_snippet_chars: int = MIN_SNIPPET_CHARS,
     routing: RoutingDecision | None = None,
-    privacy_mode: str = "local",
+    privacy_mode: PrivacyMode = "local",
     data_left_machine: bool = False,
     trace_recorder: TraceRecorder | None = None,
     guardrail_toggles: GuardrailToggles | None = None,
@@ -81,7 +89,7 @@ def answer_question_agentic(
             model_used=model_id,
             tier=routing.chosen_tier,
             variant="D_agentic",
-            privacy_mode=privacy_mode,  # type: ignore[arg-type]
+            privacy_mode=privacy_mode,
             data_left_machine=data_left_machine,
             routing=routing,
             guardrail_events=events,
@@ -230,7 +238,7 @@ def answer_question_agentic(
         model_used=model_id,
         tier=routing.chosen_tier,
         variant="D_agentic",
-        privacy_mode=privacy_mode,  # type: ignore[arg-type]
+        privacy_mode=privacy_mode,
         data_left_machine=data_left_machine,
         routing=routing,
         guardrail_events=events,

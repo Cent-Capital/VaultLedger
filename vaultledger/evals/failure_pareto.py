@@ -19,9 +19,7 @@ model behaviour.
 
 from __future__ import annotations
 
-import hashlib
 import json
-import subprocess
 from argparse import Namespace
 from collections import Counter
 from dataclasses import dataclass, field
@@ -30,8 +28,8 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 from vaultledger.config import REPO_ROOT, load_config
-from vaultledger.evals.matrix import _config_hash, _git_sha
 from vaultledger.generate.reliable import PROMPT_SHA256
+from vaultledger.provenance import config_hash, git_output, git_sha, sha256_file
 from vaultledger.schemas import RunManifest
 
 DEFAULT_REPORT = REPO_ROOT / "reports" / "failure_pareto.md"
@@ -130,26 +128,11 @@ class Group:
         return len(self.snapshots) >= MIN_SEQUENCE
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _git(*args: str) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
-
-
 def _committed_manifest_paths() -> list[str]:
     skip = ("_answers.json", "_answer.json", "_details.json", "_verdicts.json")
     return [
         line
-        for line in _git("ls-files", "--", "reports").splitlines()
+        for line in git_output("ls-files", "--", "reports").splitlines()
         if line.endswith(".json") and not line.endswith(skip)
     ]
 
@@ -457,7 +440,7 @@ def build_report(*, chart_dir: Path = DEFAULT_CHART_DIR) -> tuple[str, dict]:
     )
     sequences = [group for group in groups if group.is_sequence]
     generated_at = datetime.now(UTC).isoformat()
-    git_sha = _git_sha()
+    current_git_sha = git_sha()
 
     lines = [
         "# Failure-taxonomy Pareto sequence",
@@ -466,7 +449,10 @@ def build_report(*, chart_dir: Path = DEFAULT_CHART_DIR) -> tuple[str, dict]:
         "No cell is run here and no model is called: every count is the length of a "
         "`failures` array in a committed run manifest.",
         "",
-        f"Repo `{git_sha[:12]}` · config `{_config_hash()[:12]}` · generated {generated_at}",
+        (
+            f"Repo `{current_git_sha[:12]}` · config `{config_hash()[:12]}` · "
+            f"generated {generated_at}"
+        ),
         "",
         "## The comparability rule",
         "",
@@ -555,7 +541,7 @@ def build_report(*, chart_dir: Path = DEFAULT_CHART_DIR) -> tuple[str, dict]:
                 {
                     "run_id": snapshot.run_id,
                     "path": snapshot.relative_path,
-                    "sha256": _sha256(REPO_ROOT / snapshot.relative_path),
+                    "sha256": sha256_file(REPO_ROOT / snapshot.relative_path),
                     "timestamp": snapshot.timestamp,
                     "config_hash": snapshot.config_hash,
                     "rows": snapshot.rows,
@@ -629,8 +615,8 @@ def build_report(*, chart_dir: Path = DEFAULT_CHART_DIR) -> tuple[str, dict]:
 
     receipt = {
         "generated_at": generated_at,
-        "git_sha": git_sha,
-        "config_hash": _config_hash(),
+        "git_sha": current_git_sha,
+        "config_hash": config_hash(),
         "product_prompt_sha256": PROMPT_SHA256,
         "shipped_decoding": {
             "temperature": cfg.generation.temperature,

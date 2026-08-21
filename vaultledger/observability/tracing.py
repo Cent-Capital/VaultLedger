@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from vaultledger.schemas import Answer
+from vaultledger.schemas import Answer, PrivacyMode, Tier, Variant
 
 
 class SpanRecord(BaseModel):
@@ -26,9 +26,9 @@ class QueryTrace(BaseModel):
     feature: str = "query"
     category: str = "interactive"
     model: str
-    tier: str
-    variant: str
-    privacy_mode: str
+    tier: Tier
+    variant: Variant
+    privacy_mode: PrivacyMode
     spans: list[SpanRecord] = Field(default_factory=list)
     total_latency_ms: float = 0.0
     input_tokens: int = 0
@@ -50,9 +50,9 @@ class TraceRecorder:
         self,
         *,
         model: str,
-        tier: str,
-        variant: str,
-        privacy_mode: str,
+        tier: Tier,
+        variant: Variant,
+        privacy_mode: PrivacyMode,
         feature: str = "query",
         category: str = "interactive",
         input_per_million_usd: float = 0.0,

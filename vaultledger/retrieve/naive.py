@@ -8,12 +8,13 @@ from vaultledger.index.embed import OllamaEmbedder
 from vaultledger.index.vector import VectorIndex
 from vaultledger.ingest.pipeline import load_chunks
 from vaultledger.retrieve.types import ScoredChunk
+from vaultledger.schemas import Variant
 
 
 class NaiveDenseRetriever:
     """Dense top-k only; kept as the permanent baseline."""
 
-    variant = "A_naive"
+    variant: Variant = "A_naive"
 
     def __init__(self, index_dir: str | Path, embedder: OllamaEmbedder) -> None:
         self.index_dir = Path(index_dir)

@@ -40,7 +40,7 @@ PORT_START = 8501
 PORT_ATTEMPTS = 20
 OLLAMA_START_ATTEMPTS = 30
 SERVER_START_ATTEMPTS = 60
-LAUNCHER_SCHEMA = "phase17-v2"
+LAUNCHER_SCHEMA = "phase17-v3"
 
 
 class LauncherError(RuntimeError):
@@ -89,8 +89,9 @@ def _environment_ready(
         "from packaging.version import Version; "
         "import aiohttp, chromadb, lightrag, pdfplumber, presidio_analyzer, "
         "rank_bm25, sentence_transformers, spacy, streamlit; "
-        "assert Version(version('streamlit')) >= Version('1.61'); "
-        "assert Version(version('pyarrow')) < Version('25'); "
+        "assert Version(version('streamlit')) >= Version('1.62'); "
+        "assert Version(version('pyarrow')) >= Version('25.0.1'); "
+        "assert Version(version('pyarrow')) < Version('26'); "
         "spacy.load('en_core_web_sm')"
     )
     try:

@@ -12,12 +12,24 @@ from __future__ import annotations
 from pathlib import Path
 
 import chromadb
+from chromadb.errors import NotFoundError
 
 from vaultledger.schemas import Chunk
 
 from .embed import OllamaEmbedder
 
 _COLLECTION = "vaultledger_chunks"
+
+
+def _chunk_metadata(chunk: Chunk) -> dict[str, str | int | bool]:
+    return {
+        "doc_id": chunk.doc_id,
+        "page": chunk.page,
+        "char_start": chunk.char_start,
+        "char_end": chunk.char_end,
+        "corpus": chunk.corpus,
+        "ocr_derived": chunk.ocr_derived,
+    }
 
 
 class VectorIndex:
@@ -29,7 +41,7 @@ class VectorIndex:
         """(Re)build the collection from scratch; returns the number indexed."""
         try:
             self._client.delete_collection(_COLLECTION)
-        except Exception:
+        except NotFoundError:
             pass  # first build: nothing to delete
         collection = self._client.create_collection(
             _COLLECTION, metadata={"embedding_model": self._embedder.model}
@@ -39,17 +51,7 @@ class VectorIndex:
             ids=[c.chunk_id for c in chunks],
             embeddings=vectors,
             documents=[c.text for c in chunks],
-            metadatas=[
-                {
-                    "doc_id": c.doc_id,
-                    "page": c.page,
-                    "char_start": c.char_start,
-                    "char_end": c.char_end,
-                    "corpus": c.corpus,
-                    "ocr_derived": c.ocr_derived,
-                }
-                for c in chunks
-            ],
+            metadatas=[_chunk_metadata(chunk) for chunk in chunks],
         )
         return collection.count()
 
@@ -57,7 +59,7 @@ class VectorIndex:
         """Replace one document's vectors without rebuilding the collection."""
         try:
             collection = self._client.get_collection(_COLLECTION)
-        except Exception:
+        except NotFoundError:
             collection = self._client.create_collection(
                 _COLLECTION, metadata={"embedding_model": self._embedder.model}
             )
@@ -74,17 +76,7 @@ class VectorIndex:
                 ids=[chunk.chunk_id for chunk in chunks],
                 embeddings=vectors,
                 documents=[chunk.text for chunk in chunks],
-                metadatas=[
-                    {
-                        "doc_id": chunk.doc_id,
-                        "page": chunk.page,
-                        "char_start": chunk.char_start,
-                        "char_end": chunk.char_end,
-                        "corpus": chunk.corpus,
-                        "ocr_derived": chunk.ocr_derived,
-                    }
-                    for chunk in chunks
-                ],
+                metadatas=[_chunk_metadata(chunk) for chunk in chunks],
             )
         return collection.count()
 
