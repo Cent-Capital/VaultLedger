@@ -3,6 +3,8 @@
 Local-first financial-document Q&A with verified citations and a manifest-backed
 evaluation harness.
 
+[Cent Capital](https://cent.capital) · [Apache-2.0 license](LICENSE)
+
 VaultLedger parses synthetic evaluation documents and PDFs from an external user
 inbox on your machine. It combines dense and lexical retrieval, reranks the evidence, and
 uses a local model to answer questions. Every surfaced fact must retain a
@@ -41,7 +43,7 @@ roughly 2 GB private app environment. The first question may also download the 1
 reranker. Later launches reuse all of these files and are much faster.
 
 1. Download the repository with GitHub's
-   [Download ZIP](https://github.com/abhinavgupta0809/vaultledger/archive/refs/heads/main.zip)
+   [Download ZIP](https://github.com/Cent-Capital/VaultLedger/archive/refs/heads/main.zip)
    link, then double-click the downloaded ZIP once to unpack it.
 2. Open the unpacked `vaultledger-main` folder. **On the first launch, right-click
    `Launch VaultLedger.command`, choose Open, then choose Open in the confirmation
@@ -381,5 +383,6 @@ tests/         phase acceptance criteria and spec-by-example gates
 
 ## License
 
-Proprietary, all rights reserved. See [LICENSE](LICENSE). Created in connection
-with an internship at Cent Capital LLC; not licensed for reuse.
+Licensed under the [Apache License 2.0](LICENSE). Attribution is recorded in
+[NOTICE](NOTICE). Copyright 2026 Abhinav Gupta; developed in connection with an
+internship at [Cent Capital LLC](https://cent.capital).
