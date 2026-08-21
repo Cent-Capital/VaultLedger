@@ -25,6 +25,10 @@ indexes, traces, or credentials.
 Do not hand-edit generated reports. Regenerate them with their documented command and
 commit the underlying manifest or receipt that makes the result reproducible.
 
+Dependabot checks Python packages and GitHub Actions weekly. Keep an automated update
+focused on dependency changes, preserve intentional compatibility caps from
+`pyproject.toml`, and explain any deferred major upgrade in the pull request.
+
 ## Evidence and claims
 
 - Do not invent or extrapolate evaluation results.

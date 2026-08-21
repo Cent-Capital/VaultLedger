@@ -29,11 +29,11 @@ def test_one_click_entrypoint_is_executable_and_finder_friendly():
     assert "--server.fileWatcherType=none" in launcher_script
 
 
-def test_launcher_rejects_the_streamlit_pyarrow_crash_combination():
+def test_launcher_pins_supported_streamlit_pyarrow_pair():
     pyproject = (REPO_ROOT / "pyproject.toml").read_text()
-    assert '"streamlit>=1.61,<2"' in pyproject
-    assert '"pyarrow>=7,<25"' in pyproject
-    assert launcher.LAUNCHER_SCHEMA == "phase17-v2"
+    assert '"streamlit>=1.62,<2"' in pyproject
+    assert '"pyarrow>=25.0.1,<26"' in pyproject
+    assert launcher.LAUNCHER_SCHEMA == "phase17-v3"
 
 
 def test_busy_default_port_selects_next_port():

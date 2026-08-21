@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=84"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -20,55 +20,52 @@ Documentation = "https://github.com/Cent-Capital/VaultLedger/blob/main/docs/READ
 
 # Track-A runtime dependencies. Heavy optional integrations stay in extras.
 dependencies = [
-    "pydantic>=2.6",
-    "pydantic-settings>=2.2",
-    "pyyaml>=6.0",
-    # 1.59 + PyArrow 25 can segfault while serializing a dataframe on a rerun.
-    # 1.61 restores an explicit PyArrow <25 constraint; keep both sides pinned.
-    "streamlit>=1.61,<2",
-    "pyarrow>=7,<25",
+    "pydantic>=2.13,<3",
+    "pydantic-settings>=2.15,<3",
+    "pyyaml>=6.0.3,<7",
+    # Streamlit 1.62 excludes the broken PyArrow 25.0.0 release while supporting
+    # the fixed 25.0.1 line. Keep these bounds aligned when either package moves.
+    "streamlit>=1.62,<2",
+    "pyarrow>=25.0.1,<26",
     # Phase 2 — ingestion & indexing
-    "pdfplumber>=0.11",
-    "chromadb>=0.5",
-    "rank-bm25>=0.2",
-    "presidio-analyzer>=2.2",
-    "presidio-anonymizer>=2.2",
-    "requests>=2.31",
+    "pdfplumber>=0.11.10,<1",
+    "chromadb>=1.5,<2",
+    "rank-bm25>=0.2.2,<0.3",
+    "presidio-analyzer>=2.2.364,<3",
+    "presidio-anonymizer>=2.2.364,<3",
+    "requests>=2.34.2,<3",
     # NOTE: PII tagging also needs the spaCy model:
     #   python -m spacy download en_core_web_sm   (make install does this)
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0",
-    "ruff>=0.4",
+    "pytest>=9.1,<10",
+    "ruff>=0.16.4,<1",
 ]
 # Synthetic-corpus generation (Phase 1). Kept out of the runtime deps: the app
 # reads pre-generated PDFs; only regeneration needs these.
 synth = [
-    "fpdf2>=2.8,<3",  # pinned: PDF bytes must stay stable for the byte-identity AC
+    "fpdf2>=2.8.8,<3",  # pinned: PDF bytes must stay stable for the byte-identity AC
 ]
 rerank = [
-    "sentence-transformers>=3.0,<6",  # BAAI/bge-reranker-base; model downloaded on first use
+    "sentence-transformers>=6.0,<7",  # BAAI/bge-reranker-base; model downloaded on first use
 ]
 gateway = [
-    "litellm>=1.74,<2",
+    "litellm>=1.97,<2",
 ]
 graph = [
     # Phase 15 pins the current minor line: the embedded SDK is explicitly
     # version-sensitive, while deterministic graph scoring is provider-neutral.
     "lightrag-hku>=1.5.6,<1.6",
-    "networkx>=3.2,<4",
-    "aiohttp>=3.9,<4",  # explicit local HTTP binding; no runtime auto-install
+    "networkx>=3.6,<4",
+    "aiohttp>=3.14,<4",  # explicit local HTTP binding; no runtime auto-install
 ]
 observability = [
-    "langfuse>=4.0,<5",
-    # Langfuse pulls the OTLP *http* exporter; chromadb's installed OTLP *grpc*
-    # exporter pins opentelemetry-{proto,sdk,common} to its own exact version.
-    # Unconstrained, pip resolves http to the newer line and `pip check` breaks
-    # (both exporters pin, incompatibly). Keep this matched to the grpc exporter
-    # version and re-check on any chromadb bump. Verified clean at 1.43.0.
-    "opentelemetry-exporter-otlp-proto-http==1.43.0",
+    "langfuse>=4.14,<5",
+    # Keep the optional HTTP exporter on the same current OpenTelemetry line as
+    # Chroma's gRPC exporter so one environment does not resolve split SDKs.
+    "opentelemetry-exporter-otlp-proto-http>=1.44,<2",
 ]
 # Phase 5  (structured out):   none added — native Ollama JSON `format` +
 #                              hand-rolled repair loop instead of instructor (ADR-0002)
