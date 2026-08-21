@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
 
+from vaultledger.schemas import Corpus
+
 
 def sync_sample_question(
     state: MutableMapping[str, object],
     *,
-    corpus: str,
+    corpus: Corpus,
     sample: str,
     questions: Mapping[str, str],
 ) -> None:

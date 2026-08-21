@@ -12,7 +12,7 @@ from vaultledger.index.vector import VectorIndex
 from vaultledger.ingest.pipeline import load_chunks
 from vaultledger.retrieve.rerank import Reranker
 from vaultledger.retrieve.types import ScoredChunk
-from vaultledger.schemas import Chunk
+from vaultledger.schemas import Chunk, Variant
 
 
 class _DenseIndex(Protocol):
@@ -49,7 +49,7 @@ def reciprocal_rank_fusion(
 class HybridRetriever:
     """Production retrieval variant with injectable indexes for deterministic tests."""
 
-    variant = "B_hybrid"
+    variant: Variant = "B_hybrid"
 
     def __init__(
         self,

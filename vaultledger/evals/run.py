@@ -7,6 +7,7 @@ import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 from uuid import uuid4
 
 from vaultledger.config import Config, load_config
@@ -46,7 +47,7 @@ from vaultledger.retrieve import (
     HybridRetriever,
     NaiveDenseRetriever,
 )
-from vaultledger.schemas import RunManifest
+from vaultledger.schemas import RunManifest, Variant
 
 
 def _chunks_by_doc(index_dir: Path) -> dict[str, str]:
@@ -54,7 +55,7 @@ def _chunks_by_doc(index_dir: Path) -> dict[str, str]:
     return {c.doc_id: c.text for c in chunks}
 
 
-def _ensure_inputs(cfg: Config, variant: str = "A_naive") -> None:
+def _ensure_inputs(cfg: Config, variant: Variant = "A_naive") -> None:
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     required = [index_dir / "chunks.jsonl", index_dir / "chroma", index_dir / "records.db"]
     if variant in {"B_hybrid", "D_agentic"}:
@@ -87,7 +88,8 @@ def validate_golden(args: argparse.Namespace) -> int:
 
 def run_eval(args: argparse.Namespace) -> int:
     cfg = load_config()
-    _ensure_inputs(cfg, args.variant)
+    variant = cast(Variant, args.variant)
+    _ensure_inputs(cfg, variant)
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     golden = load_golden_set(args.golden)
 
@@ -103,7 +105,7 @@ def run_eval(args: argparse.Namespace) -> int:
         raise RuntimeError(msg)
 
     reranker_enabled = cfg.reranker.enabled if args.reranker is None else args.reranker
-    if args.variant == "A_naive":
+    if variant == "A_naive":
         retriever = NaiveDenseRetriever(index_dir, embedder)
     else:
         reranker = (
@@ -134,9 +136,9 @@ def run_eval(args: argparse.Namespace) -> int:
     if rrf_ranked_doc_ids:
         rrf_metrics, _ = retrieval_metrics(examples, rrf_ranked_doc_ids, k=k)
         metrics.update({f"rrf_{name}": value for name, value in rrf_metrics.items()})
-    phase = "phase3" if args.variant == "A_naive" else "phase4"
+    phase = "phase3" if variant == "A_naive" else "phase4"
     model = cfg.embedding.model
-    if args.variant == "B_hybrid":
+    if variant == "B_hybrid":
         model += "+bm25+rrf"
         if reranker_enabled:
             model += f"+{cfg.reranker.model}"
@@ -147,7 +149,7 @@ def run_eval(args: argparse.Namespace) -> int:
         config_hash=config_hash(),
         golden_set_hash=golden_hash(args.golden),
         seed=cfg.seed,
-        variant=args.variant,
+        variant=variant,
         model=model,
         metrics=metrics,
         total_cost_usd=0.0,
@@ -161,7 +163,7 @@ def run_eval(args: argparse.Namespace) -> int:
     latest_name = "phase3_baseline_latest.json" if phase == "phase3" else "phase4_latest.json"
     (out_dir / latest_name).write_text(manifest.model_dump_json(indent=2) + "\n")
 
-    if args.variant == "B_hybrid" and not args.limit and k == 20:
+    if variant == "B_hybrid" and not args.limit and k == 20:
         _write_comparison(
             Path(args.baseline),
             manifest,
@@ -169,7 +171,7 @@ def run_eval(args: argparse.Namespace) -> int:
             k=k,
             reranker_enabled=reranker_enabled,
         )
-    elif args.variant == "B_hybrid":
+    elif variant == "B_hybrid":
         print("comparison skipped: the Phase-3 acceptance baseline is a full-set k=20 run")
 
     print(json.dumps({"manifest": str(out_path), "metrics": metrics}, indent=2))
@@ -247,7 +249,10 @@ def score_injection_answer(answer_text: str) -> tuple[bool, bool]:
 def run_safety_eval(args: argparse.Namespace) -> int:
     """Run the Phase 7 live local-model gate and write a traceable manifest."""
     cfg = load_config()
-    variant = getattr(args, "variant", "B_hybrid")
+    raw_variant = str(getattr(args, "variant", "B_hybrid"))
+    if raw_variant not in {"A_naive", "B_hybrid", "C_graph", "D_agentic"}:
+        raise ValueError(f"unknown evaluation variant: {raw_variant}")
+    variant = cast(Variant, raw_variant)
     guards_on = getattr(args, "guardrails", "off") == "on"
     if variant == "D_agentic" and not guards_on:
         raise ValueError("Phase 14 safety evidence requires --guardrails on")
@@ -301,9 +306,11 @@ def run_safety_eval(args: argparse.Namespace) -> int:
     injection_answered = 0
     for ex in selected:
         if variant == "D_agentic":
+            if not isinstance(retriever, AgenticRetriever):
+                raise TypeError("D_agentic requires an AgenticRetriever")
             answer = answer_question_agentic(
                 ex.question,
-                retriever,  # type: ignore[arg-type]
+                retriever,
                 generator,
                 model_id=cfg.models.T1.id,
                 max_steps=cfg.loops.agent_steps_max,

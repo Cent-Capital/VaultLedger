@@ -20,6 +20,8 @@ from pydantic_settings import (
     YamlConfigSettingsSource,
 )
 
+from vaultledger.schemas import QuestionCategory, Variant
+
 # Repo root is one level above this package directory.
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = REPO_ROOT / "config.yaml"
@@ -59,7 +61,7 @@ class ModelRegistry(BaseModel):
 class Matrix(BaseModel):
     """Phase 18 local model-matrix and preregistered decoding defaults."""
 
-    variants: list[str] = ["B_hybrid"]
+    variants: list[Variant] = ["B_hybrid"]
     smoke_limit: int = Field(default=12, ge=0)
     decoding_sweep_model: str = "ollama/qwen3:8b"
     decoding_temperatures: list[float] = [0.3, 0.7]
@@ -69,7 +71,7 @@ class Matrix(BaseModel):
 class Router(BaseModel):
     """Phase 12 deterministic local-size routing policy."""
 
-    t0_categories: list[str] = ["single_doc", "guardrail_benign"]
+    t0_categories: list[QuestionCategory] = ["single_doc", "guardrail_benign"]
     projected_cost_usd: dict[str, float] = {"T0": 0.0, "T1": 0.0}
 
 

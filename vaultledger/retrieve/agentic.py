@@ -18,13 +18,13 @@ from dataclasses import dataclass, field
 from decimal import Decimal, DivisionByZero, InvalidOperation
 from pathlib import Path
 from time import perf_counter
-from typing import Literal, Protocol
+from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from vaultledger.retrieve.context import assemble_context
 from vaultledger.retrieve.types import Retriever, ScoredChunk
-from vaultledger.schemas import AgentStep, Chunk
+from vaultledger.schemas import AgentStep, AgentTool, Chunk, Variant
 
 ALLOWED_SQL_TABLES = frozenset(
     {
@@ -87,7 +87,7 @@ class AgentAction(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    tool: Literal["retrieve", "calculator", "sql", "finish"]
+    tool: AgentTool
     input: str = ""
     answer_text: str = ""
     abstained: bool = False
@@ -268,7 +268,7 @@ class AgenticRetriever:
 
     base: Retriever
     records_db: Path
-    variant: str = "D_agentic"
+    variant: Variant = "D_agentic"
     chunks_by_doc: dict[str, list[Chunk]] | None = None
 
     def __post_init__(self) -> None:

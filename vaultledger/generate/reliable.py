@@ -51,7 +51,15 @@ from vaultledger.guardrails.output import (
 from vaultledger.observability import TraceRecorder
 from vaultledger.retrieve import Retriever, assemble_context
 from vaultledger.retrieve.types import ScoredChunk
-from vaultledger.schemas import Answer, Chunk, Citation, GuardrailEvent, RoutingDecision
+from vaultledger.schemas import (
+    Answer,
+    Chunk,
+    Citation,
+    GuardrailEvent,
+    PrivacyMode,
+    RoutingDecision,
+    Variant,
+)
 
 # Minimum normalized snippet length we bother verifying; shorter "snippets" are
 # too generic to confirm support, so a citation must carry at least this much.
@@ -338,10 +346,10 @@ def verify_citations(
 def _abstained_answer(
     *,
     model_id: str,
-    variant: str,
+    variant: Variant,
     routing: RoutingDecision,
     events: list[GuardrailEvent],
-    privacy_mode: str = "local",
+    privacy_mode: PrivacyMode = "local",
     data_left_machine: bool = False,
     answer_text: str = ABSTAIN_SENTENCE,
 ) -> Answer:
@@ -352,8 +360,8 @@ def _abstained_answer(
         confidence=0.0,
         model_used=model_id,
         tier=routing.chosen_tier,
-        variant=variant,  # type: ignore[arg-type]
-        privacy_mode=privacy_mode,  # type: ignore[arg-type]
+        variant=variant,
+        privacy_mode=privacy_mode,
         data_left_machine=data_left_machine,
         routing=routing,
         guardrail_events=events,
@@ -379,7 +387,7 @@ def answer_question_reliable(
     max_retries: int = 2,
     min_snippet_chars: int = MIN_SNIPPET_CHARS,
     routing: RoutingDecision | None = None,
-    privacy_mode: str = "local",
+    privacy_mode: PrivacyMode = "local",
     data_left_machine: bool = False,
     reorder_context: bool = True,
     trace_recorder: TraceRecorder | None = None,
@@ -544,8 +552,8 @@ def answer_question_reliable(
         confidence=_confidence(verify.citations, hits),
         model_used=model_id,
         tier=routing.chosen_tier,
-        variant=retriever.variant,  # type: ignore[arg-type]
-        privacy_mode=privacy_mode,  # type: ignore[arg-type]
+        variant=retriever.variant,
+        privacy_mode=privacy_mode,
         data_left_machine=data_left_machine,
         routing=routing,
         guardrail_events=events,

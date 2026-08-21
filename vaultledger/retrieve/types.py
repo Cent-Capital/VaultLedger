@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from vaultledger.schemas import Chunk
+from vaultledger.schemas import Chunk, Variant
 
 
 @dataclass(frozen=True)
@@ -21,7 +21,7 @@ class ScoredChunk:
 class Retriever(Protocol):
     """Common interface for RAG variants A/B/C/D."""
 
-    variant: str
+    variant: Variant
 
     def retrieve(self, query: str, k: int = 20) -> list[ScoredChunk]:
         """Return ranked chunks for ``query``."""

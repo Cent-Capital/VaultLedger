@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import cast
 from uuid import uuid4
 
 from vaultledger.generate.agentic import answer_question_agentic
@@ -17,10 +17,8 @@ from vaultledger.observability import (
     TraceStore,
     export_to_langfuse,
 )
-from vaultledger.retrieve import AgenticRetriever, Retriever
-from vaultledger.schemas import Answer, GuardrailEvent, RoutingDecision
-
-PrivacyMode = Literal["local", "cloud"]
+from vaultledger.retrieve import AgenticRetriever, AgentPlanner, Retriever
+from vaultledger.schemas import Answer, GuardrailEvent, PrivacyMode, RoutingDecision
 
 
 class CloudConsentRequired(ValueError):
@@ -144,7 +142,7 @@ def answer_with_privacy(
             return answer_question_agentic(
                 question,
                 retriever,
-                generator,  # type: ignore[arg-type]
+                cast(AgentPlanner, generator),
                 max_steps=agent_steps_max,
                 token_budget=agent_tokens_max,
                 output_tokens_max=agent_output_tokens_max,

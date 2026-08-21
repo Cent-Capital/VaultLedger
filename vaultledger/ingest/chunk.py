@@ -58,7 +58,7 @@ def chunk_doc(
                     page=page.page_number,
                     char_start=start,
                     char_end=end,
-                    corpus=doc.corpus,  # type: ignore[arg-type]
+                    corpus=doc.corpus,
                     ocr_derived=page.page_number in doc.ocr_pages,
                 )
             )

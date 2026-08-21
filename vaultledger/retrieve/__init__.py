@@ -1,6 +1,6 @@
 """Retrieval variants A/B/C/D behind one Retriever interface + assembly (SPEC 14)."""
 
-from .agentic import AgenticRetriever, calculate, run_agent_loop, run_readonly_sql
+from .agentic import AgenticRetriever, AgentPlanner, calculate, run_agent_loop, run_readonly_sql
 from .context import assemble_context
 from .graph import GraphQueryMode, LightRAGRetriever
 from .hybrid import HybridRetriever, reciprocal_rank_fusion
@@ -20,6 +20,7 @@ __all__ = [
     "reciprocal_rank_fusion",
     "assemble_context",
     "AgenticRetriever",
+    "AgentPlanner",
     "calculate",
     "run_agent_loop",
     "run_readonly_sql",

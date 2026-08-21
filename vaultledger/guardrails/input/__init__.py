@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from vaultledger.schemas import GuardrailEvent
+from vaultledger.schemas import GuardrailEvent, GuardrailStage
 
 EDUCATION_NOT_ADVICE_RESPONSE = (
     "I can explain information in your documents, but I can't recommend financial, "
@@ -67,10 +67,10 @@ def pii_tagging_event(spans: Iterable[SpanLike]) -> GuardrailEvent:
     )
 
 
-def injection_scan(text: str, *, stage: str = "ingest") -> GuardrailEvent:
+def injection_scan(text: str, *, stage: GuardrailStage = "ingest") -> GuardrailEvent:
     found = bool(_INJECTION.search(text))
     return GuardrailEvent(
-        stage=stage,  # type: ignore[arg-type]
+        stage=stage,
         guard="injection_scan",
         action="flag" if found else "pass",
         details="instruction-like text detected" if found else "no instruction-like text detected",

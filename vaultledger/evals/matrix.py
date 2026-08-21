@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from statistics import median
 from time import perf_counter
+from typing import cast
 from uuid import uuid4
 from xml.sax.saxutils import escape
 
@@ -30,15 +31,18 @@ from vaultledger.retrieve import (
     HybridRetriever,
     LightRAGRetriever,
     NaiveDenseRetriever,
+    Retriever,
 )
 from vaultledger.schemas import (
     Answer,
     DecodingProfile,
     MatrixJudgeVerdict,
     ModelMetadata,
+    LocalTier,
     QAExample,
     RoutingDecision,
     RunManifest,
+    Variant,
 )
 
 _AMOUNT = re.compile(r"\$\s*\d[\d,]*(?:\.\d{2})?")
@@ -59,6 +63,9 @@ _IDENTIFIER = re.compile(r"\b[A-Z][A-Z0-9]+(?:-[A-Z0-9]+){2,}\b")
 # judgement — a second metric that repeated it would earn its place nowhere.
 _REFERENCE_QUANTITY = re.compile(r"\$\s*\d[\d,]*(?:\.\d+)?|(?<![\w$.])\d[\d,]*\.\d{2}(?![\d])")
 _CANDIDATE_QUANTITY = re.compile(r"(?<![\w.])\$?\s*\d[\d,]*(?:\.\d+)?(?![\d])")
+_SUPPORTED_VARIANTS: frozenset[Variant] = frozenset(
+    {"A_naive", "B_hybrid", "C_graph", "D_agentic"}
+)
 
 
 def _float_slug(value: float) -> str:
@@ -236,7 +243,17 @@ def _percentile(values: list[float], percentile: float) -> float:
     return ordered[index]
 
 
-def _required_inputs(cfg: Config, variants: list[str]) -> None:
+def _validated_variants(values: list[str]) -> list[Variant]:
+    unsupported = sorted(set(values) - _SUPPORTED_VARIANTS)
+    if unsupported:
+        raise ValueError(
+            f"variants not built yet: {', '.join(unsupported)}; "
+            "built variants are A_naive/B_hybrid/C_graph/D_agentic"
+        )
+    return [cast(Variant, value) for value in values]
+
+
+def _required_inputs(cfg: Config, variants: list[Variant]) -> None:
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     required = [index_dir / "chunks.jsonl", index_dir / "chroma", index_dir / "records.db"]
     if {"B_hybrid", "D_agentic"} & set(variants):
@@ -260,13 +277,7 @@ def _required_inputs(cfg: Config, variants: list[str]) -> None:
     assert_evaluation_corpus(index_dir)
 
 
-def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
-    unsupported = sorted(set(variants) - {"A_naive", "B_hybrid", "C_graph", "D_agentic"})
-    if unsupported:
-        raise ValueError(
-            f"variants not built yet: {', '.join(unsupported)}; "
-            "built variants are A_naive/B_hybrid/C_graph/D_agentic"
-        )
+def _retrievers(cfg: Config, variants: list[Variant]) -> dict[Variant, Retriever]:
     index_dir = cfg.repo_path(cfg.paths.index_dir)
     embedder = OllamaEmbedder(model=cfg.embedding.model, base_url=cfg.embedding.ollama_url)
     if not embedder.is_available():
@@ -274,7 +285,7 @@ def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
             f"embedding model {cfg.embedding.model!r} is unavailable at "
             f"{cfg.embedding.ollama_url}"
         )
-    built: dict[str, object] = {}
+    built: dict[Variant, Retriever] = {}
     if "A_naive" in variants:
         built["A_naive"] = NaiveDenseRetriever(index_dir, embedder)
     if "C_graph" in variants:
@@ -304,7 +315,7 @@ def _retrievers(cfg: Config, variants: list[str]) -> dict[str, object]:
 
 def _answer_top_n(
     cfg: Config,
-    variant: str,
+    variant: Variant,
     *,
     graph_answer_top_n: int | None = None,
 ) -> int:
@@ -511,8 +522,8 @@ def _run_cell(
     *,
     cfg: Config,
     model: str,
-    variant: str,
-    retriever: object,
+    variant: Variant,
+    retriever: Retriever,
     examples: list[QAExample],
     golden_set_hash: str,
     out_dir: Path,
@@ -608,7 +619,7 @@ def _run_cell(
         before = generator.snapshot()
         call_start = len(generator.calls)
         started = perf_counter()
-        tier = "T0" if model == cfg.models.T0.id else "T1"
+        tier: LocalTier = "T0" if model == cfg.models.T0.id else "T1"
         routing = RoutingDecision(
             query_id=f"q_{uuid4().hex[:12]}",
             allowed_tiers=[tier],
@@ -620,9 +631,11 @@ def _run_cell(
         )
         try:
             if variant == "D_agentic":
+                if not isinstance(retriever, AgenticRetriever):
+                    raise TypeError("D_agentic requires an AgenticRetriever")
                 answer = answer_question_agentic(
                     example.question,
-                    retriever,  # type: ignore[arg-type]
+                    retriever,
                     generator,
                     model_id=model,
                     max_steps=cfg.loops.agent_steps_max,
@@ -639,7 +652,7 @@ def _run_cell(
             else:
                 answer = answer_question_reliable(
                     example.question,
-                    retriever,  # type: ignore[arg-type]
+                    retriever,
                     generator,
                     model_id=model,
                     k=answer_top_n,
@@ -890,7 +903,7 @@ def _run_cell(
         config_hash=config_hash(),
         golden_set_hash=golden_set_hash,
         seed=cfg.seed,
-        variant=variant,  # type: ignore[arg-type]
+        variant=variant,
         model=model,
         metrics=metrics,
         total_cost_usd=totals.cost_usd,
@@ -1629,7 +1642,8 @@ def run_rescore(args: Namespace) -> int:
 def run_matrix(args: Namespace) -> int:
     cfg = load_config()
     models = args.models or [model.id for model in cfg.models.matrix]
-    variants = args.variants or cfg.matrix.variants
+    raw_variants = list(args.variants or cfg.matrix.variants)
+    variants = _validated_variants(raw_variants)
     decoding_sweep = bool(getattr(args, "decoding_sweep", False))
     judge_model = str(getattr(args, "judge_model", "") or "") or None
     decoding_profiles = [(cfg.generation.temperature, cfg.generation.top_p)]
