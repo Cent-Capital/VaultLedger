@@ -28,11 +28,10 @@ non-negotiables that bite hardest on this repo:
 
 ## Product/narrative work lives elsewhere
 Code, tests, evals, ADRs → here. The *story* around it (PRD, internship report,
-deck, metric framing, design justifications, review passes) → the PM-OS
-workspace at `~/Desktop/PM-OS` and its skills (`/pm-operating-system`,
-`/experiment-metrics`, `/decision-doc`, `/prd-review-panel`, `/ralph-wiggum`).
-Rough rule: if the compiler or eval harness reads the output, it's here; if a
-recruiter or the Cent Capital lead reads it, it's PM-OS.
+deck, metric framing, design justifications, review passes) lives in an external
+narrative workspace that is not distributed with this repository. Rough rule: if
+the compiler or eval harness reads the output, it belongs here; if it is private
+portfolio or internship narrative, it remains outside this public repository.
 
 ## Build discipline
 - **Phase-gated.** Don't start a phase until the prior phase's acceptance

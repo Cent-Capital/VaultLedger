@@ -9,6 +9,7 @@ evaluation harness.
 |---|---|
 | **Taking ownership of this repo** | [handover.md](handover.md) → [limitations.md](limitations.md) → [architecture.md](architecture.md) |
 | **A new engineer on the project** | [getting-started.md](getting-started.md) → [architecture.md](architecture.md) → [evaluation.md](evaluation.md) |
+| **Contributing a change** | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) → [`../CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) → [`../SECURITY.md`](../SECURITY.md) |
 | **Reviewing the evidence** | [evaluation.md](evaluation.md) → `reports/variant_matrix.md` → `reports/adr_index.md` → `PROGRESS.md` |
 | **Just trying to run it** | [getting-started.md](getting-started.md), then `make doctor` |
 

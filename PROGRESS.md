@@ -3423,3 +3423,34 @@ argument: a public repository is one setting change away, and the isolation cost
 log is append-only. Editing five documents to chase a visibility setting that may change again
 at transfer would destroy more evidence than it repairs. Recorded here so the discrepancy is
 visible rather than a trap. `docs/handover.md` carries it as a pre-transfer item.
+
+---
+
+## Open-source conversion and ownership transfer completion  (2026-08-21)
+
+Not a product phase. The canonical repository is now
+`https://github.com/Cent-Capital/VaultLedger`, its visibility is public, and its website
+metadata points to `https://cent.capital`.
+
+**Licensing and attribution.** The proprietary license was replaced by Apache-2.0. `NOTICE`
+preserves the known copyright attribution to Abhinav Gupta and the project's connection to
+an internship at Cent Capital LLC. Package metadata and the README now state the same license.
+
+**Public-repository boundary.** A history-wide pattern scan covered all 115 commits and found
+no provider-token or private-key signatures. GitHub secret scanning reported zero open alerts,
+and GitHub Actions reported zero retained artifacts. These checks reduce publication risk;
+they are not a proof that arbitrary confidential text could not exist. The committed financial
+fixtures and evaluation receipts remain explicitly synthetic, while live user documents and
+their derivatives remain external by construction.
+
+**Community surface.** The canonical ZIP link was corrected and contributor, conduct, and
+private security-reporting policies were added. Retired hosted-model keys were removed from
+`.env.example`; only optional Langfuse observability remains.
+
+**Historical records.** The 2026-08-19 visibility observation above remains byte-identical as
+the dated fact it recorded. ADR-0011 is amended, not rewritten, to identify the current remote.
+Current handover documentation marks the transfer and license work resolved.
+
+**Execution boundary.** No product source, evaluation manifest, generated report, or metric
+was changed. Tests and evaluation runs were not repeated for this documentation, metadata, and
+licensing-only conversion.

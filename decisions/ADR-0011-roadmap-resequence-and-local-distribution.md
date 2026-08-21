@@ -113,3 +113,14 @@ silent-failure risk are deferred to their own decision record.
   (`reports/phase15_graph_index_2e50d5948f99.json`), so incremental insert is the only
   workable watcher design.
 - Public remote `github.com/abhinavgupta0809/vaultledger`, synced at `d01ecb4`.
+
+## Amendment — 2026-08-21: canonical public repository
+
+The evidence line above records the remote used when this ADR was written. After ownership
+transfer, the canonical public repository is
+`https://github.com/Cent-Capital/VaultLedger`, with project metadata pointing to
+`https://cent.capital`. VaultLedger is now distributed under Apache-2.0.
+
+This amendment changes neither the Phase 16 design nor its privacy boundary. Real user
+documents and every derived index, graph, projection, and trace remain outside the public
+working tree.

@@ -1,7 +1,7 @@
 # VaultLedger → PM-OS handover
 
-2026-08-14 · Repo at `fd1aa98`, pushed, CI green (run 31849255563) · For narrative work in
-`~/Desktop/PM-OS`
+2026-08-14 · Repo at `fd1aa98`, pushed, CI green (run 31849255563) · Historical handover
+for narrative work maintained outside this repository
 
 **The rule this document exists to enforce.** The repo is the single source of truth for
 every number. This is a claim register with pointers, not a second copy of the data. When

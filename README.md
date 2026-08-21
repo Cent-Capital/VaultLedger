@@ -381,8 +381,20 @@ demo/          Track-A recording and reproducible walkthrough script
 tests/         phase acceptance criteria and spec-by-example gates
 ```
 
+## Community
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change.
+- Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+- Report vulnerabilities privately using [SECURITY.md](SECURITY.md).
+
+Issues, examples, screenshots, and test fixtures must use synthetic data. Never publish real
+financial documents, extracted user text, local indexes, graphs, projections, or traces.
+
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE). Attribution is recorded in
 [NOTICE](NOTICE). Copyright 2026 Abhinav Gupta; developed in connection with an
 internship at [Cent Capital LLC](https://cent.capital).
+
+Third-party dependencies and separately downloaded model weights remain subject to their
+respective licenses. VaultLedger does not redistribute Ollama model weights.

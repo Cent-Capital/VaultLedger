@@ -117,34 +117,29 @@ These are carried forward explicitly in the build log. None is resolved.
 **Deliverables not started:** demo v2, and the internship report and blog draft, which live
 in a separate narrative workspace outside this repository.
 
-## 5. Licensing and attribution — unresolved, deliberately
+## 5. Licensing and attribution — resolved
 
-`LICENSE` reads *"Proprietary, all rights reserved… Created in connection with an
-internship at Cent Capital LLC; not licensed for reuse."* It has **not** been changed as
-part of this handover, because licensing is a legal decision for the owner and Cent
-Capital rather than an editorial one. Resolve it before any external distribution.
+VaultLedger is open source under the [Apache License 2.0](../LICENSE). The
+[NOTICE](../NOTICE) file preserves the known copyright attribution to Abhinav Gupta and
+the project's connection to an internship at [Cent Capital LLC](https://cent.capital).
+Third-party dependencies and separately downloaded model weights retain their own licenses.
 
-Related: `CLAUDE.md` and `docs/briefs/PM_OS_HANDOVER.md` reference a private narrative
-workspace on the previous owner's machine (`~/Desktop/PM-OS`). Those paths will not exist
-for you. They are documentation of where non-code artifacts were routed, not a runtime
-dependency — nothing in the build reads them — but you may want to genericise them.
+The external narrative workspace remains outside this repository. Current documentation no
+longer assumes a path on a previous owner's machine, and nothing in the build depends on it.
 
-## 5a. Pre-transfer checklist — things only the new owner can fix
+## 5a. Post-transfer repository state
 
-Each of these hardcodes the *previous* owner's identity or asserts a fact that the transfer
-itself will change. None is fixable without knowing the destination org.
+| Item | Current state |
+|---|---|
+| Canonical repository | `https://github.com/Cent-Capital/VaultLedger` |
+| Visibility | Public |
+| Project website | `https://cent.capital` |
+| License | Apache-2.0 with attribution in `NOTICE` |
+| Community files | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md` |
 
-| Item | Where | What it needs |
-|---|---|---|
-| The ZIP download link points at a personal account | `README.md:44` — `github.com/abhinavgupta0809/vaultledger/archive/…` | Repoint to the org URL. This is the **first link a non-technical recipient clicks**; if it 404s, the documented handoff path fails at step one |
-| Same link, wiki copy | wiki `Getting-Started` page | Same repoint |
-| The remote is asserted to be public in five places, but is currently **private** | ADR-0011 (×2), `README.md:14`, `PROGRESS.md:2259`, `docs/briefs/ROADMAP_RESEQUENCE_BRIEF.md:48` | Decide the destination visibility, then reconcile. Recorded as a dated observation at the end of `PROGRESS.md`; deliberately not edited in place |
-| `LICENSE` — "Proprietary… internship at Cent Capital LLC; not licensed for reuse" | `LICENSE` | A legal decision, see §5 |
-| Rounding drift between the ADR and its own artifact | ADR-0016 reads 72% judge and 8.0 GB resident; `reports/model_matrix.md` reads 72.5% and 7.50 GiB | Consistent (8.0 GB ≈ 7.45 GiB), different precision and units. Not an error — but a reviewer diffing the ADR against the generated artifact will query it |
-
-**Do not "fix" the visibility assertions by editing ADR-0011.** ADRs are amended, not
-rewritten. Add an `## Amendment — <date>` section if you want it corrected in the decision
-record itself.
+Historical visibility and remote-URL statements remain in the append-only progress log and
+original ADR evidence. ADR-0011 carries a dated amendment that identifies the canonical
+repository without rewriting the original decision record.
 
 ## 6. Getting running
 
