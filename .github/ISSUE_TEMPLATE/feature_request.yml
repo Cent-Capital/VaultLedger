@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a focused improvement to VaultLedger
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Explain the user problem first. Proposed changes must preserve the local-first privacy
+        boundary and use synthetic examples.
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What user need or measurable gap should this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the smallest practical solution.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and success measure
+      description: What evidence supports the request, and how should success be measured?
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and compatibility impact
+      description: Note effects on local inference, user-document isolation, dependencies, and existing behavior.
+    validations:
+      required: true
