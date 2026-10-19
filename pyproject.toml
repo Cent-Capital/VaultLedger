@@ -62,7 +62,7 @@ graph = [
     "aiohttp>=3.14,<4",  # explicit local HTTP binding; no runtime auto-install
 ]
 observability = [
-    "langfuse>=4.14,<5",
+    "langfuse>=4.14,<6",
     # Keep the optional HTTP exporter on the same current OpenTelemetry line as
     # Chroma's gRPC exporter so one environment does not resolve split SDKs.
     "opentelemetry-exporter-otlp-proto-http>=1.44,<2",
